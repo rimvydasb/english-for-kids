@@ -12,17 +12,18 @@ interface WordCardProps {
     word: WordRecord;
     active?: boolean;
     onPronounce?: () => void;
-    labelOverride?: string;
-    disableFlip?: boolean;
+    guessMode?: boolean;
 }
 
-export default function WordCard({ word, active, onPronounce, labelOverride, disableFlip }: WordCardProps) {
+export default function WordCard({
+    word,
+    active,
+    onPronounce,
+    guessMode,
+}: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
 
     const toggleFlip = () => {
-        if (disableFlip) {
-            return;
-        }
         setFlipped((prev) => !prev);
     };
 
@@ -43,15 +44,17 @@ export default function WordCard({ word, active, onPronounce, labelOverride, dis
                         color: active ? 'secondary.main' : 'text.primary',
                     }}
                 >
-                    {labelOverride || word.word}
+                    {guessMode ? '???' : word.word}
                 </Typography>
-                <IconButton
-                    aria-label={`Hear ${word.word}`}
-                    onClick={handlePronounce}
-                    color={active ? 'secondary' : 'primary'}
-                >
-                    <VolumeUpIcon />
-                </IconButton>
+                {!guessMode && (
+                    <IconButton
+                        aria-label={`Hear ${word.word}`}
+                        onClick={handlePronounce}
+                        color={active ? 'secondary' : 'primary'}
+                    >
+                        <VolumeUpIcon />
+                    </IconButton>
+                )}
             </Box>
         </CardContent>
     );
@@ -60,20 +63,20 @@ export default function WordCard({ word, active, onPronounce, labelOverride, dis
         <Card
             onClick={toggleFlip}
             sx={{
-                height: '100%',
                 transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out',
                 transform: active ? 'scale(1.03)' : 'scale(1)',
                 boxShadow: active ? 6 : 2,
-                border: '1px solid',
                 borderColor: active ? 'secondary.main' : 'divider',
-                cursor: disableFlip ? 'default' : 'pointer',
+                cursor: 'pointer',
+                borderRadius: 4,
+                overflow: 'hidden',
             }}
         >
             <Box sx={{ perspective: '1200px' }}>
                 <Box
                     sx={{
                         position: 'relative',
-                        minHeight: 420,
+                        minHeight: 350,
                         transformStyle: 'preserve-3d',
                         transition: 'transform 0.6s ease',
                         transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
@@ -90,10 +93,13 @@ export default function WordCard({ word, active, onPronounce, labelOverride, dis
                     >
                         <CardMedia
                             component="img"
-                            height="320"
                             image={word.getImageUrl()}
                             alt={`Illustration of ${word.word}`}
-                            sx={{ objectFit: 'cover' }}
+                            sx={{
+                                objectFit: 'cover',
+                                width: '100%',
+                                aspectRatio: '1 / 1',
+                            }}
                         />
                         {bottomRow}
                     </Box>
@@ -107,12 +113,12 @@ export default function WordCard({ word, active, onPronounce, labelOverride, dis
                             display: 'flex',
                             flexDirection: 'column',
                             bgcolor: 'grey.100',
-                            borderRadius: 1,
+                            borderRadius: 4,
                         }}
                     >
                         <CardContent
                             sx={{
-                                minHeight: 320,
+                                minHeight: 200,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',

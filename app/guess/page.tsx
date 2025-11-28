@@ -241,7 +241,7 @@ export default function GuessWordGame() {
                             {currentWord && (
                                 <WordCard
                                     word={currentWord}
-                                    labelOverride="???"
+                                    guessMode
                                     onPronounce={pronounceWord}
                                 />
                             )}
