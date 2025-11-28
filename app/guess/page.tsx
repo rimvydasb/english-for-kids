@@ -35,6 +35,11 @@ const shakeAnimation = keyframes`
   100% { transform: translateX(0); }
 `;
 
+const fadeAwayAnimation = keyframes`
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.96); }
+`;
+
 const shuffle = (values: string[]) => {
     const arr = [...values];
     for (let i = arr.length - 1; i > 0; i -= 1) {
@@ -154,6 +159,13 @@ export default function GuessWordGame() {
             setLearnedWords(updatedLearned);
             persistLearned(updatedLearned);
 
+            if (synthRef.current) {
+                setError(null);
+                synthRef.current.cancel();
+                const utterance = new SpeechSynthesisUtterance(currentWord.word);
+                synthRef.current.speak(utterance);
+            }
+
             setGlowingOption(guess);
             setIsTransitioning(true);
 
@@ -249,28 +261,33 @@ export default function GuessWordGame() {
                                 const minWidth = Math.max(option.length * 14, 140);
                                 const isGlowing = glowingOption === option;
                                 const isShaking = shakingOption === option;
+                                const shouldFade = isTransitioning && !isGlowing;
 
                                 return (
                                     <Button
                                         key={option}
-                                        variant={isGlowing ? 'outlined' : 'outlined'}
-                                        color={isShaking ? 'error' : isGlowing ? 'primary' : 'primary'}
+                                        variant={isGlowing ? 'contained' : 'outlined'}
+                                        color={isShaking ? 'error' : isGlowing ? 'success' : 'primary'}
                                         size="large"
                                         onClick={() => handleGuess(option)}
-                                        disabled={isTransitioning}
                                         sx={{
                                             textTransform: 'none',
                                             fontWeight: 700,
                                             fontSize: 25,
                                             minWidth,
                                             px: 2.5,
+                                            pointerEvents: isTransitioning ? 'none' : 'auto',
                                             animation: isGlowing
                                                 ? `${glowAnimation} 3s ease-in-out`
-                                                : isShaking
-                                                    ? `${shakeAnimation} 0.5s ease`
-                                                    : 'none',
+                                                : shouldFade
+                                                    ? `${fadeAwayAnimation} 3s forwards`
+                                                    : isShaking
+                                                        ? `${shakeAnimation} 0.5s ease`
+                                                        : 'none',
+                                            bgcolor: isGlowing ? 'success.light' : undefined,
                                             borderColor: isShaking ? 'error.main' : undefined,
                                             color: isShaking ? 'error.main' : undefined,
+                                            opacity: shouldFade ? 0 : 1,
                                         }}
                                     >
                                         {option}
