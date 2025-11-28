@@ -44,7 +44,12 @@ const ScoreHeader = ({
                 minWidth: 0,
             }}
         >
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700, minWidth: 0 }}>
+            <Typography
+                variant="h4"
+                component="h1"
+                noWrap
+                sx={{ fontWeight: 700, minWidth: 0, display: { xs: 'none', sm: 'block' } }}
+            >
                 Guess Word Game
             </Typography>
             <Typography variant="h4" component="h1" sx={{ minWidth: 80, textAlign: 'center' }}>
