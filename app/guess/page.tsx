@@ -1,44 +1,66 @@
 'use client';
 
-import {useEffect, useMemo, useRef, useState} from 'react';
-import {useRouter} from 'next/navigation';
-import {Alert, Box, Button, Container, IconButton, Stack, Typography,} from '@mui/material';
-import {keyframes} from '@mui/material/styles';
-import {WordRecord, WORDS_DICTIONARY} from '@/lib/words';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Alert, Box, Container, IconButton, Stack, Typography } from '@mui/material';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import { WordRecord, WORDS_DICTIONARY } from '@/lib/words';
 import WordCard from '../words/WordCard';
-import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import OptionButton from './OptionButton';
+import FinishedSummary from './FinishedSummary';
 
 const STORAGE_KEY = 'guess_game_learned_words';
 const EXTRA_DECOYS = ['apple', 'book', 'window', 'chair', 'eraser', 'lamp'];
 
-const glowAnimation = keyframes`
-    0% {
-        box-shadow: 0 0 0 0 rgba(122, 150, 248, 0.4);
-    }
-    40% {
-        box-shadow: 0 0 18px 8px rgba(28, 72, 223, 0.35);
-    }
-    80% {
-        box-shadow: 0 0 10px 2px rgba(67, 255, 0, 0.25);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-    }
-`;
-
-const shakeAnimation = keyframes`
-  0% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
-  100% { transform: translateX(0); }
-`;
-
-const fadeAwayAnimation = keyframes`
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.96); }
-`;
+const ScoreHeader = ({
+    learnedCount,
+    totalCount,
+    score,
+    onExit,
+    showScore = true,
+}: {
+    learnedCount: number;
+    totalCount: number;
+    score: number;
+    onExit: () => void;
+    showScore?: boolean;
+}) => (
+    <Box
+        sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 3,
+        }}
+    >
+        <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 2,
+                flex: 1,
+                mr: 2,
+                minWidth: 0,
+            }}
+        >
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 700, minWidth: 0 }}>
+                Guess Word Game
+            </Typography>
+            <Typography variant="h4" component="h1" sx={{ minWidth: 80, textAlign: 'center' }}>
+                ({learnedCount} / {totalCount})
+            </Typography>
+            {showScore && (
+                <Typography variant="h4" component="h1" sx={{ fontWeight: 700, textAlign: 'right' }}>
+                    {Number.isNaN(score) ? 0 : score}%
+                </Typography>
+            )}
+        </Box>
+        <IconButton aria-label="Return to main menu" onClick={onExit}>
+            <HighlightOffIcon fontSize="large" />
+        </IconButton>
+    </Box>
+);
 
 const shuffle = (values: string[]) => {
     const arr = [...values];
@@ -96,12 +118,44 @@ export default function GuessWordGame() {
     const [learnedWords, setLearnedWords] = useState<Set<string>>(new Set());
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
+    const [isFinished, setIsFinished] = useState(false);
     const [glowingOption, setGlowingOption] = useState<string | null>(null);
     const [shakingOption, setShakingOption] = useState<string | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const synthRef = useRef<SpeechSynthesis | null>(null);
+
+    const speak = useCallback(
+        (value: string) => {
+            if (!synthRef.current) {
+                setError('Speech synthesis is not available in this browser.');
+                return;
+            }
+            setError(null);
+            synthRef.current.cancel();
+            const utterance = new SpeechSynthesisUtterance(value);
+            synthRef.current.speak(utterance);
+        },
+        [setError],
+    );
+
+    const setupRound = useCallback(
+        (learned: Set<string>) => {
+            if (learned.size >= words.length) {
+                setIsFinished(true);
+                setCurrentWord(null);
+                setOptions([]);
+                return;
+            }
+
+            setIsFinished(false);
+            const next = pickNextWord(words, learned);
+            setCurrentWord(next);
+            setOptions(uniqueOptions(words, next));
+        },
+        [words],
+    );
 
     useEffect(() => {
         const handleKeydown = (event: KeyboardEvent) => {
@@ -123,104 +177,77 @@ export default function GuessWordGame() {
 
         const stored = loadLearnedFromStorage();
         setLearnedWords(stored);
-        const nextWord = pickNextWord(words, stored);
-        setCurrentWord(nextWord);
-        setOptions(uniqueOptions(words, nextWord));
+        setupRound(stored);
 
         return () => synthRef.current?.cancel();
-    }, [words]);
+    }, [setupRound, words]);
 
-    const pronounceWord = () => {
-        if (!currentWord) {
-            return;
+    const pronounceWord = useCallback(() => {
+        if (currentWord) {
+            speak(currentWord.word);
         }
+    }, [currentWord, speak]);
 
-        if (!synthRef.current) {
-            setError('Speech synthesis is not available in this browser.');
-            return;
-        }
-
-        setError(null);
-        synthRef.current.cancel();
-
-        const utterance = new SpeechSynthesisUtterance(currentWord.word);
-        synthRef.current.speak(utterance);
-    };
-
-    const handleGuess = (guess: string) => {
-        if (!currentWord || isTransitioning) {
-            return;
-        }
-
-        const isCorrect = guess === currentWord.word;
-        if (isCorrect) {
-            const updatedLearned = new Set(learnedWords);
-            updatedLearned.add(currentWord.word);
-            setLearnedWords(updatedLearned);
-            persistLearned(updatedLearned);
-
-            if (synthRef.current) {
-                setError(null);
-                synthRef.current.cancel();
-                const utterance = new SpeechSynthesisUtterance(currentWord.word);
-                synthRef.current.speak(utterance);
+    const handleGuess = useCallback(
+        (guess: string) => {
+            if (!currentWord || isTransitioning) {
+                return;
             }
 
-            setGlowingOption(guess);
-            setIsTransitioning(true);
+            const isCorrect = guess === currentWord.word;
+            if (isCorrect) {
+                const updatedLearned = new Set(learnedWords);
+                updatedLearned.add(currentWord.word);
+                setLearnedWords(updatedLearned);
+                persistLearned(updatedLearned);
 
-            window.setTimeout(() => {
-                const nextWord = pickNextWord(words, updatedLearned);
-                setCurrentWord(nextWord);
-                setOptions(uniqueOptions(words, nextWord));
-                setGlowingOption(null);
-                setIsTransitioning(false);
-            }, 3000);
-            return;
-        }
+                speak(currentWord.word);
 
-        setShakingOption(guess);
-        window.setTimeout(() => setShakingOption(null), 700);
-    };
+                setGlowingOption(guess);
+                setIsTransitioning(true);
+
+                window.setTimeout(() => {
+                    if (updatedLearned.size >= words.length) {
+                        setIsFinished(true);
+                        setCurrentWord(null);
+                        setOptions([]);
+                    } else {
+                        setupRound(updatedLearned);
+                    }
+                    setGlowingOption(null);
+                    setIsTransitioning(false);
+                }, 3000);
+                return;
+            }
+
+            setShakingOption(guess);
+            window.setTimeout(() => setShakingOption(null), 700);
+        },
+        [currentWord, isTransitioning, learnedWords, setupRound, speak],
+    );
 
     const score = Math.round((learnedWords.size / words.length) * 100);
+
+    const handleRestart = useCallback(() => {
+        const reset = new Set<string>();
+        setLearnedWords(reset);
+        persistLearned(reset);
+        setGlowingOption(null);
+        setShakingOption(null);
+        setIsTransitioning(false);
+        setupRound(reset);
+    }, [setupRound]);
 
     return (
         <Container maxWidth="md">
             <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        mb: 3,
-                    }}
-                >
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 2,
-                            flex: 1,
-                            mr: 2,
-                            minWidth: 0,
-                        }}
-                    >
-                        <Typography variant="h4" component="h1" sx={{fontWeight: 700, minWidth: 0}}>
-                            Guess Word Game
-                        </Typography>
-                        <Typography variant="h4" component="h1" sx={{minWidth: 80, textAlign: 'center'}}>
-                            ({learnedWords.size} / {words.length})
-                        </Typography>
-                        <Typography variant="h4" component="h1" sx={{fontWeight: 700, textAlign: 'right'}}>
-                            {Number.isNaN(score) ? 0 : score}%
-                        </Typography>
-                    </Box>
-                    <IconButton aria-label="Return to main menu" onClick={() => router.push('/')}>
-                        <HighlightOffIcon fontSize="large"/>
-                    </IconButton>
-                </Box>
+                <ScoreHeader
+                    learnedCount={learnedWords.size}
+                    totalCount={words.length}
+                    score={score}
+                    showScore={!isFinished}
+                    onExit={() => router.push('/')}
+                />
 
                 {error && (
                     <Alert severity="error" sx={{mb: 2}}>
@@ -228,75 +255,64 @@ export default function GuessWordGame() {
                     </Alert>
                 )}
 
-                <Stack spacing={3}>
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: 2,
-                        }}
-                    >
-                        <Box sx={{width: {xs: '100%', sm: 360}, maxWidth: 420}}>
-                            {currentWord && (
-                                <WordCard
-                                    word={currentWord}
-                                    guessMode
-                                    onPronounce={pronounceWord}
-                                />
-                            )}
-                        </Box>
-                    </Box>
-
-                    <Stack spacing={1.5}>
+                {isFinished ? (
+                    <FinishedSummary
+                        score={score}
+                        learnedCount={learnedWords.size}
+                        totalCount={words.length}
+                        onRestart={handleRestart}
+                    />
+                ) : (
+                    <Stack spacing={3}>
                         <Box
                             sx={{
                                 display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: 1.5,
-                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 2,
                             }}
                         >
-                            {options.map((option) => {
-                                const minWidth = Math.max(option.length * 14, 140);
-                                const isGlowing = glowingOption === option;
-                                const isShaking = shakingOption === option;
-                                const shouldFade = isTransitioning && !isGlowing;
-
-                                return (
-                                    <Button
-                                        key={option}
-                                        variant={isGlowing ? 'contained' : 'outlined'}
-                                        color={isShaking ? 'error' : isGlowing ? 'success' : 'primary'}
-                                        size="large"
-                                        onClick={() => handleGuess(option)}
-                                        sx={{
-                                            textTransform: 'none',
-                                            fontWeight: 700,
-                                            fontSize: 25,
-                                            minWidth,
-                                            px: 2.5,
-                                            pointerEvents: isTransitioning ? 'none' : 'auto',
-                                            animation: isGlowing
-                                                ? `${glowAnimation} 3s ease-in-out`
-                                                : shouldFade
-                                                    ? `${fadeAwayAnimation} 3s forwards`
-                                                    : isShaking
-                                                        ? `${shakeAnimation} 0.5s ease`
-                                                        : 'none',
-                                            bgcolor: isGlowing ? 'success.light' : undefined,
-                                            borderColor: isShaking ? 'error.main' : undefined,
-                                            color: isShaking ? 'error.main' : undefined,
-                                            opacity: shouldFade ? 0 : 1,
-                                        }}
-                                    >
-                                        {option}
-                                    </Button>
-                                );
-                            })}
+                            <Box sx={{width: {xs: '100%', sm: 360}, maxWidth: 420}}>
+                                {currentWord && (
+                                    <WordCard
+                                        word={currentWord}
+                                        guessMode
+                                        onPronounce={pronounceWord}
+                                    />
+                                )}
+                            </Box>
                         </Box>
+
+                        <Stack spacing={1.5}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: 1.5,
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                {options.map((option) => {
+                                    const isGlowing = glowingOption === option;
+                                    const isShaking = shakingOption === option;
+                                    const shouldFade = isTransitioning && !isGlowing;
+
+                                    return (
+                                        <OptionButton
+                                            key={option}
+                                            option={option}
+                                            isGlowing={isGlowing}
+                                            isShaking={isShaking}
+                                            shouldFade={shouldFade}
+                                            isLocked={isTransitioning}
+                                            onGuess={handleGuess}
+                                        />
+                                    );
+                                })}
+                            </Box>
+                        </Stack>
                     </Stack>
-                </Stack>
+                )}
             </Box>
         </Container>
     );

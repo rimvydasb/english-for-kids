@@ -125,15 +125,12 @@ npm start
 
 ## Next Steps
 
+Improve Guess Game:
+
+- [ ] When game is finished, display a summary screen with total score and option to restart.
+Also, then, do not show score in the top bar to avoid confusion and duplication when game is finished
+and summary is shown.
+
 Improve WordCard:
 
-- [ ] When WordCard itself is clicked it flips and shows the word translation instead of the CardMedia.
-- [ ] When flipped back, the image is shown again.
-
-Refactor guess/page.tsx to use WordCard component.
-
-- [ ] For the word to be guessed, use the same WordCard, but replace the english word with "???".
-- [ ] Since the same WordCard is used, the user can also flip the card to see the translation if needed.
-- [ ] WordCard is in the very center
-- [ ] The 5 options below are much bigger buttons and width matches the word length.
-- [ ] The 5 options below are displayed in one line or wrapped lines if needed when words are long.
+- [ ] When the same word is clicked again within 5 seconds, replay one of the examples instead of a single word.
