@@ -125,39 +125,12 @@ npm start
 
 ## Next Steps
 
-Refactor words/page.tsx to use WordCard component.
+Improve WordCard:
 
-- [ ] Use MediaCard as an example. Image is displayed in CardMedia. Create a component WordCard.
-- [ ] WordCard has image as CardMedia, below is the word as Typography aligned to the left.
-- [ ] Speaker is on the right of the word. Pronounce the word when clicked the speaker only.
-- [ ] Check all images and update words.ts with all existing words.
+- [ ] When WordCard itself is clicked it flips and shows the word translation instead of the CardMedia.
+- [ ] When flipped back, the image is shown again.
 
-```typescript
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+Refactor guess/page.tsx to use WordCard component.
 
-export default function MediaCard() {
-  return (
-    <Card sx={{ maxWidth: 345 }}>
-      <CardMedia
-        sx={{ height: 140 }}
-        image="/static/images/cards/contemplative-reptile.jpg"
-        title="green iguana"
-      />
-      <CardContent>
-        <Typography gutterBottom variant="h5" component="div">
-          Lizard
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Lizards are a widespread group of squamate reptiles, with over 6,000
-          species, ranging across all continents except Antarctica
-        </Typography>
-      </CardContent>
-    </Card>
-  );
-}
-```
+- [ ] For the word to be guessed, use the same WordCard, but replace the english word with "???".
+

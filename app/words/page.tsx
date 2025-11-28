@@ -3,7 +3,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Alert, Box, Container, IconButton, Typography} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {WordRecord, WRODS_DICTIONARY} from '@/lib/words';
 import WordCard from './WordCard';
 
@@ -71,7 +71,7 @@ export default function WordsPage() {
                         </Typography>
                     </Box>
                     <IconButton aria-label="Return to main menu" onClick={() => router.push('/')}>
-                        <CloseIcon />
+                        <HighlightOffIcon fontSize="large" />
                     </IconButton>
                 </Box>
 
