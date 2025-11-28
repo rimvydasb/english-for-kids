@@ -47,7 +47,7 @@ EnglishLearner/
 │   ├── guess/page.tsx      # Guess Word Game (image-first quiz)
 │   └── words/page.tsx      # All Words listing with audio playback
 ├── lib/
-│   └── words.ts            # WRODS_DICTIONARY and WordRecord helpers
+│   └── words.ts            # WORDS_DICTIONARY and WordRecord helpers
 ├── theme.ts                # Material UI theme configuration
 ├── next.config.js          # Next.js configuration
 ├── public/images/          # Static PNGs for each word card
@@ -108,7 +108,7 @@ npm start
 ### Images
 
 - Each word has a matching PNG in `public/images/{word}.png`.
-- `lib/words.ts` exports `WRODS_DICTIONARY` (a list of `WordRecord`s) that powers the cards and image paths.
+- `lib/words.ts` exports `WORDS_DICTIONARY` (a list of `WordRecord`s) that powers the cards and image paths.
 
 ### User Experience
 
@@ -120,17 +120,17 @@ npm start
 ### Adding More Words
 
 1. Add a square-ish PNG to `public/images/` named with the lowercase word (e.g., `sun.png`).
-2. Append `new WordRecord('sun')` to `WRODS_DICTIONARY` in `lib/words.ts`.
+2. Append `new WordRecord({ word: 'sun' })` to `WORDS_DICTIONARY_DATA` in `lib/words.ts`.
 3. Restart dev server if running, then verify the new card appears with speech playback.
 
 ## Next Steps
 
+Improve Guess Game:
+
+- [ ] When game is finished, display a summary screen with total score and option to restart.
+Also, then, do not show score in the top bar to avoid confusion and duplication when game is finished
+and summary is shown.
+
 Improve WordCard:
 
-- [ ] When WordCard itself is clicked it flips and shows the word translation instead of the CardMedia.
-- [ ] When flipped back, the image is shown again.
-
-Refactor guess/page.tsx to use WordCard component.
-
-- [ ] For the word to be guessed, use the same WordCard, but replace the english word with "???".
-
+- [ ] When the same word is clicked again within 5 seconds, replay one of the examples instead of a single word.

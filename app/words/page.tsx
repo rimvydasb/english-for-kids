@@ -4,15 +4,16 @@ import {useEffect, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Alert, Box, Container, IconButton, Typography} from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import {WordRecord, WRODS_DICTIONARY} from '@/lib/words';
+import {WordRecord, WORDS_DICTIONARY} from '@/lib/words';
 import WordCard from './WordCard';
 
 export default function WordsPage() {
     const [activeWord, setActiveWord] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const synthRef = useRef<SpeechSynthesis | null>(null);
+    const lastPronouncedRef = useRef<{ word: string; timestamp: number } | null>(null);
     const router = useRouter();
-    const words = WRODS_DICTIONARY;
+    const words = WORDS_DICTIONARY;
 
     useEffect(() => {
         const handleKeydown = (event: KeyboardEvent) => {
@@ -40,11 +41,23 @@ export default function WordsPage() {
             return;
         }
 
+        const now = Date.now();
+        const last = lastPronouncedRef.current;
+        const withinWindow = last && last.word === wordData.word && now - last.timestamp <= 5000;
+        const hasExamples = Array.isArray(wordData.examples) && wordData.examples.length > 0;
+        const shouldUseExample = withinWindow && hasExamples;
+        const utteranceText =
+            shouldUseExample && wordData.examples
+                ? wordData.examples[Math.floor(Math.random() * wordData.examples.length)]
+                : wordData.word;
+
+        lastPronouncedRef.current = { word: wordData.word, timestamp: now };
+
         setActiveWord(wordData.word);
         setError(null);
         synthRef.current.cancel();
 
-        const utterance = new SpeechSynthesisUtterance(wordData.word);
+        const utterance = new SpeechSynthesisUtterance(utteranceText);
         utterance.onend = () => setActiveWord(null);
         utterance.onerror = () => {
             setError('Failed to play pronunciation. Please try again.');
@@ -68,6 +81,9 @@ export default function WordsPage() {
                     <Box>
                         <Typography variant="h4" component="h1" sx={{fontWeight: 700}}>
                             All Words
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Tap a card to flip for translation; tap the speaker to hear pronunciation. Press X to return.
                         </Typography>
                     </Box>
                     <IconButton aria-label="Return to main menu" onClick={() => router.push('/')}>
