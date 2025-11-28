@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Box, Container, Typography, Card, CardContent, CardActionArea, Alert, Stack } from '@mui/material';
+import { useState, useRef } from 'react';
+import { Box, Container, Typography, Card, CardContent, CardActionArea, Alert } from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 
 interface WordData {
@@ -31,39 +31,9 @@ const words: WordData[] = [
 export default function Home() {
   const [activeWord, setActiveWord] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
-  const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    // Fetch or generate images for all words
-    words.forEach(async (wordData) => {
-      setImageLoading((prev) => ({ ...prev, [wordData.word]: true }));
-
-      try {
-        const response = await fetch(`/api/image?word=${encodeURIComponent(wordData.word)}`);
-        const data = await response.json();
-
-        if (data.success && data.imageUrl) {
-          setImageUrls((prev) => ({ ...prev, [wordData.word]: data.imageUrl }));
-        } else {
-          console.error(`Failed to get image for ${wordData.word}:`, data.error);
-        }
-      } catch (err) {
-        console.error(`Error fetching image for ${wordData.word}:`, err);
-      } finally {
-        setImageLoading((prev) => ({ ...prev, [wordData.word]: false }));
-      }
-    });
-
-    // Cleanup function to stop audio when component unmounts
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
+  const getInitial = (word: string) => word.charAt(0).toUpperCase();
 
   const pronounceWord = (wordData: WordData) => {
     setActiveWord(wordData.word);
@@ -180,40 +150,25 @@ export default function Home() {
                         height: 200,
                         margin: '0 auto',
                         mb: 2,
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        bgcolor: 'grey.100',
+                        borderRadius: '50%',
+                        bgcolor: activeWord === item.word ? 'secondary.light' : 'grey.100',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        border: '2px solid',
+                        borderColor: activeWord === item.word ? 'secondary.main' : 'grey.200',
                       }}
                     >
-                      {imageLoading[item.word] && (
-                        <Typography variant="body2" color="text.secondary">
-                          Loading...
-                        </Typography>
-                      )}
-                      {imageUrls[item.word] && (
-                        <Box
-                          component="img"
-                          src={imageUrls[item.word]}
-                          alt={`Illustration of ${item.word}`}
-                          sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            transition: 'transform 0.3s ease-in-out',
-                            '&:hover': {
-                              transform: 'scale(1.1)',
-                            },
-                          }}
-                          onError={(e) => {
-                            // Fallback to icon if image fails to load
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      )}
+                      <Typography
+                        variant="h2"
+                        component="div"
+                        sx={{
+                          fontWeight: 600,
+                          color: activeWord === item.word ? 'secondary.contrastText' : 'text.primary',
+                        }}
+                      >
+                        {getInitial(item.word)}
+                      </Typography>
                     </Box>
                     <VolumeUpIcon
                       sx={{
