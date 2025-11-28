@@ -24,11 +24,10 @@ export default function Home() {
           component="h1"
           sx={{ textAlign: 'center', color: 'primary.main', fontWeight: 700 }}
         >
-          English Learner
+          Learn English
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 520 }}>
-          Choose a mode to get started. Learn each word with images and pronunciation, or test yourself in the
-          Guess Word Game.
+
         </Typography>
 
         <Stack spacing={3} sx={{ width: '100%' }}>

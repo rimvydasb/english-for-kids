@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -17,6 +16,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { WRODS_DICTIONARY, WordRecord } from '@/lib/words';
+import WordCard from '../words/WordCard';
 
 const STORAGE_KEY = 'guess_game_learned_words';
 const EXTRA_DECOYS = ['apple', 'book', 'window', 'chair', 'eraser', 'lamp'];
@@ -221,25 +221,13 @@ export default function GuessWordGame() {
                 gap: 3,
               }}
             >
-              <Box
-                sx={{
-                  position: 'relative',
-                  width: { xs: '100%', sm: 320 },
-                  height: 240,
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: 'grey.100',
-                }}
-              >
+              <Box sx={{ width: { xs: '100%', sm: 320 }, flexShrink: 0 }}>
                 {currentWord && (
-                  <Image
-                    src={currentWord.getImageUrl()}
-                    alt={`Guess the word for this illustration`}
-                    fill
-                    sizes="320px"
-                    style={{ objectFit: 'cover' }}
+                  <WordCard
+                    word={currentWord}
+                    labelOverride="???"
+                    onPronounce={pronounceWord}
+                    disableFlip
                   />
                 )}
               </Box>

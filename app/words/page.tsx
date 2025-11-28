@@ -69,6 +69,9 @@ export default function WordsPage() {
                         <Typography variant="h4" component="h1" sx={{fontWeight: 700}}>
                             All Words
                         </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Tap a card to flip for translation; tap the speaker to hear pronunciation. Press X to return.
+                        </Typography>
                     </Box>
                     <IconButton aria-label="Return to main menu" onClick={() => router.push('/')}>
                         <HighlightOffIcon fontSize="large" />
