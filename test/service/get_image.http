@@ -1,0 +1,34 @@
+### Test image generation API
+### Replace with your actual local development URL
+
+@baseUrl = http://localhost:7788
+
+### Generate image for a simple word
+GET {{baseUrl}}/api/image?word=cat
+Content-Type: application/json
+
+###
+
+### Generate image for a word with multiple characters
+GET {{baseUrl}}/api/image?word=butterfly
+Content-Type: application/json
+
+###
+
+### Generate image for a phrase (with spaces)
+GET {{baseUrl}}/api/image?word=happy dog
+Content-Type: application/json
+
+###
+
+### Test error: missing word parameter
+GET {{baseUrl}}/api/image
+Content-Type: application/json
+
+###
+
+### Test error: invalid characters in word
+GET {{baseUrl}}/api/image?word=test@#$
+Content-Type: application/json
+
+###

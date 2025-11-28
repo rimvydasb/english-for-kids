@@ -1,0 +1,4 @@
+This is a placeholder. To add real images, you can:
+1. Download/create images for car, robot, spoon
+2. Save them as car.png, robot.png, spoon.png in this directory
+3. Or wait for Gemini API to support image generation
