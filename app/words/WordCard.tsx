@@ -33,7 +33,7 @@ export default function WordCard({
     };
 
     const bottomRow = (
-        <CardContent>
+        <CardContent sx={{ flexShrink: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                 <Typography
                     variant="h6"
@@ -72,11 +72,18 @@ export default function WordCard({
                 overflow: 'hidden',
             }}
         >
-            <Box sx={{ perspective: '1200px' }}>
+            <Box
+                sx={{
+                    position: 'relative',
+                    width: '100%',
+                    paddingTop: 'calc(100% + 88px)',
+                    perspective: '1200px',
+                }}
+            >
                 <Box
                     sx={{
-                        position: 'relative',
-                        minHeight: 350,
+                        position: 'absolute',
+                        inset: 0,
                         transformStyle: 'preserve-3d',
                         transition: 'transform 0.6s ease',
                         transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
@@ -89,6 +96,7 @@ export default function WordCard({
                             backfaceVisibility: 'hidden',
                             display: 'flex',
                             flexDirection: 'column',
+                            height: '100%',
                         }}
                     >
                         <CardMedia
@@ -99,6 +107,7 @@ export default function WordCard({
                                 objectFit: 'cover',
                                 width: '100%',
                                 aspectRatio: '1 / 1',
+                                flex: '1 0 auto',
                             }}
                         />
                         {bottomRow}
@@ -112,13 +121,13 @@ export default function WordCard({
                             transform: 'rotateY(180deg)',
                             display: 'flex',
                             flexDirection: 'column',
+                            height: '100%',
                             bgcolor: 'grey.100',
                             borderRadius: 4,
                         }}
                     >
                         <CardContent
                             sx={{
-                                minHeight: 200,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
