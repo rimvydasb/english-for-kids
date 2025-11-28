@@ -1,71 +1,47 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 import { Box, Container, Typography, Card, CardContent, CardActionArea, Alert } from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-
-interface WordData {
-  id: number;
-  word: string;
-  audioUrl: string;
-}
-
-const words: WordData[] = [
-  {
-    id: 1,
-    word: 'car',
-    audioUrl: 'https://www.oxfordlearnersdictionaries.com/media/english/uk_pron/c/car/car__/car__gb_1.mp3'
-  },
-  {
-    id: 2,
-    word: 'robot',
-    audioUrl: 'https://www.oxfordlearnersdictionaries.com/media/english/uk_pron/r/rob/robot/robot__gb_2.mp3'
-  },
-  {
-    id: 3,
-    word: 'spoon',
-    audioUrl: 'https://www.oxfordlearnersdictionaries.com/media/english/uk_pron/s/spo/spoon/spoon__gb_1.mp3'
-  },
-];
+import { WRODS_DICTIONARY, WordRecord } from '@/lib/words';
 
 export default function Home() {
   const [activeWord, setActiveWord] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const words = WRODS_DICTIONARY;
 
-  const getInitial = (word: string) => word.charAt(0).toUpperCase();
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+      return () => synthRef.current?.cancel();
+    }
 
-  const pronounceWord = (wordData: WordData) => {
+    setError('Speech synthesis is not available in this browser.');
+  }, []);
+
+  const pronounceWord = (wordData: WordRecord) => {
+    if (!synthRef.current) {
+      setError('Speech synthesis is not available in this browser.');
+      return;
+    }
+
     setActiveWord(wordData.word);
     setError(null);
 
-    // Stop any currently playing audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
+    synthRef.current.cancel();
 
-    // Create new audio element
-    const audio = new Audio(wordData.audioUrl);
-    audioRef.current = audio;
-
-    // Reset active state when done
-    audio.onended = () => {
+    const utterance = new SpeechSynthesisUtterance(wordData.word);
+    utterance.onend = () => {
       setActiveWord(null);
     };
-
-    audio.onerror = () => {
-      console.error('Audio playback error for:', wordData.word);
-      setError('Failed to load pronunciation. Please try again.');
-      setActiveWord(null);
-    };
-
-    // Play the audio
-    audio.play().catch((err) => {
-      console.error('Audio play error:', err);
+    utterance.onerror = () => {
       setError('Failed to play pronunciation. Please try again.');
       setActiveWord(null);
-    });
+    };
+
+    synthRef.current.speak(utterance);
   };
 
   return (
@@ -112,7 +88,7 @@ export default function Home() {
           }}
         >
           {words.map((item) => (
-            <Card key={item.id}
+            <Card key={item.word}
                 sx={{
                   height: '100%',
                   transition: 'all 0.3s ease-in-out',
@@ -150,25 +126,27 @@ export default function Home() {
                         height: 200,
                         margin: '0 auto',
                         mb: 2,
-                        borderRadius: '50%',
+                        borderRadius: 3,
                         bgcolor: activeWord === item.word ? 'secondary.light' : 'grey.100',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        border: '2px solid',
+                        border: '1px solid',
                         borderColor: activeWord === item.word ? 'secondary.main' : 'grey.200',
+                        overflow: 'hidden',
                       }}
                     >
-                      <Typography
-                        variant="h2"
-                        component="div"
-                        sx={{
-                          fontWeight: 600,
-                          color: activeWord === item.word ? 'secondary.contrastText' : 'text.primary',
+                      <Image
+                        src={item.getImageUrl()}
+                        alt={`Illustration of ${item.word}`}
+                        fill
+                        sizes="200px"
+                        style={{
+                          objectFit: 'cover',
+                          transition: 'transform 0.3s ease-in-out',
+                          transform: activeWord === item.word ? 'scale(1.05)' : 'scale(1)',
                         }}
-                      >
-                        {getInitial(item.word)}
-                      </Typography>
+                      />
                     </Box>
                     <VolumeUpIcon
                       sx={{

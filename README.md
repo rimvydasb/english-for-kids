@@ -1,14 +1,33 @@
 # English Learner
 
 A single-page application for learning English words with pronunciation. Click on any word to hear how it's pronounced using text-to-speech technology.
+Play interactive games to memorize vocabulary effectively.
 
-## Features
+## Overview
 
 - Interactive word cards with click-to-pronounce functionality
-- Three words to learn: car, robot, spoon
+- Four illustrated words: crayon, desk, painting, pencil
 - Real-time visual feedback when a word is being pronounced
 - Responsive design that works on desktop, tablet, and mobile devices
 - Built-in text-to-speech using the Web Speech API (no external audio files needed)
+
+## Features
+
+### First Page Menu
+
+- [ ] Start Learning Words (forwards to the page with word cards)
+- [ ] Play Guess Word Game (forwards to the Guess Word Game page)
+
+### All words
+
+- [ ] List all words with images in one page
+
+### Guess Word Game
+
+- [ ] Show image only, user guesses the word from 5 different options
+- [ ] User can also click to hear the pronunciation of the word
+- [ ] Show score in the top right corner: Learned words / Total words, Score
+- [ ] Score is calculated as: 100 / Total words * Correctly guessed words
 
 ## Technology Stack
 
@@ -35,8 +54,11 @@ EnglishLearner/
 ├── app/
 │   ├── layout.tsx          # Root layout with MUI theme provider
 │   └── page.tsx            # Main page with word cards
+├── lib/
+│   └── words.ts            # WRODS_DICTIONARY and WordRecord helpers
 ├── theme.ts                # Material UI theme configuration
 ├── next.config.js          # Next.js configuration
+├── public/images/          # Static PNGs for each word card
 ├── tsconfig.json           # TypeScript configuration
 ├── package.json            # Project dependencies and scripts
 └── README.md               # This file
@@ -86,53 +108,38 @@ npm start
 
 ## How It Works
 
-### Audio Pronunciation Implementation
+### Pronunciation
 
-The application uses **high-quality MP3 audio files** from Oxford Learner's Dictionaries:
+- Uses the browser's Web Speech API to speak each word—no external audio files.
+- Clicking a card triggers speech synthesis, highlights the active card, and clears the state when playback ends.
 
-- Professional British English pronunciation
-- Native speaker recordings from Oxford University Press
-- Crystal-clear audio quality optimized for language learning
-- Uses HTML5 Audio API for playback
-- Direct streaming from Oxford's CDN - no local storage needed
+### Images
 
-Each word has its audio URL configured:
-```typescript
-const words = [
-  {
-    word: 'car',
-    audioUrl: 'https://www.oxfordlearnersdictionaries.com/media/english/uk_pron/c/car/car__/car__gb_1.mp3'
-  },
-  // ... more words
-];
-```
+- Each word has a matching PNG in `public/images/{word}.png`.
+- `lib/words.ts` exports `WRODS_DICTIONARY` (a list of `WordRecord`s) that powers the cards and image paths.
 
 ### User Experience
 
-1. Click on any word card
-2. The card scales up and changes color to show it's active
-3. High-quality Oxford audio pronunciation plays instantly
-4. The card returns to normal state when pronunciation is complete
-5. Error messages appear if audio fails to load
+1. Click on any word card.
+2. The card scales up and changes color to show it's active.
+3. Speech synthesis pronounces the word.
+4. The card returns to normal state when playback is complete.
 
 ### Adding More Words
 
-To add new words with pronunciation:
-
-1. Visit [Oxford Learner's Dictionaries](https://www.oxfordlearnersdictionaries.com/)
-2. Search for your word
-3. Find the audio player element and extract the MP3 URL from `data-src-mp3` attribute
-4. Add the word and audio URL to the `words` array in `app/page.tsx`
+1. Add a square-ish PNG to `public/images/` named with the lowercase word (e.g., `sun.png`).
+2. Append `new WordRecord('sun')` to `WRODS_DICTIONARY` in `lib/words.ts`.
+3. Restart dev server if running, then verify the new card appears with speech playback.
 
 ## Browser Compatibility
 
-The HTML5 Audio API is supported in all modern browsers:
+Speech synthesis is supported in all modern browsers, though available voices may differ slightly:
 - Chrome/Edge (full support)
 - Safari (full support)
 - Firefox (full support)
 - Opera (full support)
 
-No special configuration needed - works everywhere!
+No special configuration needed—if speech synthesis is unavailable, an on-page error appears.
 
 ## Customization
 
