@@ -3,12 +3,37 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Alert, Box, Button, Container, IconButton, Stack, Typography,} from '@mui/material';
+import {keyframes} from '@mui/material/styles';
 import {WordRecord, WORDS_DICTIONARY} from '@/lib/words';
 import WordCard from '../words/WordCard';
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 
 const STORAGE_KEY = 'guess_game_learned_words';
 const EXTRA_DECOYS = ['apple', 'book', 'window', 'chair', 'eraser', 'lamp'];
+
+const glowAnimation = keyframes`
+    0% {
+        box-shadow: 0 0 0 0 rgba(122, 150, 248, 0.4);
+    }
+    40% {
+        box-shadow: 0 0 18px 8px rgba(28, 72, 223, 0.35);
+    }
+    80% {
+        box-shadow: 0 0 10px 2px rgba(67, 255, 0, 0.25);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+`;
+
+const shakeAnimation = keyframes`
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+`;
 
 const shuffle = (values: string[]) => {
     const arr = [...values];
@@ -66,7 +91,9 @@ export default function GuessWordGame() {
     const [learnedWords, setLearnedWords] = useState<Set<string>>(new Set());
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
-    const [feedback, setFeedback] = useState<string | null>(null);
+    const [glowingOption, setGlowingOption] = useState<string | null>(null);
+    const [shakingOption, setShakingOption] = useState<string | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const synthRef = useRef<SpeechSynthesis | null>(null);
@@ -116,26 +143,32 @@ export default function GuessWordGame() {
     };
 
     const handleGuess = (guess: string) => {
-        if (!currentWord) {
+        if (!currentWord || isTransitioning) {
             return;
         }
 
         const isCorrect = guess === currentWord.word;
-        setFeedback(isCorrect ? 'Correct!' : `Not quite. The word was "${currentWord.word}".`);
+        if (isCorrect) {
+            const updatedLearned = new Set(learnedWords);
+            updatedLearned.add(currentWord.word);
+            setLearnedWords(updatedLearned);
+            persistLearned(updatedLearned);
 
-        setLearnedWords((prev) => {
-            const updated = new Set(prev);
-            if (isCorrect) {
-                updated.add(currentWord.word);
-            }
-            persistLearned(updated);
+            setGlowingOption(guess);
+            setIsTransitioning(true);
 
-            const nextWord = pickNextWord(words, updated);
-            setCurrentWord(nextWord);
-            setOptions(uniqueOptions(words, nextWord));
+            window.setTimeout(() => {
+                const nextWord = pickNextWord(words, updatedLearned);
+                setCurrentWord(nextWord);
+                setOptions(uniqueOptions(words, nextWord));
+                setGlowingOption(null);
+                setIsTransitioning(false);
+            }, 3000);
+            return;
+        }
 
-            return updated;
-        });
+        setShakingOption(guess);
+        window.setTimeout(() => setShakingOption(null), 700);
     };
 
     const score = Math.round((learnedWords.size / words.length) * 100);
@@ -214,18 +247,30 @@ export default function GuessWordGame() {
                         >
                             {options.map((option) => {
                                 const minWidth = Math.max(option.length * 14, 140);
+                                const isGlowing = glowingOption === option;
+                                const isShaking = shakingOption === option;
+
                                 return (
                                     <Button
                                         key={option}
-                                        variant="outlined"
+                                        variant={isGlowing ? 'outlined' : 'outlined'}
+                                        color={isShaking ? 'error' : isGlowing ? 'primary' : 'primary'}
                                         size="large"
                                         onClick={() => handleGuess(option)}
+                                        disabled={isTransitioning}
                                         sx={{
                                             textTransform: 'none',
                                             fontWeight: 700,
                                             fontSize: 25,
                                             minWidth,
                                             px: 2.5,
+                                            animation: isGlowing
+                                                ? `${glowAnimation} 3s ease-in-out`
+                                                : isShaking
+                                                    ? `${shakeAnimation} 0.5s ease`
+                                                    : 'none',
+                                            borderColor: isShaking ? 'error.main' : undefined,
+                                            color: isShaking ? 'error.main' : undefined,
                                         }}
                                     >
                                         {option}
@@ -234,15 +279,6 @@ export default function GuessWordGame() {
                             })}
                         </Box>
                     </Stack>
-
-                    {feedback && (
-                        <Alert
-                            severity={feedback.startsWith('Correct') ? 'success' : 'info'}
-                            onClose={() => setFeedback(null)}
-                        >
-                            {feedback}
-                        </Alert>
-                    )}
                 </Stack>
             </Box>
         </Container>
