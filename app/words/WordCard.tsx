@@ -73,7 +73,7 @@ export default function WordCard({ word, active, onPronounce, labelOverride, dis
                 <Box
                     sx={{
                         position: 'relative',
-                        minHeight: 300,
+                        minHeight: 420,
                         transformStyle: 'preserve-3d',
                         transition: 'transform 0.6s ease',
                         transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
@@ -90,7 +90,7 @@ export default function WordCard({ word, active, onPronounce, labelOverride, dis
                     >
                         <CardMedia
                             component="img"
-                            height="200"
+                            height="320"
                             image={word.getImageUrl()}
                             alt={`Illustration of ${word.word}`}
                             sx={{ objectFit: 'cover' }}
@@ -112,7 +112,7 @@ export default function WordCard({ word, active, onPronounce, labelOverride, dis
                     >
                         <CardContent
                             sx={{
-                                height: 200,
+                                minHeight: 320,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',

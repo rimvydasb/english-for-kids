@@ -20,8 +20,7 @@ export class WordRecord {
     }
 }
 
-// @Todo: Fix typo in "WRODS"
-export const WRODS_DICTIONARY_DATA: WordEntry[] = [
+export const WORDS_DICTIONARY_DATA: WordEntry[] = [
     {word: 'apple', translation: 'obuolys', examples: ['A red apple.']},
     {word: 'crayon', translation: 'kreidelė', examples: ['I draw with a crayon.']},
     {word: 'desk', translation: 'rašomasis stalas', examples: ['My desk is tidy.']},
@@ -33,7 +32,6 @@ export const WRODS_DICTIONARY_DATA: WordEntry[] = [
     {word: 'pencil', translation: 'pieštukas', examples: ['Sharpen the pencil.']},
 ];
 
-// @Todo: Fix typo in "WRODS"
-export const WRODS_DICTIONARY: WordRecord[] = WRODS_DICTIONARY_DATA.map(
+export const WORDS_DICTIONARY: WordRecord[] = WORDS_DICTIONARY_DATA.map(
     (entry) => new WordRecord(entry),
 );

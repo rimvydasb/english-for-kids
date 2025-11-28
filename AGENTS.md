@@ -2,7 +2,7 @@
 
 ## Project Structure & Modules
 - `app/page.tsx` is the main menu linking to `app/words/page.tsx` (all word cards) and `app/guess/page.tsx` (guessing game); `app/layout.tsx` wraps the MUI theme from `app/ThemeRegistry.tsx` / `theme.ts`.
-- `lib/words.ts` holds `WRODS_DICTIONARY` (JSON-style word list) and `WordRecord` with `getImageUrl()`. Keep entries aligned with PNGs in `public/images/`.
+- `lib/words.ts` holds `WORDS_DICTIONARY` (JSON-style word list) and `WordRecord` with `getImageUrl()`. Keep entries aligned with PNGs in `public/images/`.
 - Static assets live under `public/images/` with lowercase filenames that match each word (e.g., `crayon.png`). Avoid adding assets outside `public/`.
 - No Gemini or other external AI integrations should be added; the app relies solely on local assets and browser speech synthesis.
 

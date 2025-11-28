@@ -3,9 +3,9 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Alert, Box, Button, Container, IconButton, Stack, Typography,} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import {WordRecord, WRODS_DICTIONARY} from '@/lib/words';
+import {WordRecord, WORDS_DICTIONARY} from '@/lib/words';
 import WordCard from '../words/WordCard';
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 
 const STORAGE_KEY = 'guess_game_learned_words';
 const EXTRA_DECOYS = ['apple', 'book', 'window', 'chair', 'eraser', 'lamp'];
@@ -62,7 +62,7 @@ const persistLearned = (learned: Set<string>) => {
 };
 
 export default function GuessWordGame() {
-    const words = useMemo(() => WRODS_DICTIONARY, []);
+    const words = useMemo(() => WORDS_DICTIONARY, []);
     const [learnedWords, setLearnedWords] = useState<Set<string>>(new Set());
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
@@ -146,41 +146,35 @@ export default function GuessWordGame() {
                 <Box
                     sx={{
                         display: 'flex',
-                        alignItems: 'flex-start',
+                        alignItems: 'center',
                         justifyContent: 'space-between',
                         mb: 3,
                     }}
                 >
-                    <Box>
-                        <Typography variant="h4" component="h1" sx={{fontWeight: 700}}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 2,
+                            flex: 1,
+                            mr: 2,
+                            minWidth: 0,
+                        }}
+                    >
+                        <Typography variant="h4" component="h1" sx={{fontWeight: 700, minWidth: 0}}>
                             Guess Word Game
+                        </Typography>
+                        <Typography variant="h4" component="h1" sx={{minWidth: 80, textAlign: 'center'}}>
+                            ({learnedWords.size} / {words.length})
+                        </Typography>
+                        <Typography variant="h4" component="h1" sx={{fontWeight: 700, textAlign: 'right'}}>
+                            {Number.isNaN(score) ? 0 : score}%
                         </Typography>
                     </Box>
                     <IconButton aria-label="Return to main menu" onClick={() => router.push('/')}>
-                        <CloseIcon/>
+                        <HighlightOffIcon fontSize="large"/>
                     </IconButton>
-                </Box>
-
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        px: 2,
-                        py: 1,
-                        borderRadius: 2,
-                        bgcolor: 'background.paper',
-                        boxShadow: 3,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                    }}
-                >
-                    <Typography variant="body2" color="text.secondary">
-                        Learned words: {learnedWords.size} / {words.length}
-                    </Typography>
-                    <Typography variant="body2" sx={{fontWeight: 700}}>
-                        Score: {Number.isNaN(score) ? 0 : score}%
-                    </Typography>
                 </Box>
 
                 {error && (
@@ -193,48 +187,52 @@ export default function GuessWordGame() {
                     <Box
                         sx={{
                             display: 'flex',
-                            flexDirection: {xs: 'column', sm: 'row'},
+                            flexDirection: 'column',
                             alignItems: 'center',
-                            gap: 3,
+                            gap: 2,
                         }}
                     >
-                        <Box sx={{width: {xs: '100%', sm: 320}, flexShrink: 0}}>
+                        <Box sx={{width: {xs: '100%', sm: 360}, maxWidth: 420}}>
                             {currentWord && (
                                 <WordCard
                                     word={currentWord}
                                     labelOverride="???"
                                     onPronounce={pronounceWord}
-                                    disableFlip
                                 />
                             )}
                         </Box>
                     </Box>
 
                     <Stack spacing={1.5}>
-                        <Typography variant="subtitle1" sx={{fontWeight: 600}}>
-                            Choose the correct word:
-                        </Typography>
-                        <Stack
-                            spacing={1}
+                        <Box
                             sx={{
-                                width: '100%',
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 1.5,
+                                justifyContent: 'center',
                             }}
                         >
-                            {options.map((option) => (
-                                <Button
-                                    key={option}
-                                    variant="outlined"
-                                    onClick={() => handleGuess(option)}
-                                    sx={{
-                                        justifyContent: 'flex-start',
-                                        textTransform: 'none',
-                                        fontWeight: 600,
-                                    }}
-                                >
-                                    {option}
-                                </Button>
-                            ))}
-                        </Stack>
+                            {options.map((option) => {
+                                const minWidth = Math.max(option.length * 14, 140);
+                                return (
+                                    <Button
+                                        key={option}
+                                        variant="outlined"
+                                        size="large"
+                                        onClick={() => handleGuess(option)}
+                                        sx={{
+                                            textTransform: 'none',
+                                            fontWeight: 700,
+                                            fontSize: 25,
+                                            minWidth,
+                                            px: 2.5,
+                                        }}
+                                    >
+                                        {option}
+                                    </Button>
+                                );
+                            })}
+                        </Box>
                     </Stack>
 
                     {feedback && (

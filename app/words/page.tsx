@@ -4,7 +4,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Alert, Box, Container, IconButton, Typography} from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import {WordRecord, WRODS_DICTIONARY} from '@/lib/words';
+import {WordRecord, WORDS_DICTIONARY} from '@/lib/words';
 import WordCard from './WordCard';
 
 export default function WordsPage() {
@@ -12,7 +12,7 @@ export default function WordsPage() {
     const [error, setError] = useState<string | null>(null);
     const synthRef = useRef<SpeechSynthesis | null>(null);
     const router = useRouter();
-    const words = WRODS_DICTIONARY;
+    const words = WORDS_DICTIONARY;
 
     useEffect(() => {
         const handleKeydown = (event: KeyboardEvent) => {
