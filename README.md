@@ -1,33 +1,23 @@
 # English Learner
 
-A single-page application for learning English words with pronunciation. Click on any word to hear how it's pronounced using text-to-speech technology.
-Play interactive games to memorize vocabulary effectively.
+A Next.js application for learning English words with pronunciation. Browse illustrated cards with text-to-speech or play a guessing game to memorize vocabulary.
 
 ## Overview
 
+- Main menu with navigation to learning cards and the Guess Word Game
 - Interactive word cards with click-to-pronounce functionality
-- Four illustrated words: crayon, desk, painting, pencil
+- Nine illustrated words: apple, crayon, desk, dog, egg, farm, fish, painting, pencil
+- Keyboard shortcut: press `X` on subpages to return to the main menu
 - Real-time visual feedback when a word is being pronounced
 - Responsive design that works on desktop, tablet, and mobile devices
 - Built-in text-to-speech using the Web Speech API (no external audio files needed)
 
 ## Features
 
-### First Page Menu
-
-- [ ] Start Learning Words (forwards to the page with word cards)
-- [ ] Play Guess Word Game (forwards to the Guess Word Game page)
-
-### All words
-
-- [ ] List all words with images in one page
-
-### Guess Word Game
-
-- [ ] Show image only, user guesses the word from 5 different options
-- [ ] User can also click to hear the pronunciation of the word
-- [ ] Show score in the top right corner: Learned words / Total words, Score
-- [ ] Score is calculated as: 100 / Total words * Correctly guessed words
+- All Words page: image + word cards with click-to-pronounce and `X` shortcut back to menu
+- Guess Word Game: view the image, pick 1 of 5 options, hear pronunciation, and see your score
+- Scoreboard shows learned words / total and percentage (100 / total * correctly guessed)
+- Score persists in the browser so progress survives navigating away
 
 ## Technology Stack
 
@@ -53,7 +43,9 @@ Play interactive games to memorize vocabulary effectively.
 EnglishLearner/
 ├── app/
 │   ├── layout.tsx          # Root layout with MUI theme provider
-│   └── page.tsx            # Main page with word cards
+│   ├── page.tsx            # Main menu with navigation
+│   ├── guess/page.tsx      # Guess Word Game (image-first quiz)
+│   └── words/page.tsx      # All Words listing with audio playback
 ├── lib/
 │   └── words.ts            # WRODS_DICTIONARY and WordRecord helpers
 ├── theme.ts                # Material UI theme configuration
@@ -131,58 +123,41 @@ npm start
 2. Append `new WordRecord('sun')` to `WRODS_DICTIONARY` in `lib/words.ts`.
 3. Restart dev server if running, then verify the new card appears with speech playback.
 
-## Browser Compatibility
+## Next Steps
 
-Speech synthesis is supported in all modern browsers, though available voices may differ slightly:
-- Chrome/Edge (full support)
-- Safari (full support)
-- Firefox (full support)
-- Opera (full support)
+Refactor words/page.tsx to use WordCard component.
 
-No special configuration needed—if speech synthesis is unavailable, an on-page error appears.
-
-## Customization
-
-### Changing the Theme
-
-Edit `app/ThemeRegistry.tsx` to customize colors, typography, and other theme settings:
+- [ ] Use MediaCard as an example. Image is displayed in CardMedia. Create a component WordCard.
+- [ ] WordCard has image as CardMedia, below is the word as Typography aligned to the left.
+- [ ] Speaker is on the right of the word. Pronounce the word when clicked the speaker only.
+- [ ] Check all images and update words.ts with all existing words.
 
 ```typescript
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2', // Change this
-    },
-  },
-});
-```
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 
-### Adjusting Port
-
-The application runs on port 7788 by default. To change it, edit the scripts in `package.json`:
-
-```json
-"scripts": {
-  "dev": "next dev -p YOUR_PORT",
-  "start": "next start -p YOUR_PORT"
+export default function MediaCard() {
+  return (
+    <Card sx={{ maxWidth: 345 }}>
+      <CardMedia
+        sx={{ height: 140 }}
+        image="/static/images/cards/contemplative-reptile.jpg"
+        title="green iguana"
+      />
+      <CardContent>
+        <Typography gutterBottom variant="h5" component="div">
+          Lizard
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Lizards are a widespread group of squamate reptiles, with over 6,000
+          species, ranging across all continents except Antarctica
+        </Typography>
+      </CardContent>
+    </Card>
+  );
 }
 ```
-
-## Development Best Practices
-
-This project follows React and Next.js best practices:
-
-- **Server Components by default** - Only using 'use client' where necessary (for interactivity)
-- **TypeScript** - Full type safety throughout the application
-- **Component composition** - Clean, reusable component structure
-- **Responsive design** - Mobile-first approach with Material UI Grid system
-- **Accessibility** - Semantic HTML and ARIA-friendly MUI components
-- **Error handling** - Graceful fallbacks for unsupported features
-
-## License
-
-This project is open source and available for educational purposes.
-
-## Contributing
-
-Feel free to submit issues and enhancement requests!
