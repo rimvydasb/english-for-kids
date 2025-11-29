@@ -3,15 +3,13 @@ import {
     GameVariant,
     GlobalWordStatistics,
     VARIANT_CONFIG,
-    VariantStats,
     WordStatistics,
-} from './types';
-
-interface StorageLike {
-    getItem(key: string): string | null;
-    setItem(key: string, value: string): void;
-    removeItem?(key: string): void;
-}
+} from '@/lib/guessTypes';
+import {
+    AStatisticsManager,
+    GeneralPhraseVariantStats,
+    StorageLike,
+} from '@/lib/statistics/AStatisticsManager';
 
 const GLOBAL_KEY = 'GLOBAL_WORD_STATS';
 
@@ -37,19 +35,6 @@ const createEmptyWordStats = (words: WordRecord[]): Record<string, WordStatistic
         return acc;
     }, {});
 
-const createMemoryStorage = (): StorageLike => {
-    const store: Record<string, string> = {};
-    return {
-        getItem: (key) => (key in store ? store[key] : null),
-        setItem: (key, value) => {
-            store[key] = value;
-        },
-        removeItem: (key) => {
-            delete store[key];
-        },
-    };
-};
-
 const cloneWordStats = (stats: Record<string, WordStatistics>) =>
     Object.keys(stats).reduce<Record<string, WordStatistics>>((acc, key) => {
         acc[key] = { ...stats[key] };
@@ -61,9 +46,7 @@ const cloneVariantWordStats = (stats: Record<GameVariant, Record<string, WordSta
     listenAndGuess: cloneWordStats(stats.listenAndGuess),
 });
 
-export class WordStatisticsManager {
-    private storage: StorageLike;
-
+export class WordStatisticsManager extends AStatisticsManager {
     private words: WordRecord[];
 
     private globalStats: Record<string, GlobalWordStatistics>;
@@ -71,9 +54,8 @@ export class WordStatisticsManager {
     private variantWordStats: Record<GameVariant, Record<string, WordStatistics>>;
 
     constructor(words: WordRecord[], storage?: StorageLike) {
+        super(storage);
         this.words = words;
-        this.storage =
-            storage ?? (typeof window !== 'undefined' ? window.localStorage : createMemoryStorage());
         this.globalStats = createEmptyGlobalStats(words);
         this.variantWordStats = {
             guessTheWord: createEmptyWordStats(words),
@@ -152,33 +134,34 @@ export class WordStatisticsManager {
     }
 
     private loadGlobalStats() {
-        const stored = this.storage.getItem(GLOBAL_KEY);
-        if (!stored) return createEmptyGlobalStats(this.words);
-        try {
-            const parsed: Record<string, GlobalWordStatistics> = JSON.parse(stored);
-            const fresh = createEmptyGlobalStats(this.words);
-            Object.keys(parsed).forEach((key) => {
-                const value = parsed[key];
-                if (
-                    value &&
-                    typeof value.correctAttempts === 'number' &&
-                    typeof value.wrongAttempts === 'number'
-                ) {
-                    fresh[key] = {
-                        word: key,
-                        correctAttempts: value.correctAttempts,
-                        wrongAttempts: value.wrongAttempts,
-                    };
-                }
-            });
-            return fresh;
-        } catch {
-            return createEmptyGlobalStats(this.words);
-        }
+        return this.loadFromStorage(
+            GLOBAL_KEY,
+            () => createEmptyGlobalStats(this.words),
+            (parsed) => {
+                if (!parsed || typeof parsed !== 'object') return null;
+                const incoming = parsed as Record<string, GlobalWordStatistics>;
+                const fresh = createEmptyGlobalStats(this.words);
+                Object.keys(incoming).forEach((key) => {
+                    const value = incoming[key];
+                    if (
+                        value &&
+                        typeof value.correctAttempts === 'number' &&
+                        typeof value.wrongAttempts === 'number'
+                    ) {
+                        fresh[key] = {
+                            word: key,
+                            correctAttempts: value.correctAttempts,
+                            wrongAttempts: value.wrongAttempts,
+                        };
+                    }
+                });
+                return fresh;
+            },
+        );
     }
 
     private saveGlobalStats() {
-        this.storage.setItem(GLOBAL_KEY, JSON.stringify(this.globalStats));
+        this.saveToStorage(GLOBAL_KEY, this.globalStats);
     }
 
     private loadVariantWordStats(): Record<GameVariant, Record<string, WordStatistics>> {
@@ -189,30 +172,28 @@ export class WordStatisticsManager {
 
         (Object.keys(VARIANT_CONFIG) as GameVariant[]).forEach((variant) => {
             const key = VARIANT_CONFIG[variant].statsKey;
-            const stored = this.storage.getItem(key);
-            if (!stored) {
-                result[variant] = createEmptyWordStats(this.words);
-                return;
-            }
-            try {
-                const parsed: Record<string, WordStatistics> = JSON.parse(stored);
-                const merged = createEmptyWordStats(this.words);
-                Object.keys(parsed).forEach((wordKey) => {
-                    const value = parsed[wordKey];
-                    if (
-                        value &&
-                        typeof value.totalAttempts === 'number' &&
-                        typeof value.correctAttempts === 'number' &&
-                        typeof value.wrongAttempts === 'number' &&
-                        typeof value.learned === 'boolean'
-                    ) {
-                        merged[wordKey] = { ...merged[wordKey], ...value, word: wordKey };
-                    }
-                });
-                result[variant] = merged;
-            } catch {
-                result[variant] = createEmptyWordStats(this.words);
-            }
+            result[variant] = this.loadFromStorage(
+                key,
+                () => createEmptyWordStats(this.words),
+                (parsed) => {
+                    if (!parsed || typeof parsed !== 'object') return null;
+                    const incoming = parsed as Record<string, WordStatistics>;
+                    const merged = createEmptyWordStats(this.words);
+                    Object.keys(incoming).forEach((wordKey) => {
+                        const value = incoming[wordKey];
+                        if (
+                            value &&
+                            typeof value.totalAttempts === 'number' &&
+                            typeof value.correctAttempts === 'number' &&
+                            typeof value.wrongAttempts === 'number' &&
+                            typeof value.learned === 'boolean'
+                        ) {
+                            merged[wordKey] = { ...merged[wordKey], ...value, word: wordKey };
+                        }
+                    });
+                    return merged;
+                },
+            );
         });
 
         return result;
@@ -220,16 +201,16 @@ export class WordStatisticsManager {
 
     private saveVariantWordStats(variant: GameVariant) {
         const key = VARIANT_CONFIG[variant].statsKey;
-        this.storage.setItem(key, JSON.stringify(this.variantWordStats[variant]));
+        this.saveToStorage(key, this.variantWordStats[variant]);
     }
 
-    private computeVariantStatsSnapshot(): Record<GameVariant, VariantStats> {
-        const compute = (stats: Record<string, WordStatistics>): VariantStats => {
+    private computeVariantStatsSnapshot(): Record<GameVariant, GeneralPhraseVariantStats> {
+        const compute = (stats: Record<string, WordStatistics>): GeneralPhraseVariantStats => {
             const values = Object.values(stats);
             const totalAttempts = values.reduce((sum, item) => sum + item.totalAttempts, 0);
             const correctAttempts = values.reduce((sum, item) => sum + item.correctAttempts, 0);
             const wrongAttempts = values.reduce((sum, item) => sum + item.wrongAttempts, 0);
-            const learnedWordsCount = values.filter(
+            const learnedItemsCount = values.filter(
                 (item) => item.learned && item.correctAttempts > 0,
             ).length;
 
@@ -237,8 +218,8 @@ export class WordStatisticsManager {
                 totalAttempts,
                 correctAttempts,
                 wrongAttempts,
-                learnedWordsCount,
-                totalWordsCount: values.length,
+                learnedItemsCount,
+                totalItemsCount: values.length,
             };
         };
 

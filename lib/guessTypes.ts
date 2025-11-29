@@ -15,14 +15,6 @@ export interface WordStatistics extends GlobalWordStatistics {
     learned: boolean;
 }
 
-export interface VariantStats {
-    totalAttempts: number;
-    correctAttempts: number;
-    wrongAttempts: number;
-    learnedWordsCount: number;
-    totalWordsCount: number;
-}
-
 export const VARIANT_CONFIG: Record<
     GameVariant,
     { label: string; cardMode: WordCardMode; optionMode: OptionMode; statsKey: string }

@@ -7,6 +7,7 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 - All Words: flip through illustrated cards; tap to hear pronunciation.
 - Guess The Word: see the image (WordCard Guess mode), pick the matching word; options show text.
 - Listen & Guess: hear the word (WordCard Listen mode), pick the correct translation.
+- Guess Phrases: read and hear English phrases, then choose the right Lithuanian translation.
 - Nine bundled words with matching PNGs in `public/images/`.
 
 ## Gameplay Behavior
@@ -24,6 +25,7 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 - Per-variant word stats stored in localStorage as `GUESS_THE_WORD_STATS` and `LISTEN_AND_GUESS_STATS`; track attempts,
   correctness, learned flags.
 - `GLOBAL_WORD_STATS` holds aggregated correct/wrong counts; updated when a variant is finalized, not on every attempt.
+- Phrases game uses `PHRASES_GUESS_STATS` for in-game tracking and `GLOBAL_PHRASE_STATS` for aggregated counts.
 - In-memory and localStorage stay in sync; global reset clears only global records, variant reset clears only that
   variant.
 
@@ -32,6 +34,7 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 - Speech via the browser Web Speech API; no external audio.
 - Images live at `public/images/{word}.png`. Word list and helpers are in `lib/words.ts` (`WordRecord`,
   `WORDS_DICTIONARY_DATA`/`WORDS_DICTIONARY`).
+- Phrases live in `lib/phrases.ts` (`PHRASES_DICTIONARY_DATA`/`PHRASES_DICTIONARY`); phrases are text-only with speech.
 
 ## Development
 
@@ -94,15 +97,15 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 
 # Phrases Guess Game
 
-- [ ] Create the new page `/guess-phrases` similar to `/guess-the-word`.
-- [ ] Instead of `WordCard.tsx` create `PhraseCard.tsx` that shows an English phrase with pronunciation icon
-- [ ] Below the phrase show multiple Lithuanian translation options to choose from.
-- [ ] User is able to see the English phrase in `PhraseCard.tsx`, listen for english pronunciation, and pick the correct Lithuanian translation from the options.
-- [ ] Implement the same game logic, statistics tracking, and persistence as in the existing word guessing games.
-- [ ] Use the phrases list provided in the README for the game content.
-- [ ] Implement `PhrasesStatisticsManager.ts` and `PhrasesStatisticsManager.test.ts`
-- [ ] Add all phrases from Phrases List to `PHRASES_DICTIONARY_DATA`
-- [ ] Add new Game in the main menu to access the Phrases Guess Game.
+- [x] Create the new page `/guess-phrases` similar to `/guess-the-word`.
+- [x] Instead of `WordCard.tsx` create `PhraseCard.tsx` that shows an English phrase with pronunciation icon
+- [x] Below the phrase show multiple Lithuanian translation options to choose from.
+- [x] User is able to see the English phrase in `PhraseCard.tsx`, listen for english pronunciation, and pick the correct Lithuanian translation from the options.
+- [x] Implement the same game logic, statistics tracking, and persistence as in the existing word guessing games.
+- [x] Use the phrases list provided in the README for the game content.
+- [x] Implement `PhrasesStatisticsManager.ts` and `PhrasesStatisticsManager.test.ts`
+- [x] Add all phrases from Phrases List to `PHRASES_DICTIONARY_DATA`
+- [x] Add new Game in the main menu to access the Phrases Guess Game.
 
 ## Phrase Statistics & Persistence
 

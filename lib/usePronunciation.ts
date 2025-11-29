@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { WordRecord } from '@/lib/words';
 
 interface PronounceOptions {
     allowExamples?: boolean;
@@ -9,8 +8,13 @@ interface PronounceOptions {
     suppressNotAllowedError?: boolean;
 }
 
+export interface Pronounceable {
+    word: string;
+    examples?: string[];
+}
+
 interface PendingPronunciation {
-    word: WordRecord;
+    word: Pronounceable;
     options?: PronounceOptions;
 }
 
@@ -22,7 +26,7 @@ export function usePronunciation() {
     const pendingRef = useRef<PendingPronunciation | null>(null);
     const [voicesReady, setVoicesReady] = useState(false);
 
-    const speakInternal = useCallback((wordData: WordRecord, options?: PronounceOptions) => {
+    const speakInternal = useCallback((wordData: Pronounceable, options?: PronounceOptions) => {
         if (!wordData) {
             return;
         }
@@ -123,7 +127,7 @@ export function usePronunciation() {
     }, [speakInternal]);
 
     const pronounceWord = useCallback(
-        (wordData: WordRecord, options?: PronounceOptions) => {
+        (wordData: Pronounceable, options?: PronounceOptions) => {
             const synth = synthRef.current;
             if (!synth) {
                 setError('Speech synthesis is not available in this browser.');

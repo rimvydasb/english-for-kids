@@ -1,16 +1,18 @@
+import { ReactNode } from 'react';
 import { Box, IconButton } from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
 import { keyframes } from '@mui/material/styles';
-import { GameVariant, VARIANT_CONFIG } from '@/app/guess/types';
+import { GameVariant, VARIANT_CONFIG } from '@/lib/guessTypes';
 
-interface ScoreHeaderProps {
+export interface ScoreHeaderProps {
     learnedCount: number;
     totalCount: number;
     onExit: () => void;
     showScore?: boolean;
-    variant: GameVariant;
+    variant?: GameVariant;
+    icon?: ReactNode;
 }
 
 export default function GuessScoreHeader({
@@ -19,18 +21,20 @@ export default function GuessScoreHeader({
     onExit,
     showScore = true,
     variant,
+    icon,
 }: ScoreHeaderProps) {
     const gradientShift = keyframes`
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     `;
-    const icon =
-        variant === 'guessTheWord' ? (
-            <SportsEsportsIcon color="secondary" sx={{ fontSize: 32 }} />
-        ) : (
+    const defaultIcon =
+        variant === 'listenAndGuess' ? (
             <HearingIcon color="primary" sx={{ fontSize: 32 }} />
+        ) : (
+            <SportsEsportsIcon color="secondary" sx={{ fontSize: 32 }} />
         );
+    const chosenIcon = icon ?? defaultIcon;
     const boxes = Array.from({ length: totalCount }, (_, index) => index < learnedCount);
 
     return (
@@ -44,7 +48,7 @@ export default function GuessScoreHeader({
             }}
         >
             <Box
-                aria-label={`${VARIANT_CONFIG[variant].label} icon`}
+                aria-label={variant ? `${VARIANT_CONFIG[variant].label} icon` : 'Game icon'}
                 sx={{
                     width: 52,
                     height: 52,
@@ -58,7 +62,7 @@ export default function GuessScoreHeader({
                     backgroundColor: 'background.paper',
                 }}
             >
-                {icon}
+                {chosenIcon}
             </Box>
             {showScore ? (
                 <Box

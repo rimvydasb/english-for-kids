@@ -13,10 +13,10 @@ import {
     GameVariant,
     GlobalWordStatistics,
     VARIANT_CONFIG,
-    VariantStats,
     WordStatistics,
-} from './types';
-import { WordStatisticsManager } from './WordStatisticsManager';
+} from '@/lib/guessTypes';
+import { WordStatisticsManager } from '@/lib/WordStatisticsManager';
+import { GeneralPhraseVariantStats } from '@/lib/statistics/AStatisticsManager';
 import { usePronunciation } from '@/lib/usePronunciation';
 
 const shuffle = (values: string[]) => {
@@ -52,20 +52,20 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
         guessTheWord: {},
         listenAndGuess: {},
     });
-    const [variantStats, setVariantStats] = useState<Record<GameVariant, VariantStats>>({
+    const [variantStats, setVariantStats] = useState<Record<GameVariant, GeneralPhraseVariantStats>>({
         guessTheWord: {
             totalAttempts: 0,
             correctAttempts: 0,
             wrongAttempts: 0,
-            learnedWordsCount: 0,
-            totalWordsCount: words.length,
+            learnedItemsCount: 0,
+            totalItemsCount: words.length,
         },
         listenAndGuess: {
             totalAttempts: 0,
             correctAttempts: 0,
             wrongAttempts: 0,
-            learnedWordsCount: 0,
-            totalWordsCount: words.length,
+            learnedItemsCount: 0,
+            totalItemsCount: words.length,
         },
     });
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
@@ -176,7 +176,9 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                 setVariantWordStats(
                     updated.variantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
                 );
-                setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+                setVariantStats(
+                    updated.variantStats as Record<GameVariant, GeneralPhraseVariantStats>,
+                );
                 setGlobalStats(updated.globalStats);
             }
 
@@ -213,7 +215,9 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             const updated = managerRef.current?.finalizeVariant();
             if (updated) {
                 setGlobalStats(updated.globalStats);
-                setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+                setVariantStats(
+                    updated.variantStats as Record<GameVariant, GeneralPhraseVariantStats>,
+                );
                 setVariantWordStats(
                     updated.variantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
                 );
@@ -240,7 +244,9 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             updated?.variantWordStats?.[variant] ?? variantWordStats[variant] ?? {};
         if (updated) {
             setGlobalStats(updated.globalStats);
-            setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+            setVariantStats(
+                updated.variantStats as Record<GameVariant, GeneralPhraseVariantStats>,
+            );
             setVariantWordStats(
                 updated.variantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
             );
@@ -260,7 +266,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
         const updated = managerRef.current?.resetGlobal();
         if (updated) {
             setGlobalStats(updated.globalStats);
-            setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+            setVariantStats(updated.variantStats as Record<GameVariant, GeneralPhraseVariantStats>);
             setVariantWordStats(
                 updated.variantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
             );
@@ -268,15 +274,17 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     }, []);
 
     const optionMode = VARIANT_CONFIG[variant].optionMode;
-    const activeVariantStats = variantStats[variant] ?? {
-        totalAttempts: 0,
-        correctAttempts: 0,
-        wrongAttempts: 0,
-        learnedWordsCount: 0,
-        totalWordsCount: words.length,
-    };
-    const learnedCount = activeVariantStats.learnedWordsCount;
-    const score = Math.round((learnedCount / activeVariantStats.totalWordsCount) * 100);
+    const activeVariantStats =
+        variantStats[variant] ??
+        ({
+            totalAttempts: 0,
+            correctAttempts: 0,
+            wrongAttempts: 0,
+            learnedItemsCount: 0,
+            totalItemsCount: words.length,
+        } as GeneralPhraseVariantStats);
+    const learnedCount = activeVariantStats.learnedItemsCount;
+    const score = Math.round((learnedCount / activeVariantStats.totalItemsCount) * 100);
     const safeScore = Number.isNaN(score) ? 0 : score;
     const hasGlobalAttempts = useMemo(
         () =>
@@ -291,7 +299,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             <Box sx={{ minHeight: '100vh', py: 4, position: 'relative' }}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
-                    totalCount={activeVariantStats.totalWordsCount}
+                    totalCount={activeVariantStats.totalItemsCount}
                     showScore={!isFinished}
                     variant={variant}
                     onExit={() => router.push('/')}
@@ -307,7 +315,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                     <FinishedSummary
                         score={safeScore}
                         learnedCount={learnedCount}
-                        totalCount={activeVariantStats.totalWordsCount}
+                        totalCount={activeVariantStats.totalItemsCount}
                         onRestart={handleRestart}
                         variantStats={activeVariantStats}
                     />
@@ -383,7 +391,15 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                 </Box>
                             )}
 
-                            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    flexWrap: 'wrap',
+                                }}
+                            >
                                 <VariantStatsBar stats={activeVariantStats} />
                             </Box>
                         </Stack>
