@@ -39,29 +39,33 @@ describe('WordStatisticsManager', () => {
 
     it('initializes empty stats', () => {
         const manager = createManager();
-        const { globalStats, variantStats } = manager.loadAll();
+        const { globalStats, variantStats, variantWordStats } = manager.loadAll();
 
-        expect(globalStats.apple.totalAttempts).toBe(0);
-        expect(globalStats.dog.correctAttempts).toBe(0);
+        expect(globalStats.apple.correctAttempts).toBe(0);
+        expect(globalStats.dog.wrongAttempts).toBe(0);
         expect(variantStats.guessTheWord.totalAttempts).toBe(0);
+        expect(variantWordStats.guessTheWord.apple.totalAttempts).toBe(0);
     });
 
     it('records a correct attempt and marks as learned', () => {
         const manager = createManager();
-        const { globalStats, variantStats } = manager.recordAttempt('guessTheWord', 'apple', true);
+        const afterAttempt = manager.recordAttempt('guessTheWord', 'apple', true);
 
-        expect(globalStats.apple.correctAttempts).toBe(1);
-        expect(globalStats.apple.learned).toBe(true);
-        expect(variantStats.guessTheWord.correctAttempts).toBe(1);
-        expect(variantStats.guessTheWord.wrongAttempts).toBe(0);
+        expect(afterAttempt.variantStats.guessTheWord.correctAttempts).toBe(1);
+        expect(afterAttempt.variantWordStats.guessTheWord.apple.learned).toBe(true);
+        expect(afterAttempt.globalStats.apple.correctAttempts).toBe(0);
+
+        const afterFinalize = manager.finalizeVariant();
+        expect(afterFinalize.globalStats.apple.correctAttempts).toBe(1);
+        expect(afterFinalize.globalStats.apple.wrongAttempts).toBe(0);
     });
 
     it('records an incorrect attempt and keeps word unlearned', () => {
         const manager = createManager();
-        const { globalStats, variantStats } = manager.recordAttempt('guessTheWord', 'dog', false);
+        const { variantStats, variantWordStats } = manager.recordAttempt('guessTheWord', 'dog', false);
 
-        expect(globalStats.dog.wrongAttempts).toBe(1);
-        expect(globalStats.dog.learned).toBe(false);
+        expect(variantWordStats.guessTheWord.dog.wrongAttempts).toBe(1);
+        expect(variantWordStats.guessTheWord.dog.learned).toBe(false);
         expect(variantStats.guessTheWord.wrongAttempts).toBe(1);
     });
 
@@ -74,24 +78,26 @@ describe('WordStatisticsManager', () => {
         expect(variantStats.listenAndGuess.wrongAttempts).toBe(1);
     });
 
-    it('resets learned flags but preserves counts', () => {
+    it('resets only variant stats on restart', () => {
         const manager = createManager();
         manager.recordAttempt('guessTheWord', 'apple', true);
-        const { globalStats } = manager.resetLearnedFlags();
+        const { variantWordStats } = manager.resetVariant('guessTheWord');
 
-        expect(globalStats.apple.learned).toBe(false);
-        expect(globalStats.apple.correctAttempts).toBe(1);
+        expect(variantWordStats.guessTheWord.apple.correctAttempts).toBe(0);
+        expect(variantWordStats.listenAndGuess.dog.correctAttempts).toBe(0);
     });
 
-    it('resets all stats', () => {
+    it('finalizes into global and supports reset', () => {
         const manager = createManager();
         manager.recordAttempt('guessTheWord', 'apple', true);
         manager.recordAttempt('listenAndGuess', 'dog', false);
-        const { globalStats, variantStats } = manager.resetAll();
+        manager.finalizeVariant();
+        const { globalStats } = manager.getSnapshot();
+        expect(globalStats.apple.correctAttempts).toBe(1);
+        expect(globalStats.dog.wrongAttempts).toBe(1);
 
-        expect(globalStats.apple.totalAttempts).toBe(0);
-        expect(globalStats.dog.totalAttempts).toBe(0);
-        expect(variantStats.guessTheWord.totalAttempts).toBe(0);
-        expect(variantStats.listenAndGuess.totalAttempts).toBe(0);
+        const afterReset = manager.resetGlobal();
+        expect(afterReset.globalStats.apple.correctAttempts).toBe(0);
+        expect(afterReset.globalStats.dog.wrongAttempts).toBe(0);
     });
 });

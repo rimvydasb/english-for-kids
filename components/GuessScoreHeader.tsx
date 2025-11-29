@@ -47,15 +47,6 @@ export default function GuessScoreHeader({
                 >
                     {VARIANT_CONFIG[variant].label}
                 </Typography>
-
-                <Typography variant="h5" component="div" sx={{ minWidth: 96, textAlign: 'center' }}>
-                    ({learnedCount} / {totalCount})
-                </Typography>
-                {showScore && (
-                    <Typography variant="h5" component="div" sx={{ fontWeight: 700, textAlign: 'right' }}>
-                        {Number.isNaN(score) ? 0 : score}%
-                    </Typography>
-                )}
             </Box>
             <IconButton aria-label="Return to main menu" onClick={onExit}>
                 <HighlightOffIcon fontSize="large" />

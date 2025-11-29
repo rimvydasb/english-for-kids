@@ -1,14 +1,11 @@
 import { Button, Card, CardContent, Divider, Stack, Typography } from '@mui/material';
-import { VariantStats, WordStatistics } from './types';
+import { VariantStats } from './types';
 
 interface FinishedSummaryProps {
     score: number;
     learnedCount: number;
     totalCount: number;
     onRestart: () => void;
-    onResetStats: () => void;
-    wordStats: WordStatistics[];
-    variantLabel: string;
     variantStats: VariantStats;
 }
 
@@ -17,9 +14,6 @@ export default function FinishedSummary({
     learnedCount,
     totalCount,
     onRestart,
-    onResetStats,
-    wordStats,
-    variantLabel,
     variantStats,
 }: FinishedSummaryProps) {
     const safeScore = Number.isNaN(score) ? 0 : score;

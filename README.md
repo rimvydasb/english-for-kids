@@ -198,12 +198,13 @@ Improve Guess Word Game:
 1. The selected wrong option shakes and turns red briefly
 2. The selected wrong option's `learned` is set to false in statistics
 
-- [x] Mark tasks completed in README.md when done
+## Next Phase To-Do List
 
-- [ ] Listen & Guess AND Guess The Word games are two different distinct games.
+- [x] Listen & Guess AND Guess The Word games are two different distinct games.
 They both use `GUESS_THE_WORD_STATS` and `LISTEN_AND_GUESS_STATS` respectively to track their own statistics separately.
-- [ ] `GLOBAL_WORD_STATS` are updated only at the end of each game variant.
-- [ ] Introduce `GlobalWordStatistics` as a subset of `WordStatistics`. `GLOBAL_WORD_STATS` only saves `GlobalWordStatistics` records.
+- [x] `GLOBAL_WORD_STATS` are updated only at the end of each game variant.
+- [x] As of now, there's no way to reset `GLOBAL_WORD_STATS`
+- [x] Introduce `GlobalWordStatistics` as a subset of `WordStatistics`. `GLOBAL_WORD_STATS` only saves `GlobalWordStatistics` records.
 
 ```typescript
 interface GlobalWordStatistics {
@@ -219,11 +220,12 @@ interface WordStatistics extends GlobalWordStatistics {
 }
 ```
 
-- [ ] `FinishedSummary.tsx` has only one button "Restart" that clears only the relevant game 
+- [x] `FinishedSummary.tsx` has only one button "Restart" that clears only the relevant game 
 statistics from localStorage and memory to restart the game.
-- [ ] Review linting problems for `Unused parameter ...` and remove unnecessary parameters from functions and components.
-- [ ] Remove explanation `Pick the correct option below. The card stays put until you answer correctly.`
+- [x] Review linting problems for `Unused parameter ...` and remove unnecessary parameters from functions and components.
+- [x] Remove explanation `Pick the correct option below. The card stays put until you answer correctly.`
 and `Pick the correct option below. The card stays put until you answer correctly.`.
 No excessive instructions needed in the game!
-- [ ] Other options immediately disappear, but they still take that empty space, so the layout doesn't shift and correct option stays in the same place
-- [ ] `VariantStats` must have `learnedWordsCount` and `totalWordsCount` - show them as well.
+- [x] Other options immediately disappear, but they still take that empty space, so the layout doesn't shift and correct option stays in the same place
+- [x] `VariantStats` must have `learnedWordsCount` and `totalWordsCount` - show them as well.
+- [x] Mark tasks completed in README.md when done under Next Phase To-Do List

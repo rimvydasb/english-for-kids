@@ -2,14 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Box, Button, Container, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Container, Stack } from '@mui/material';
 import { WordRecord, WORDS_DICTIONARY } from '@/lib/words';
 import WordCard, { WordCardMode } from '@/components/WordCard';
 import OptionButton from './OptionButton';
 import FinishedSummary from './FinishedSummary';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import VariantStatsBar from '@/components/VariantStatsBar';
-import { GameVariant, VARIANT_CONFIG, VariantStats, WordStatistics } from './types';
+import {
+    GameVariant,
+    GlobalWordStatistics,
+    VARIANT_CONFIG,
+    VariantStats,
+    WordStatistics,
+} from './types';
 import { WordStatisticsManager } from './WordStatisticsManager';
 import { usePronunciation } from '@/lib/usePronunciation';
 
@@ -39,10 +45,28 @@ const hasCompletedAllWords = (stats: Record<string, WordStatistics>, words: Word
 export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     const router = useRouter();
     const words = useMemo(() => WORDS_DICTIONARY, []);
-    const [globalStats, setGlobalStats] = useState<Record<string, WordStatistics>>({});
+    const [globalStats, setGlobalStats] = useState<Record<string, GlobalWordStatistics>>({});
+    const [variantWordStats, setVariantWordStats] = useState<
+        Record<GameVariant, Record<string, WordStatistics>>
+    >({
+        guessTheWord: {},
+        listenAndGuess: {},
+    });
     const [variantStats, setVariantStats] = useState<Record<GameVariant, VariantStats>>({
-        guessTheWord: { totalAttempts: 0, correctAttempts: 0, wrongAttempts: 0 },
-        listenAndGuess: { totalAttempts: 0, correctAttempts: 0, wrongAttempts: 0 },
+        guessTheWord: {
+            totalAttempts: 0,
+            correctAttempts: 0,
+            wrongAttempts: 0,
+            learnedWordsCount: 0,
+            totalWordsCount: words.length,
+        },
+        listenAndGuess: {
+            totalAttempts: 0,
+            correctAttempts: 0,
+            wrongAttempts: 0,
+            learnedWordsCount: 0,
+            totalWordsCount: words.length,
+        },
     });
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
@@ -59,7 +83,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     const { activeWord, error, pronounceWord: playWord, voicesReady } = usePronunciation();
 
     const setupRound = useCallback(
-        (stats: Record<string, WordStatistics>) => {
+        (stats: Record<string, WordStatistics> = {}) => {
             playedOnOpenRef.current = false;
             const candidates = words.filter((item) => {
                 const record = stats[item.word];
@@ -84,7 +108,6 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             setCardModeOverride(null);
             setPendingCompletion(false);
             setGlowSeed(0);
-
         },
         [words],
     );
@@ -92,12 +115,19 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     useEffect(() => {
         const manager = new WordStatisticsManager(words);
         managerRef.current = manager;
-        const { globalStats: loadedGlobal, variantStats: loadedVariants } = manager.loadAll();
+        const {
+            globalStats: loadedGlobal,
+            variantStats: loadedVariants,
+            variantWordStats: loadedVariantWordStats,
+        } = manager.loadAll();
 
         setGlobalStats(loadedGlobal);
         setVariantStats(loadedVariants);
-        setupRound(loadedGlobal);
-    }, [setupRound, words]);
+        setVariantWordStats(
+            loadedVariantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
+        );
+        setupRound(loadedVariantWordStats[variant]);
+    }, [setupRound, variant, words]);
 
     useEffect(() => {
         if (
@@ -123,13 +153,18 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             const isCorrect = guess === currentWord.word;
             const updated = managerRef.current?.recordAttempt(variant, guess, isCorrect);
             if (updated) {
-                setGlobalStats(updated.globalStats);
+                setVariantWordStats(
+                    updated.variantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
+                );
                 setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+                setGlobalStats(updated.globalStats);
             }
 
             if (isCorrect) {
-                const latestGlobal = updated?.globalStats ?? managerRef.current?.getGlobalStats() ?? globalStats;
-                const complete = hasCompletedAllWords(latestGlobal, words);
+                const latestVariantStats =
+                    updated?.variantWordStats ?? managerRef.current?.getSnapshot().variantWordStats;
+                const variantWordStatsForRound = latestVariantStats?.[variant] ?? variantWordStats[variant];
+                const complete = hasCompletedAllWords(variantWordStatsForRound ?? {}, words);
 
                 playWord(currentWord, {
                     allowExamples: false,
@@ -150,17 +185,25 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             setShakingOption(guess);
             window.setTimeout(() => setShakingOption(null), 700);
         },
-        [currentWord, globalStats, isTransitioning, playWord, variant, words],
+        [currentWord, isTransitioning, playWord, variant, variantWordStats, words],
     );
 
     const handleNextWord = useCallback(() => {
-        const latestGlobal = managerRef.current?.getGlobalStats() ?? globalStats;
         if (pendingCompletion) {
+            const updated = managerRef.current?.finalizeVariant();
+            if (updated) {
+                setGlobalStats(updated.globalStats);
+                setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+                setVariantWordStats(
+                    updated.variantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
+                );
+            }
             setIsFinished(true);
             setCurrentWord(null);
             setOptions([]);
         } else {
-            setupRound(latestGlobal);
+            const latest = managerRef.current?.getSnapshot().variantWordStats ?? variantWordStats;
+            setupRound(latest[variant]);
         }
         setGlowingOption(null);
         setShakingOption(null);
@@ -169,15 +212,20 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
         setPendingCompletion(false);
         setIsTransitioning(false);
         setGlowSeed(0);
-    }, [globalStats, pendingCompletion, setupRound]);
+    }, [pendingCompletion, setupRound, variant, variantWordStats]);
 
     const handleRestart = useCallback(() => {
-        const updated = managerRef.current?.resetLearnedFlags();
+        const updated = managerRef.current?.resetVariant(variant);
+        const variantSnapshot =
+            updated?.variantWordStats?.[variant] ?? variantWordStats[variant] ?? {};
         if (updated) {
             setGlobalStats(updated.globalStats);
             setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
-            setupRound(updated.globalStats);
+            setVariantWordStats(
+                updated.variantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
+            );
         }
+        setupRound(variantSnapshot);
         setGlowingOption(null);
         setShakingOption(null);
         setIsTransitioning(false);
@@ -186,43 +234,45 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
         setCardModeOverride(null);
         setPendingCompletion(false);
         setGlowSeed(0);
-    }, [setupRound]);
+    }, [setupRound, variant, variantWordStats]);
 
-    const handleResetStats = useCallback(() => {
-        const updated = managerRef.current?.resetAll();
+    const handleResetGlobalStats = useCallback(() => {
+        const updated = managerRef.current?.resetGlobal();
         if (updated) {
             setGlobalStats(updated.globalStats);
             setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
-            setupRound(updated.globalStats);
+            setVariantWordStats(
+                updated.variantWordStats as Record<GameVariant, Record<string, WordStatistics>>,
+            );
         }
-        setIsFinished(false);
-        setGlowingOption(null);
-        setShakingOption(null);
-        setIsTransitioning(false);
-        setResolvedOption(null);
-        setCardModeOverride(null);
-        setPendingCompletion(false);
-        setGlowSeed(0);
-    }, [setupRound]);
+    }, []);
 
-    const learnedCount = useMemo(
+    const optionMode = VARIANT_CONFIG[variant].optionMode;
+    const activeVariantStats = variantStats[variant] ?? {
+        totalAttempts: 0,
+        correctAttempts: 0,
+        wrongAttempts: 0,
+        learnedWordsCount: 0,
+        totalWordsCount: words.length,
+    };
+    const learnedCount = activeVariantStats.learnedWordsCount;
+    const score = Math.round((learnedCount / activeVariantStats.totalWordsCount) * 100);
+    const safeScore = Number.isNaN(score) ? 0 : score;
+    const hasGlobalAttempts = useMemo(
         () =>
-            Object.values(globalStats).filter(
-                (stat) => stat.learned && stat.correctAttempts > 0,
-            ).length,
+            Object.values(globalStats).some(
+                (stat) => stat.correctAttempts > 0 || stat.wrongAttempts > 0,
+            ),
         [globalStats],
     );
-    const score = Math.round((learnedCount / words.length) * 100);
-    const optionMode = VARIANT_CONFIG[variant].optionMode;
-    const activeVariantStats = variantStats[variant] ?? { totalAttempts: 0, correctAttempts: 0, wrongAttempts: 0 };
 
     return (
         <Container maxWidth="md">
             <Box sx={{ minHeight: '100vh', py: 4, position: 'relative' }}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
-                    totalCount={words.length}
-                    score={score}
+                    totalCount={activeVariantStats.totalWordsCount}
+                    score={safeScore}
                     showScore={!isFinished}
                     variant={variant}
                     onExit={() => router.push('/')}
@@ -236,21 +286,10 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
 
                 {isFinished ? (
                     <FinishedSummary
-                        score={score}
+                        score={safeScore}
                         learnedCount={learnedCount}
-                        totalCount={words.length}
+                        totalCount={activeVariantStats.totalWordsCount}
                         onRestart={handleRestart}
-                        onResetStats={handleResetStats}
-                        wordStats={words.map((item) =>
-                            globalStats[item.word] ?? {
-                                word: item.word,
-                                learned: false,
-                                totalAttempts: 0,
-                                correctAttempts: 0,
-                                wrongAttempts: 0,
-                            },
-                        )}
-                        variantLabel={VARIANT_CONFIG[variant].label}
                         variantStats={activeVariantStats}
                     />
                 ) : (
@@ -273,9 +312,6 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                     />
                                 )}
                             </Box>
-                            <Typography variant="body2" color="text.secondary" textAlign="center">
-                                Pick the correct option below. The card stays put until you answer correctly.
-                            </Typography>
                             <VariantStatsBar stats={activeVariantStats} />
                         </Box>
 
@@ -297,11 +333,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                     const isGlowing = glowingOption === option;
                                     const isShaking = shakingOption === option;
                                     const shouldHide = Boolean(resolvedOption && option !== resolvedOption);
-                                    const shouldFade = false;
-
-                                    if (shouldHide) {
-                                        return null;
-                                    }
+                                    const shouldFade = Boolean(resolvedOption && option !== resolvedOption);
 
                                     return (
                                         <OptionButton
@@ -311,6 +343,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                             isGlowing={isGlowing}
                                             isShaking={isShaking}
                                             shouldFade={shouldFade}
+                                            isHidden={shouldHide}
                                             isLocked={isTransitioning}
                                             glowSeed={glowSeed}
                                             onGuess={handleGuess}

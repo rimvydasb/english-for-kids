@@ -34,6 +34,7 @@ interface OptionButtonProps {
     isGlowing: boolean;
     isShaking: boolean;
     shouldFade: boolean;
+    isHidden: boolean;
     isLocked: boolean;
     glowSeed: number;
     onGuess: (value: string) => void;
@@ -45,6 +46,7 @@ export default function OptionButton({
     isGlowing,
     isShaking,
     shouldFade,
+    isHidden,
     isLocked,
     glowSeed,
     onGuess,
@@ -95,7 +97,7 @@ export default function OptionButton({
                 fontSize: 25,
                 minWidth,
                 px: 2.5,
-                pointerEvents: isLocked ? 'none' : 'auto',
+                pointerEvents: isLocked || isHidden ? 'none' : 'auto',
                 animation: shouldFade
                     ? `${fadeAwayAnimation} 3s forwards`
                     : isShaking
@@ -107,6 +109,7 @@ export default function OptionButton({
                 borderColor: isShaking ? 'error.main' : undefined,
                 color: isShaking ? 'error.main' : animatedStyles.color,
                 opacity: shouldFade ? 0 : 1,
+                visibility: isHidden ? 'hidden' : 'visible',
                 backgroundImage: animatedStyles.backgroundImage,
                 backgroundSize: animatedStyles.backgroundSize,
                 boxShadow: animatedStyles.boxShadow,

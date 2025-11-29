@@ -3,18 +3,24 @@ import { WordCardMode } from '@/components/WordCard';
 export type GameVariant = 'guessTheWord' | 'listenAndGuess';
 export type OptionMode = 'word' | 'translation';
 
-export interface WordStatistics {
+export interface GlobalWordStatistics {
     word: string;
-    learned: boolean;
-    totalAttempts: number;
     correctAttempts: number;
     wrongAttempts: number;
+}
+
+export interface WordStatistics extends GlobalWordStatistics {
+    word: string;
+    totalAttempts: number;
+    learned: boolean;
 }
 
 export interface VariantStats {
     totalAttempts: number;
     correctAttempts: number;
     wrongAttempts: number;
+    learnedWordsCount: number;
+    totalWordsCount: number;
 }
 
 export const VARIANT_CONFIG: Record<
