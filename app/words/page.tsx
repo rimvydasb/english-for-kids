@@ -1,60 +1,16 @@
 'use client';
 
-import {useEffect, useRef, useState} from 'react';
-import {useRouter} from 'next/navigation';
-import {Alert, Box, Container, IconButton, Typography} from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { Alert, Box, Container, IconButton, Typography } from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import {WordRecord, WORDS_DICTIONARY} from '@/lib/words';
+import { WORDS_DICTIONARY } from '@/lib/words';
 import WordCard, { WordCardMode } from '@/components/WordCard';
+import { usePronunciation } from '@/lib/usePronunciation';
 
 export default function WordsPage() {
-    const [activeWord, setActiveWord] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const synthRef = useRef<SpeechSynthesis | null>(null);
-    const lastPronouncedRef = useRef<{ word: string; timestamp: number } | null>(null);
+    const { activeWord, error, pronounceWord } = usePronunciation();
     const router = useRouter();
     const words = WORDS_DICTIONARY;
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            synthRef.current = window.speechSynthesis;
-            return () => synthRef.current?.cancel();
-        }
-
-        setError('Speech synthesis is not available in this browser.');
-    }, []);
-
-    const pronounceWord = (wordData: WordRecord) => {
-        if (!synthRef.current) {
-            setError('Speech synthesis is not available in this browser.');
-            return;
-        }
-
-        const now = Date.now();
-        const last = lastPronouncedRef.current;
-        const withinWindow = last && last.word === wordData.word && now - last.timestamp <= 5000;
-        const hasExamples = Array.isArray(wordData.examples) && wordData.examples.length > 0;
-        const shouldUseExample = withinWindow && hasExamples;
-        const utteranceText =
-            shouldUseExample && wordData.examples
-                ? wordData.examples[Math.floor(Math.random() * wordData.examples.length)]
-                : wordData.word;
-
-        lastPronouncedRef.current = { word: wordData.word, timestamp: now };
-
-        setActiveWord(wordData.word);
-        setError(null);
-        synthRef.current.cancel();
-
-        const utterance = new SpeechSynthesisUtterance(utteranceText);
-        utterance.onend = () => setActiveWord(null);
-        utterance.onerror = () => {
-            setError('Failed to play pronunciation. Please try again.');
-            setActiveWord(null);
-        };
-
-        synthRef.current.speak(utterance);
-    };
 
     return (
         <Container maxWidth="md">

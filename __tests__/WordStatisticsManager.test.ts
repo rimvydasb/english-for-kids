@@ -31,8 +31,8 @@ class MockStorage implements Storage {
 
 describe('WordStatisticsManager', () => {
     const words: WordRecord[] = [
-        { word: 'apple', translation: 'obuolys' },
-        { word: 'dog', translation: 'šuo' },
+        new WordRecord({ word: 'apple', translation: 'obuolys' }),
+        new WordRecord({ word: 'dog', translation: 'šuo' }),
     ];
 
     const createManager = () => new WordStatisticsManager(words, new MockStorage());

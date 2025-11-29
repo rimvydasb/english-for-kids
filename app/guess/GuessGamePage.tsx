@@ -9,8 +9,9 @@ import OptionButton from './OptionButton';
 import FinishedSummary from './FinishedSummary';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import VariantStatsBar from '@/components/VariantStatsBar';
-import { GameVariant, OptionMode, VARIANT_CONFIG, VariantStats, WordStatistics } from './types';
+import { GameVariant, VARIANT_CONFIG, VariantStats, WordStatistics } from './types';
 import { WordStatisticsManager } from './WordStatisticsManager';
+import { usePronunciation } from '@/lib/usePronunciation';
 
 const shuffle = (values: string[]) => {
     const arr = [...values];
@@ -49,26 +50,13 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     const [glowingOption, setGlowingOption] = useState<string | null>(null);
     const [shakingOption, setShakingOption] = useState<string | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const managerRef = useRef<WordStatisticsManager | null>(null);
-    const synthRef = useRef<SpeechSynthesis | null>(null);
-
-    const speak = useCallback(
-        (value: string) => {
-            if (!synthRef.current) {
-                setError('Speech synthesis is not available in this browser.');
-                return;
-            }
-            setError(null);
-            synthRef.current.cancel();
-            const utterance = new SpeechSynthesisUtterance(value);
-            synthRef.current.speak(utterance);
-        },
-        [setError],
-    );
+    const playedOnOpenRef = useRef(false);
+    const { activeWord, error, pronounceWord: playWord, voicesReady } = usePronunciation();
 
     const setupRound = useCallback(
         (stats: Record<string, WordStatistics>) => {
+            playedOnOpenRef.current = false;
             const candidates = words.filter((item) => {
                 const record = stats[item.word];
                 return !record || !record.learned || record.correctAttempts === 0;
@@ -89,20 +77,11 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             setShakingOption(null);
             setIsTransitioning(false);
 
-            if (VARIANT_CONFIG[variant].cardMode === WordCardMode.ListenAndGuess) {
-                speak(next.word);
-            }
         },
-        [speak, variant, words],
+        [playWord, variant, words],
     );
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            synthRef.current = window.speechSynthesis;
-        } else {
-            setError('Speech synthesis is not available in this browser.');
-        }
-
         const manager = new WordStatisticsManager(words);
         managerRef.current = manager;
         const { globalStats: loadedGlobal, variantStats: loadedVariants } = manager.loadAll();
@@ -110,21 +89,22 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
         setGlobalStats(loadedGlobal);
         setVariantStats(loadedVariants);
         setupRound(loadedGlobal);
-
-        return () => synthRef.current?.cancel();
     }, [setupRound, words]);
 
     useEffect(() => {
-        if (currentWord && VARIANT_CONFIG[variant].cardMode === WordCardMode.ListenAndGuess) {
-            speak(currentWord.word);
+        if (
+            currentWord &&
+            VARIANT_CONFIG[variant].cardMode === WordCardMode.ListenAndGuess &&
+            !playedOnOpenRef.current
+        ) {
+            playWord(currentWord, {
+                allowExamples: false,
+                suppressPendingError: true,
+                suppressNotAllowedError: true,
+            });
+            playedOnOpenRef.current = true;
         }
-    }, [currentWord, speak, variant]);
-
-    const pronounceWord = useCallback(() => {
-        if (currentWord) {
-            speak(currentWord.word);
-        }
-    }, [currentWord, speak]);
+    }, [currentWord, playWord, variant, voicesReady]);
 
     const handleGuess = useCallback(
         (guess: string) => {
@@ -142,7 +122,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
 
             if (isCorrect) {
                 if (config.optionMode === 'word') {
-                    speak(currentWord.word);
+                    playWord(currentWord)
                 }
 
                 setGlowingOption(guess);
@@ -167,7 +147,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             setShakingOption(guess);
             window.setTimeout(() => setShakingOption(null), 700);
         },
-        [currentWord, globalStats, isTransitioning, setupRound, speak, variant, words],
+        [currentWord, globalStats, isTransitioning, setupRound, variant, words],
     );
 
     const handleRestart = useCallback(() => {
@@ -259,7 +239,8 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                     <WordCard
                                         word={currentWord}
                                         mode={VARIANT_CONFIG[variant].cardMode}
-                                        onPronounce={pronounceWord}
+                                        active={activeWord === currentWord.word}
+                                        onPronounce={() => playWord(currentWord)}
                                     />
                                 )}
                             </Box>
