@@ -22,6 +22,9 @@ export default function VariantStatsBar({ stats }: VariantStatsBarProps) {
             <Typography variant="body2" color="error.main">
                 Wrong: {stats.wrongAttempts}
             </Typography>
+            <Typography variant="body2" color="primary.main">
+                Learned: {stats.learnedWordsCount} / {stats.totalWordsCount}
+            </Typography>
         </Stack>
     );
 }

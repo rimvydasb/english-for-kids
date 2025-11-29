@@ -1,19 +1,17 @@
+import { useMemo } from 'react';
 import Button from '@mui/material/Button';
 import { keyframes } from '@mui/material/styles';
 
-const glowAnimation = keyframes`
-    0% {
-        box-shadow: 0 0 0 0 rgba(122, 150, 248, 0.4);
-    }
-    40% {
-        box-shadow: 0 0 18px 8px rgba(28, 72, 223, 0.35);
-    }
-    80% {
-        box-shadow: 0 0 10px 2px rgba(67, 255, 0, 0.25);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-    }
+const gradientShift = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const quickPop = keyframes`
+  0% { transform: scale(1); }
+  40% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 `;
 
 const shakeAnimation = keyframes`
@@ -36,7 +34,9 @@ interface OptionButtonProps {
     isGlowing: boolean;
     isShaking: boolean;
     shouldFade: boolean;
+    isHidden: boolean;
     isLocked: boolean;
+    glowSeed: number;
     onGuess: (value: string) => void;
 }
 
@@ -46,10 +46,45 @@ export default function OptionButton({
     isGlowing,
     isShaking,
     shouldFade,
+    isHidden,
     isLocked,
+    glowSeed,
     onGuess,
 }: OptionButtonProps) {
     const minWidth = Math.max(label.length * 14, 140);
+    const animatedGradient = useMemo(() => {
+        if (!isGlowing) {
+            return null;
+        }
+        const gradients = [
+            'linear-gradient(90deg, #6c5ce7, #00b894, #0984e3)',
+            'linear-gradient(90deg, #ff9a9e, #fad0c4, #fcb69f)',
+            'linear-gradient(90deg, #84fab0, #8fd3f4, #70a1ff)',
+            'linear-gradient(90deg, #f6d365, #fda085, #fbc2eb)',
+            'linear-gradient(90deg, #a18cd1, #fbc2eb, #6dd5ed)',
+        ];
+        const index = Math.floor(Math.abs(glowSeed * gradients.length)) % gradients.length;
+        return gradients[index];
+    }, [glowSeed, isGlowing]);
+
+    const animatedStyles: {
+        backgroundImage?: string | null;
+        backgroundSize?: string;
+        color?: string;
+        animation?: string;
+        boxShadow?: string;
+        borderColor?: string;
+    } = isGlowing
+        ? {
+            backgroundImage: animatedGradient ?? undefined,
+            backgroundSize: '220% 220%',
+            color: '#fff',
+            animation: `${gradientShift} 1.3s ease-in-out infinite, ${quickPop} 0.6s ease-out`,
+            boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
+            borderColor: 'transparent',
+        }
+        : {};
+
     return (
         <Button
             variant={isGlowing ? 'contained' : 'outlined'}
@@ -62,18 +97,25 @@ export default function OptionButton({
                 fontSize: 25,
                 minWidth,
                 px: 2.5,
-                pointerEvents: isLocked ? 'none' : 'auto',
-                animation: isGlowing
-                    ? `${glowAnimation} 3s ease-in-out`
-                    : shouldFade
-                        ? `${fadeAwayAnimation} 3s forwards`
-                        : isShaking
-                            ? `${shakeAnimation} 0.5s ease`
+                pointerEvents: isLocked || isHidden ? 'none' : 'auto',
+                animation: shouldFade
+                    ? `${fadeAwayAnimation} 3s forwards`
+                    : isShaking
+                        ? `${shakeAnimation} 0.5s ease`
+                        : isGlowing
+                            ? animatedStyles.animation
                             : 'none',
-                bgcolor: isGlowing ? 'success.light' : undefined,
+                bgcolor: isShaking ? 'error.light' : isGlowing ? 'primary.main' : undefined,
                 borderColor: isShaking ? 'error.main' : undefined,
-                color: isShaking ? 'error.main' : undefined,
+                color: isShaking ? 'error.main' : animatedStyles.color,
                 opacity: shouldFade ? 0 : 1,
+                visibility: isHidden ? 'hidden' : 'visible',
+                backgroundImage: animatedStyles.backgroundImage,
+                backgroundSize: animatedStyles.backgroundSize,
+                boxShadow: animatedStyles.boxShadow,
+                '&:hover': isGlowing
+                    ? animatedStyles
+                    : undefined,
             }}
         >
             {label}
