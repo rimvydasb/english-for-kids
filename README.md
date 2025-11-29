@@ -1,6 +1,7 @@
 # English Learner
 
-A Next.js application for learning English words with pronunciation. Browse illustrated cards with text-to-speech or play a guessing game to memorize vocabulary.
+A Next.js application for learning English words with pronunciation. Browse illustrated cards with text-to-speech or
+play a guessing game to memorize vocabulary.
 
 ## Overview
 
@@ -22,17 +23,20 @@ A Next.js application for learning English words with pronunciation. Browse illu
 ## Technology Stack
 
 ### Frontend Framework
+
 - **Next.js 16.0.5** - React framework with App Router
 - **React 19.2.0** - UI library
 - **TypeScript 5.9.3** - Type-safe JavaScript
 
 ### UI Components & Styling
+
 - **Material UI (MUI) 7.3.5** - React component library
 - **MUI Icons Material 7.3.5** - Material Design icons
 - **Emotion 11.14.0** - CSS-in-JS library (required by MUI)
 - **@mui/material-nextjs** - MUI integration for Next.js App Router
 
 ### Development Tools
+
 - **Node.js v25.2.0** - JavaScript runtime
 - **npm 11.6.2** - Package manager
 - **TypeScript** - Static type checking
@@ -66,6 +70,7 @@ EnglishLearner/
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
@@ -73,7 +78,9 @@ npm install
 ### Running the Application
 
 #### Development Mode
+
 Start the development server on port 7788:
+
 ```bash
 npm run dev
 ```
@@ -81,12 +88,15 @@ npm run dev
 The application will be available at [http://localhost:7788](http://localhost:7788)
 
 #### Production Build
+
 Build for production:
+
 ```bash
 npm run build
 ```
 
 Start the production server:
+
 ```bash
 npm start
 ```
@@ -125,12 +135,64 @@ npm start
 
 ## Next Steps
 
-Improve Guess Game:
-
-- [ ] When game is finished, display a summary screen with total score and option to restart.
-Also, then, do not show score in the top bar to avoid confusion and duplication when game is finished
-and summary is shown.
-
 Improve WordCard:
 
-- [ ] When the same word is clicked again within 5 seconds, replay one of the examples instead of a single word.
+- [ ] Implement `WordCardMode` different modes as per table:
+
+| Mode           | Image | Word | Pronunciation | Translation | Description                                                      |
+|----------------|-------|------|---------------|-------------|------------------------------------------------------------------|
+| Learning       | ✓     | ✓    | ✓             | ✓           | Current mode with image and word displayed in All Words section  |
+| GuessWord      | ✓     | ✗    | ✓             | ✓           | Word is replaced by ???                                          |
+| ListenAndGuess | ✗     | ✗    | ✓             | ✗           | Instead of image ? mark is displayed and word is replaced by ??? |
+
+Improve Guess Word Game:
+
+- [ ] Options Mode
+
+| Mode          | Description                         | When Correct             | When Incorrect      |
+|---------------|-------------------------------------|--------------------------|---------------------|
+| WordModel     | Word is shown as text option        | Highlight and play sound | Shake and color red |
+| TranslateMode | Word translation is shown as option | Only Highlight           | Shake and color red |
+
+- [ ] Split game into multiple variants:
+
+| Variant        | Game Type          | Card Mode      | Options Mode  | Description                                                                 |
+|----------------|--------------------|----------------|---------------|-----------------------------------------------------------------------------|
+| Guess The Word | GuessWordGame      | GuessWord      | WordModel     | Random 5 word options are displayed and user needs to pick the correct one  |
+| Listen & Guess | ListenAndGuessGame | ListenAndGuess | TranslateMode | No image is shown, user hears the word and picks translation from 5 options |
+
+### Score Persistence
+
+- [ ] Each word has its own global statistics that are persisted in `localStorage` as "GLOBAL_WORD_STATS"
+- [ ] Show total attempts, correct attempts, wrong attempts per word
+
+```typescript
+interface WordStatistics {
+    word: string;
+    learned: boolean;
+    totalAttempts: number;
+    correctAttempts: number;
+    wrongAttempts: number;
+}
+```
+
+- [ ] Each game variant has internal statistics that are also persisted in `localStorage`
+1. Guess The Word variant stats stored as "GUESS_THE_WORD_STATS"
+2. Listen & Guess variant stats stored as "LISTEN_AND_GUESS_STATS"
+
+- [ ] After each game statistics can be reset via a button on the end game page
+
+Game Start:
+1. `WORDS_DICTIONARY_DATA` is read to get the list of words and empty statistics are initialized if not present in localStorage
+2. When a game starts or continues, the relevant statistics are loaded from localStorage
+3. During the game, each attempt updates the statistics in memory and `localStorage`
+4. Game randomly picks the word that has `correctAttempts` as 0 or `learned` is false
+5. When user clicks a wrong option, then that option word's `wrongAttempts` is increased and `learned` is set to false
+6. When user clicks the correct option, then that option word's `correctAttempts` is increased and `learned` is set to true
+7. Game picks any random word as an option from absolutely all words in `WORDS_DICTIONARY_DATA`
+
+Game finish:
+1. Game finishes when all words have `learned` set to true and `correctAttempts` > 0
+2. When user finishes the game, the statistics are saved to localStorage
+3. When user selects a game or game is finished, then `FinishedSummary` is shown with the statistics summary
+4. `FinishedSummary` has a reset button that clears the statistics from localStorage and memory
