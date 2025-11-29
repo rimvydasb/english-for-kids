@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Box, Container, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Container, Stack, Typography } from '@mui/material';
 import { WordRecord, WORDS_DICTIONARY } from '@/lib/words';
 import WordCard, { WordCardMode } from '@/components/WordCard';
 import OptionButton from './OptionButton';
@@ -50,6 +50,10 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     const [glowingOption, setGlowingOption] = useState<string | null>(null);
     const [shakingOption, setShakingOption] = useState<string | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [resolvedOption, setResolvedOption] = useState<string | null>(null);
+    const [cardModeOverride, setCardModeOverride] = useState<WordCardMode | null>(null);
+    const [pendingCompletion, setPendingCompletion] = useState(false);
+    const [glowSeed, setGlowSeed] = useState(0);
     const managerRef = useRef<WordStatisticsManager | null>(null);
     const playedOnOpenRef = useRef(false);
     const { activeWord, error, pronounceWord: playWord, voicesReady } = usePronunciation();
@@ -76,9 +80,13 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             setGlowingOption(null);
             setShakingOption(null);
             setIsTransitioning(false);
+            setResolvedOption(null);
+            setCardModeOverride(null);
+            setPendingCompletion(false);
+            setGlowSeed(0);
 
         },
-        [playWord, variant, words],
+        [words],
     );
 
     useEffect(() => {
@@ -113,7 +121,6 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             }
 
             const isCorrect = guess === currentWord.word;
-            const config = VARIANT_CONFIG[variant];
             const updated = managerRef.current?.recordAttempt(variant, guess, isCorrect);
             if (updated) {
                 setGlobalStats(updated.globalStats);
@@ -121,34 +128,48 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             }
 
             if (isCorrect) {
-                if (config.optionMode === 'word') {
-                    playWord(currentWord)
-                }
+                const latestGlobal = updated?.globalStats ?? managerRef.current?.getGlobalStats() ?? globalStats;
+                const complete = hasCompletedAllWords(latestGlobal, words);
+
+                playWord(currentWord, {
+                    allowExamples: false,
+                    suppressPendingError: true,
+                    suppressNotAllowedError: true,
+                });
 
                 setGlowingOption(guess);
+                setShakingOption(null);
+                setResolvedOption(guess);
+                setCardModeOverride(WordCardMode.Learning);
                 setIsTransitioning(true);
-
-                window.setTimeout(() => {
-                    const latestGlobal = managerRef.current?.getGlobalStats() ?? globalStats;
-                    const complete = hasCompletedAllWords(latestGlobal, words);
-                    if (complete) {
-                        setIsFinished(true);
-                        setCurrentWord(null);
-                        setOptions([]);
-                    } else {
-                        setupRound(latestGlobal);
-                    }
-                    setGlowingOption(null);
-                    setIsTransitioning(false);
-                }, 3000);
+                setPendingCompletion(complete);
+                setGlowSeed(Math.random());
                 return;
             }
 
             setShakingOption(guess);
             window.setTimeout(() => setShakingOption(null), 700);
         },
-        [currentWord, globalStats, isTransitioning, setupRound, variant, words],
+        [currentWord, globalStats, isTransitioning, playWord, variant, words],
     );
+
+    const handleNextWord = useCallback(() => {
+        const latestGlobal = managerRef.current?.getGlobalStats() ?? globalStats;
+        if (pendingCompletion) {
+            setIsFinished(true);
+            setCurrentWord(null);
+            setOptions([]);
+        } else {
+            setupRound(latestGlobal);
+        }
+        setGlowingOption(null);
+        setShakingOption(null);
+        setResolvedOption(null);
+        setCardModeOverride(null);
+        setPendingCompletion(false);
+        setIsTransitioning(false);
+        setGlowSeed(0);
+    }, [globalStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
         const updated = managerRef.current?.resetLearnedFlags();
@@ -161,6 +182,10 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
         setShakingOption(null);
         setIsTransitioning(false);
         setIsFinished(false);
+        setResolvedOption(null);
+        setCardModeOverride(null);
+        setPendingCompletion(false);
+        setGlowSeed(0);
     }, [setupRound]);
 
     const handleResetStats = useCallback(() => {
@@ -174,6 +199,10 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
         setGlowingOption(null);
         setShakingOption(null);
         setIsTransitioning(false);
+        setResolvedOption(null);
+        setCardModeOverride(null);
+        setPendingCompletion(false);
+        setGlowSeed(0);
     }, [setupRound]);
 
     const learnedCount = useMemo(
@@ -238,7 +267,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                 {currentWord && (
                                     <WordCard
                                         word={currentWord}
-                                        mode={VARIANT_CONFIG[variant].cardMode}
+                                        mode={cardModeOverride ?? VARIANT_CONFIG[variant].cardMode}
                                         active={activeWord === currentWord.word}
                                         onPronounce={() => playWord(currentWord)}
                                     />
@@ -267,7 +296,12 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                             : optionWord?.word || option;
                                     const isGlowing = glowingOption === option;
                                     const isShaking = shakingOption === option;
-                                    const shouldFade = isTransitioning && !isGlowing;
+                                    const shouldHide = Boolean(resolvedOption && option !== resolvedOption);
+                                    const shouldFade = false;
+
+                                    if (shouldHide) {
+                                        return null;
+                                    }
 
                                     return (
                                         <OptionButton
@@ -278,11 +312,25 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                             isShaking={isShaking}
                                             shouldFade={shouldFade}
                                             isLocked={isTransitioning}
+                                            glowSeed={glowSeed}
                                             onGuess={handleGuess}
                                         />
                                     );
                                 })}
                             </Box>
+
+                            {resolvedOption && (
+                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                    <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        size="large"
+                                        onClick={handleNextWord}
+                                    >
+                                        {pendingCompletion ? 'See summary' : 'Next word'}
+                                    </Button>
+                                </Box>
+                            )}
                         </Stack>
                     </Stack>
                 )}

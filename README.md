@@ -197,16 +197,16 @@ interface WordStatistics {
 3. When user selects a game or game is finished, then `FinishedSummary` is shown with the statistics summary
 4. `FinishedSummary` has a reset button that clears the statistics from localStorage and memory
 
-## Refactoring
+- [x] Guess is correct
+1. Play pronunciation of the word again
+2. Other options immediately disappear
+3. Only the correct option is immediately highlighted with quick random animation similar to main menu `Learn English` animation
+4. Statistics are updated in `localStorage` and memory
+5. `WordCard` component mode is set to `WordCardMode.Learning` so the user will see the image and word
+6. Below the options, a Next button appears to continue to the next word
 
-- [x] Introduce a `WordStatisticsManager` class to encapsulate all logic related to loading, saving, and updating word statistics in localStorage.
-- [x] `WordStatisticsManager` APIs accept each game variant as a parameter and handle statistics accordingly.
-- [x] `WordStatisticsManager` updates global statistics as well as game-specific statistics based on the game variant.
-- [x] Introduce Jest testing for `WordStatisticsManager` to ensure correctness of statistics management logic. Use mocking for localStorage interactions
-so tests do not depend on actual browser storage and can work in Node.js environment.
-- [x] The main page must have 3 options: "Learn Words", "Guess The Word", "Listen & Guess".
-- [x] Create separate pages for each game variant under `app/guess-the-word/page.tsx` and `app/listen-and-guess/page.tsx`.
-- [x] Remove `ButtonGroup` from `GuessScoreHeader.tsx` - game is selected only in the main menu.
-- [x] Remove `Tap a card to flip for translation; tap the speaker to hear pronunciation. Press X to return.`, no key binding to X is needed as well.
-- [x] `WordCard.tsx` is shared a lot, so it must be in `components/WordCard.tsx`.
-- [x] Review all Refactoring tasks in README.md and mark them as complete if tasks are really completed
+- [x] Guess is incorrect
+1. The selected wrong option shakes and turns red briefly
+2. The selected wrong option's `learned` is set to false in statistics
+
+- [x] Mark tasks completed in README.md when done
