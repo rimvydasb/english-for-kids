@@ -8,7 +8,7 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 - Guess The Word: see the image (WordCard Guess mode), pick the matching word; options show text.
 - Listen & Guess: hear the word (WordCard Listen mode), pick the correct translation.
 - Guess Phrases: read and hear English phrases, then choose the right Lithuanian translation.
-- Nine bundled words with matching PNGs in `public/images/`.
+- Twenty-three bundled words with matching PNGs in `public/images/`.
 
 ## Gameplay Behavior
 
@@ -68,32 +68,31 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 
 ## Word List
 
-| English  | Lithuanian       |
-|----------|------------------|
-| red      | raudonas         |
-| green    | žalias           |
-| blue     | mėlynas          |
-| yellow   | geltonas         |
-| orange   | oranžinis        |
-| purple   | violetinis       |
-| pink     | rožinis          |
-| brown    | rudas            |
-| black    | juodas           |
-| white    | baltas           |
-| pencil   | pieštukas        |
-| crayon   | kreidelė         |
-| notebook | sąsiuvinis       |
-| chair    | kėdė             |
-| desk     | rašomasis stalas |
-| egg      | kiaušinis        |
-| elephant | dramblys         |
-| farm     | ferma            |
-| fish     | žuvis            |
-| balloon  | balionas         |
-| puppet   | lėlė             |
-| teddy    | meškiukas        |
-| robot    | robotas          |
-| plane    | lėktuvas         |
+| English  | Lithuanian        |
+|----------|-------------------|
+| apple    | obuolys           |
+| baloon   | balionas          |
+| black    | juodas            |
+| brown    | rudas             |
+| cat      | katė              |
+| crayon   | kreidelė          |
+| desk     | rašomasis stalas  |
+| dog      | šuo               |
+| egg      | kiaušinis         |
+| elephant | dramblys          |
+| farm     | ferma             |
+| fish     | žuvis             |
+| green    | žalias            |
+| notebook | sąsiuvinis        |
+| pencil   | pieštukas         |
+| pink     | rožinis           |
+| plain    | lyguma            |
+| puppet   | lėlė              |
+| purple   | violetinis        |
+| red      | raudonas          |
+| teddy    | meškiukas         |
+| white    | baltas            |
+| yellow   | geltonas          |
 
 # Phrases Guess Game
 
