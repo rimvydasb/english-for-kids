@@ -327,7 +327,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                         size="large"
                                         onClick={handleNextWord}
                                     >
-                                        {pendingCompletion ? 'See summary' : 'Next word'}
+                                        {pendingCompletion ? 'Finish!' : 'Next'}
                                     </Button>
                                 </Box>
                             )}

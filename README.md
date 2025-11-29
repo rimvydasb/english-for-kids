@@ -165,17 +165,6 @@ Improve Guess Word Game:
 
 - [x] Each word has its own global statistics that are persisted in `localStorage` as "GLOBAL_WORD_STATS"
 - [x] Show total attempts, correct attempts, wrong attempts per word
-
-```typescript
-interface WordStatistics {
-    word: string;
-    learned: boolean;
-    totalAttempts: number;
-    correctAttempts: number;
-    wrongAttempts: number;
-}
-```
-
 - [x] Each game variant has internal statistics that are also persisted in `localStorage`
 1. Guess The Word variant stats stored as "GUESS_THE_WORD_STATS"
 2. Listen & Guess variant stats stored as "LISTEN_AND_GUESS_STATS"
@@ -199,7 +188,7 @@ interface WordStatistics {
 
 - [x] Guess is correct
 1. Play pronunciation of the word again
-2. Other options immediately disappear
+2. Other options immediately disappear, but they still take that empty space, so the layout doesn't shift and correct option stays in the same place
 3. Only the correct option is immediately highlighted with quick random animation similar to main menu `Learn English` animation
 4. Statistics are updated in `localStorage` and memory
 5. `WordCard` component mode is set to `WordCardMode.Learning` so the user will see the image and word
@@ -210,3 +199,31 @@ interface WordStatistics {
 2. The selected wrong option's `learned` is set to false in statistics
 
 - [x] Mark tasks completed in README.md when done
+
+- [ ] Listen & Guess AND Guess The Word games are two different distinct games.
+They both use `GUESS_THE_WORD_STATS` and `LISTEN_AND_GUESS_STATS` respectively to track their own statistics separately.
+- [ ] `GLOBAL_WORD_STATS` are updated only at the end of each game variant.
+- [ ] Introduce `GlobalWordStatistics` as a subset of `WordStatistics`. `GLOBAL_WORD_STATS` only saves `GlobalWordStatistics` records.
+
+```typescript
+interface GlobalWordStatistics {
+    word: string;
+    correctAttempts: number;
+    wrongAttempts: number;
+}
+
+
+interface WordStatistics extends GlobalWordStatistics {
+    learned: boolean;
+    totalAttempts: number;
+}
+```
+
+- [ ] `FinishedSummary.tsx` has only one button "Restart" that clears only the relevant game 
+statistics from localStorage and memory to restart the game.
+- [ ] Review linting problems for `Unused parameter ...` and remove unnecessary parameters from functions and components.
+- [ ] Remove explanation `Pick the correct option below. The card stays put until you answer correctly.`
+and `Pick the correct option below. The card stays put until you answer correctly.`.
+No excessive instructions needed in the game!
+- [ ] Other options immediately disappear, but they still take that empty space, so the layout doesn't shift and correct option stays in the same place
+- [ ] `VariantStats` must have `learnedWordsCount` and `totalWordsCount` - show them as well.

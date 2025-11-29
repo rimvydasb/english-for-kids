@@ -39,12 +39,6 @@ export default function FinishedSummary({
                     <Typography variant="h4" component="h2" sx={{ fontWeight: 700 }}>
                         Great job!
                     </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                        {variantLabel} summary
-                    </Typography>
-                    <Typography variant="h5" color="text.primary">
-                        Final score: {safeScore}% ({learnedCount} / {totalCount})
-                    </Typography>
 
                     <Stack
                         direction="row"
@@ -61,26 +55,14 @@ export default function FinishedSummary({
                         <Typography variant="body2" color="error.main">
                             Wrong: {variantStats.wrongAttempts}
                         </Typography>
-                    </Stack>
-
-                    <Stack spacing={1} sx={{ width: '100%', textAlign: 'left' }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                            Word statistics
+                        <Typography variant="body2" color="error.main">
+                            Learned: {learnedCount} / {totalCount}
                         </Typography>
-                        {wordStats.map((stat) => (
-                            <Typography key={stat.word} variant="body2" color="text.secondary">
-                                {stat.word}: total {stat.totalAttempts}, correct {stat.correctAttempts}, wrong {stat.wrongAttempts}{' '}
-                                {stat.learned ? '(learned)' : '(practice more)'}
-                            </Typography>
-                        ))}
                     </Stack>
 
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: '100%' }} justifyContent="center">
                         <Button variant="contained" size="large" onClick={onRestart}>
                             Restart
-                        </Button>
-                        <Button variant="outlined" size="large" color="error" onClick={onResetStats}>
-                            Reset statistics
                         </Button>
                     </Stack>
                 </Stack>
