@@ -229,3 +229,10 @@ No excessive instructions needed in the game!
 - [x] Other options immediately disappear, but they still take that empty space, so the layout doesn't shift and correct option stays in the same place
 - [x] `VariantStats` must have `learnedWordsCount` and `totalWordsCount` - show them as well.
 - [x] Mark tasks completed in README.md when done under Next Phase To-Do List
+
+## Refactor GuessScoreHeader
+
+- [x] `GuessScoreHeader` should not show label, but should show current game icon same as in the main menu.
+- [x] Between icon and close, there will be an actual progress bar showing progress towards finishing the game.
+- [x] Progress bar consists of little boxes. One box is one learned word.
+- [x] Each box is filled with rainbow blue color when the word is learned, otherwise it's just an outline.

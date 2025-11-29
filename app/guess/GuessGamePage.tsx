@@ -292,7 +292,6 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                 <GuessScoreHeader
                     learnedCount={learnedCount}
                     totalCount={activeVariantStats.totalWordsCount}
-                    score={safeScore}
                     showScore={!isFinished}
                     variant={variant}
                     onExit={() => router.push('/')}
