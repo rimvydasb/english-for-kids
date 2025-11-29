@@ -79,8 +79,10 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     const [pendingCompletion, setPendingCompletion] = useState(false);
     const [glowSeed, setGlowSeed] = useState(0);
     const managerRef = useRef<WordStatisticsManager | null>(null);
+    const hasAnnouncedFinishRef = useRef(false);
     const playedOnOpenRef = useRef(false);
     const { activeWord, error, pronounceWord: playWord, voicesReady } = usePronunciation();
+    const congratulationsRecord = useMemo(() => new WordRecord({ word: 'Great job' }), []);
 
     const setupRound = useCallback(
         (stats: Record<string, WordStatistics> = {}) => {
@@ -143,6 +145,24 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             playedOnOpenRef.current = true;
         }
     }, [currentWord, playWord, variant, voicesReady]);
+
+    useEffect(() => {
+        if (!isFinished) {
+            hasAnnouncedFinishRef.current = false;
+            return;
+        }
+
+        if (hasAnnouncedFinishRef.current) {
+            return;
+        }
+
+        playWord(congratulationsRecord, {
+            allowExamples: false,
+            suppressPendingError: true,
+            suppressNotAllowedError: true,
+        });
+        hasAnnouncedFinishRef.current = true;
+    }, [congratulationsRecord, isFinished, playWord]);
 
     const handleGuess = useCallback(
         (guess: string) => {
@@ -312,7 +332,6 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                     />
                                 )}
                             </Box>
-                            <VariantStatsBar stats={activeVariantStats} />
                         </Box>
 
                         <Stack spacing={1.5}>
@@ -364,6 +383,10 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                     </Button>
                                 </Box>
                             )}
+
+                            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <VariantStatsBar stats={activeVariantStats} />
+                            </Box>
                         </Stack>
                     </Stack>
                 )}
