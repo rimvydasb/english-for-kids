@@ -1,4 +1,4 @@
-import { MouseEvent, useState } from 'react';
+import { MouseEvent, useMemo, useState } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
@@ -8,18 +8,24 @@ import Box from '@mui/material/Box';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { WordRecord } from '@/lib/words';
 
+export enum WordCardMode {
+    Learning = 'learning',
+    GuessWord = 'guessWord',
+    ListenAndGuess = 'listenAndGuess',
+}
+
 interface WordCardProps {
     word: WordRecord;
     active?: boolean;
     onPronounce?: () => void;
-    guessMode?: boolean;
+    mode?: WordCardMode;
 }
 
 export default function WordCard({
     word,
     active,
     onPronounce,
-    guessMode,
+    mode = WordCardMode.Learning,
 }: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
 
@@ -31,6 +37,13 @@ export default function WordCard({
         event.stopPropagation();
         onPronounce?.();
     };
+
+    const showImage = mode !== WordCardMode.ListenAndGuess;
+    const showTranslation = mode !== WordCardMode.ListenAndGuess;
+    const displayedWord = useMemo(
+        () => (mode === WordCardMode.Learning ? word.word : '???'),
+        [mode, word.word],
+    );
 
     const bottomRow = (
         <CardContent sx={{ flexShrink: 0 }}>
@@ -44,17 +57,15 @@ export default function WordCard({
                         color: active ? 'secondary.main' : 'text.primary',
                     }}
                 >
-                    {guessMode ? '???' : word.word}
+                    {displayedWord}
                 </Typography>
-                {!guessMode && (
-                    <IconButton
-                        aria-label={`Hear ${word.word}`}
-                        onClick={handlePronounce}
-                        color={active ? 'secondary' : 'primary'}
-                    >
-                        <VolumeUpIcon />
-                    </IconButton>
-                )}
+                <IconButton
+                    aria-label={`Hear ${word.word}`}
+                    onClick={handlePronounce}
+                    color={active ? 'secondary' : 'primary'}
+                >
+                    <VolumeUpIcon />
+                </IconButton>
             </Box>
         </CardContent>
     );
@@ -99,17 +110,35 @@ export default function WordCard({
                             height: '100%',
                         }}
                     >
-                        <CardMedia
-                            component="img"
-                            image={word.getImageUrl()}
-                            alt={`Illustration of ${word.word}`}
-                            sx={{
-                                objectFit: 'cover',
-                                width: '100%',
-                                aspectRatio: '1 / 1',
-                                flex: '1 0 auto',
-                            }}
-                        />
+                        {showImage ? (
+                            <CardMedia
+                                component="img"
+                                image={word.getImageUrl()}
+                                alt={`Illustration of ${word.word}`}
+                                sx={{
+                                    objectFit: 'cover',
+                                    width: '100%',
+                                    aspectRatio: '1 / 1',
+                                    flex: '1 0 auto',
+                                }}
+                            />
+                        ) : (
+                            <Box
+                                sx={{
+                                    flex: '1 0 auto',
+                                    aspectRatio: '1 / 1',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: 'grey.100',
+                                    color: 'text.secondary',
+                                    fontWeight: 700,
+                                    fontSize: 56,
+                                }}
+                            >
+                                ?
+                            </Box>
+                        )}
                         {bottomRow}
                     </Box>
 
@@ -136,7 +165,9 @@ export default function WordCard({
                             }}
                         >
                             <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                                {word.translation || 'Translation unavailable'}
+                                {showTranslation
+                                    ? word.translation || 'Translation unavailable'
+                                    : 'Keep listening and guessing!'}
                             </Typography>
                         </CardContent>
                         {bottomRow}

@@ -5,7 +5,7 @@ import {useRouter} from 'next/navigation';
 import {Alert, Box, Container, IconButton, Typography} from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {WordRecord, WORDS_DICTIONARY} from '@/lib/words';
-import WordCard from './WordCard';
+import WordCard, { WordCardMode } from '@/components/WordCard';
 
 export default function WordsPage() {
     const [activeWord, setActiveWord] = useState<string | null>(null);
@@ -14,17 +14,6 @@ export default function WordsPage() {
     const lastPronouncedRef = useRef<{ word: string; timestamp: number } | null>(null);
     const router = useRouter();
     const words = WORDS_DICTIONARY;
-
-    useEffect(() => {
-        const handleKeydown = (event: KeyboardEvent) => {
-            if (event.key.toLowerCase() === 'x') {
-                router.push('/');
-            }
-        };
-
-        window.addEventListener('keydown', handleKeydown);
-        return () => window.removeEventListener('keydown', handleKeydown);
-    }, [router]);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -83,7 +72,7 @@ export default function WordsPage() {
                             All Words
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Tap a card to flip for translation; tap the speaker to hear pronunciation. Press X to return.
+                            Tap a card to flip for translation; tap the speaker to hear pronunciation.
                         </Typography>
                     </Box>
                     <IconButton aria-label="Return to main menu" onClick={() => router.push('/')}>
@@ -113,6 +102,7 @@ export default function WordsPage() {
                         <WordCard
                             key={item.word}
                             word={item}
+                            mode={WordCardMode.Learning}
                             active={activeWord === item.word}
                             onPronounce={() => pronounceWord(item)}
                         />

@@ -5,6 +5,7 @@ import { Box, Card, CardContent, Container, Stack, Typography } from '@mui/mater
 import { keyframes } from '@mui/material/styles';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import HearingIcon from '@mui/icons-material/Hearing';
 
 const gradientShift = keyframes`
   0% { background-position: 0% 50%; }
@@ -86,7 +87,7 @@ export default function Home() {
           <Card
             elevation={4}
             component={Link}
-            href="/guess"
+            href="/guess-the-word"
             sx={{
               p: 2,
               borderRadius: 3,
@@ -112,9 +113,47 @@ export default function Home() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <SportsEsportsIcon color="secondary" sx={{ fontSize: 42 }} />
                 <Box>
-                  <Typography variant="h5">Guess Word!</Typography>
+                  <Typography variant="h5">Guess The Word</Typography>
                   <Typography variant="body2" color="text.secondary">
                     See the image, hear the word, and choose the correct answer from five options.
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card
+            elevation={4}
+            component={Link}
+            href="/listen-and-guess"
+            sx={{
+              p: 2,
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              '&:hover': {
+                borderColor: 'secondary.main',
+                boxShadow: 6,
+              },
+            }}
+          >
+            <CardContent
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 2,
+                minHeight: 112,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <HearingIcon color="primary" sx={{ fontSize: 42 }} />
+                <Box>
+                  <Typography variant="h5">Listen &amp; Guess</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Hear the word and pick the correct translation from five options.
                   </Typography>
                 </Box>
               </Box>
