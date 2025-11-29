@@ -6,6 +6,7 @@ import { keyframes } from '@mui/material/styles';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
+import TranslateIcon from '@mui/icons-material/Translate';
 
 const gradientShift = keyframes`
   0% { background-position: 0% 50%; }
@@ -154,6 +155,44 @@ export default function Home() {
                   <Typography variant="h5">Listen &amp; Guess</Typography>
                   <Typography variant="body2" color="text.secondary">
                     Hear the word and pick the correct translation from five options.
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card
+            elevation={4}
+            component={Link}
+            href="/guess-phrases"
+            sx={{
+              p: 2,
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              '&:hover': {
+                borderColor: 'secondary.main',
+                boxShadow: 6,
+              },
+            }}
+          >
+            <CardContent
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 2,
+                minHeight: 112,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <TranslateIcon color="secondary" sx={{ fontSize: 42 }} />
+                <Box>
+                  <Typography variant="h5">Guess Phrases</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Read the phrase, listen to it, and pick the right Lithuanian translation.
                   </Typography>
                 </Box>
               </Box>

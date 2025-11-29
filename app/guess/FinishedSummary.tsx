@@ -1,14 +1,14 @@
 import { Button, Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { keyframes } from '@mui/material/styles';
-import { VariantStats } from './types';
+import { GeneralPhraseVariantStats } from '@/lib/statistics/AStatisticsManager';
 
 interface FinishedSummaryProps {
     score: number;
     learnedCount: number;
     totalCount: number;
     onRestart: () => void;
-    variantStats: VariantStats;
+    variantStats: GeneralPhraseVariantStats;
 }
 
 export default function FinishedSummary({

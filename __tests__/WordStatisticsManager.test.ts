@@ -1,4 +1,4 @@
-import { WordStatisticsManager } from '@/app/guess/WordStatisticsManager';
+import { WordStatisticsManager } from '@/lib/WordStatisticsManager';
 import { WordRecord } from '@/lib/words';
 
 class MockStorage implements Storage {

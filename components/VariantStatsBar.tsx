@@ -1,8 +1,8 @@
 import { Divider, Stack, Typography } from '@mui/material';
-import { VariantStats } from '@/app/guess/types';
+import { GeneralPhraseVariantStats } from '@/lib/statistics/AStatisticsManager';
 
 interface VariantStatsBarProps {
-    stats: VariantStats;
+    stats: GeneralPhraseVariantStats;
 }
 
 export default function VariantStatsBar({ stats }: VariantStatsBarProps) {
@@ -23,7 +23,7 @@ export default function VariantStatsBar({ stats }: VariantStatsBarProps) {
                 Wrong: {stats.wrongAttempts}
             </Typography>
             <Typography variant="body2" color="primary.main">
-                Learned: {stats.learnedWordsCount} / {stats.totalWordsCount}
+                Learned: {stats.learnedItemsCount} / {stats.totalItemsCount}
             </Typography>
         </Stack>
     );
