@@ -137,7 +137,7 @@ npm start
 
 Improve WordCard:
 
-- [ ] Implement `WordCardMode` different modes as per table:
+- [x] Implement `WordCardMode` different modes as per table:
 
 | Mode           | Image | Word | Pronunciation | Translation | Description                                                      |
 |----------------|-------|------|---------------|-------------|------------------------------------------------------------------|
@@ -147,14 +147,14 @@ Improve WordCard:
 
 Improve Guess Word Game:
 
-- [ ] Options Mode
+- [x] Options Mode
 
 | Mode          | Description                         | When Correct             | When Incorrect      |
 |---------------|-------------------------------------|--------------------------|---------------------|
 | WordModel     | Word is shown as text option        | Highlight and play sound | Shake and color red |
 | TranslateMode | Word translation is shown as option | Only Highlight           | Shake and color red |
 
-- [ ] Split game into multiple variants:
+- [x] Split game into multiple variants:
 
 | Variant        | Game Type          | Card Mode      | Options Mode  | Description                                                                 |
 |----------------|--------------------|----------------|---------------|-----------------------------------------------------------------------------|
@@ -163,8 +163,8 @@ Improve Guess Word Game:
 
 ### Score Persistence
 
-- [ ] Each word has its own global statistics that are persisted in `localStorage` as "GLOBAL_WORD_STATS"
-- [ ] Show total attempts, correct attempts, wrong attempts per word
+- [x] Each word has its own global statistics that are persisted in `localStorage` as "GLOBAL_WORD_STATS"
+- [x] Show total attempts, correct attempts, wrong attempts per word
 
 ```typescript
 interface WordStatistics {
@@ -176,13 +176,13 @@ interface WordStatistics {
 }
 ```
 
-- [ ] Each game variant has internal statistics that are also persisted in `localStorage`
+- [x] Each game variant has internal statistics that are also persisted in `localStorage`
 1. Guess The Word variant stats stored as "GUESS_THE_WORD_STATS"
 2. Listen & Guess variant stats stored as "LISTEN_AND_GUESS_STATS"
 
-- [ ] After each game statistics can be reset via a button on the end game page
+- [x] After each game statistics can be reset via a button on the end game page
 
-Game Start:
+- [x] Game Start:
 1. `WORDS_DICTIONARY_DATA` is read to get the list of words and empty statistics are initialized if not present in localStorage
 2. When a game starts or continues, the relevant statistics are loaded from localStorage
 3. During the game, each attempt updates the statistics in memory and `localStorage`
@@ -191,8 +191,22 @@ Game Start:
 6. When user clicks the correct option, then that option word's `correctAttempts` is increased and `learned` is set to true
 7. Game picks any random word as an option from absolutely all words in `WORDS_DICTIONARY_DATA`
 
-Game finish:
+- [x] Game finish:
 1. Game finishes when all words have `learned` set to true and `correctAttempts` > 0
 2. When user finishes the game, the statistics are saved to localStorage
 3. When user selects a game or game is finished, then `FinishedSummary` is shown with the statistics summary
 4. `FinishedSummary` has a reset button that clears the statistics from localStorage and memory
+
+## Refactoring
+
+- [x] Introduce a `WordStatisticsManager` class to encapsulate all logic related to loading, saving, and updating word statistics in localStorage.
+- [x] `WordStatisticsManager` APIs accept each game variant as a parameter and handle statistics accordingly.
+- [x] `WordStatisticsManager` updates global statistics as well as game-specific statistics based on the game variant.
+- [x] Introduce Jest testing for `WordStatisticsManager` to ensure correctness of statistics management logic. Use mocking for localStorage interactions
+so tests do not depend on actual browser storage and can work in Node.js environment.
+- [x] The main page must have 3 options: "Learn Words", "Guess The Word", "Listen & Guess".
+- [x] Create separate pages for each game variant under `app/guess-the-word/page.tsx` and `app/listen-and-guess/page.tsx`.
+- [x] Remove `ButtonGroup` from `GuessScoreHeader.tsx` - game is selected only in the main menu.
+- [x] Remove `Tap a card to flip for translation; tap the speaker to hear pronunciation. Press X to return.`, no key binding to X is needed as well.
+- [x] `WordCard.tsx` is shared a lot, so it must be in `components/WordCard.tsx`.
+- [x] Review all Refactoring tasks in README.md and mark them as complete if tasks are really completed

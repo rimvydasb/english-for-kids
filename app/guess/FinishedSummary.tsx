@@ -1,18 +1,33 @@
-import { Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import { Button, Card, CardContent, Divider, Stack, Typography } from '@mui/material';
+import { VariantStats, WordStatistics } from './types';
 
 interface FinishedSummaryProps {
     score: number;
     learnedCount: number;
     totalCount: number;
     onRestart: () => void;
+    onResetStats: () => void;
+    wordStats: WordStatistics[];
+    variantLabel: string;
+    variantStats: VariantStats;
 }
 
-export default function FinishedSummary({ score, learnedCount, totalCount, onRestart }: FinishedSummaryProps) {
+export default function FinishedSummary({
+    score,
+    learnedCount,
+    totalCount,
+    onRestart,
+    onResetStats,
+    wordStats,
+    variantLabel,
+    variantStats,
+}: FinishedSummaryProps) {
+    const safeScore = Number.isNaN(score) ? 0 : score;
     return (
         <Card
             elevation={4}
             sx={{
-                maxWidth: 520,
+                maxWidth: 640,
                 width: '100%',
                 borderRadius: 4,
                 mx: 'auto',
@@ -24,12 +39,50 @@ export default function FinishedSummary({ score, learnedCount, totalCount, onRes
                     <Typography variant="h4" component="h2" sx={{ fontWeight: 700 }}>
                         Great job!
                     </Typography>
-                    <Typography variant="h5" color="text.secondary">
-                        Final score: {Number.isNaN(score) ? 0 : score}% ({learnedCount} / {totalCount})
+                    <Typography variant="body1" color="text.secondary">
+                        {variantLabel} summary
                     </Typography>
-                    <Button variant="contained" size="large" onClick={onRestart}>
-                        Restart
-                    </Button>
+                    <Typography variant="h5" color="text.primary">
+                        Final score: {safeScore}% ({learnedCount} / {totalCount})
+                    </Typography>
+
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        divider={<Divider flexItem orientation="vertical" />}
+                        sx={{ flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}
+                    >
+                        <Typography variant="body2" color="text.secondary">
+                            Attempts: {variantStats.totalAttempts}
+                        </Typography>
+                        <Typography variant="body2" color="success.main">
+                            Correct: {variantStats.correctAttempts}
+                        </Typography>
+                        <Typography variant="body2" color="error.main">
+                            Wrong: {variantStats.wrongAttempts}
+                        </Typography>
+                    </Stack>
+
+                    <Stack spacing={1} sx={{ width: '100%', textAlign: 'left' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                            Word statistics
+                        </Typography>
+                        {wordStats.map((stat) => (
+                            <Typography key={stat.word} variant="body2" color="text.secondary">
+                                {stat.word}: total {stat.totalAttempts}, correct {stat.correctAttempts}, wrong {stat.wrongAttempts}{' '}
+                                {stat.learned ? '(learned)' : '(practice more)'}
+                            </Typography>
+                        ))}
+                    </Stack>
+
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: '100%' }} justifyContent="center">
+                        <Button variant="contained" size="large" onClick={onRestart}>
+                            Restart
+                        </Button>
+                        <Button variant="outlined" size="large" color="error" onClick={onResetStats}>
+                            Reset statistics
+                        </Button>
+                    </Stack>
                 </Stack>
             </CardContent>
         </Card>

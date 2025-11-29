@@ -1,0 +1,311 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Alert, Box, Container, Stack, Typography } from '@mui/material';
+import { WordRecord, WORDS_DICTIONARY } from '@/lib/words';
+import WordCard, { WordCardMode } from '@/components/WordCard';
+import OptionButton from './OptionButton';
+import FinishedSummary from './FinishedSummary';
+import GuessScoreHeader from '@/components/GuessScoreHeader';
+import VariantStatsBar from '@/components/VariantStatsBar';
+import { GameVariant, OptionMode, VARIANT_CONFIG, VariantStats, WordStatistics } from './types';
+import { WordStatisticsManager } from './WordStatisticsManager';
+
+const shuffle = (values: string[]) => {
+    const arr = [...values];
+    for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+};
+
+const buildOptions = (allWords: WordRecord[], answer: WordRecord) => {
+    const pool = allWords.map((item) => item.word).filter((value) => value !== answer.word);
+    const decoys = shuffle(pool).slice(0, 4);
+    return shuffle([answer.word, ...decoys]);
+};
+
+const findWord = (words: WordRecord[], value: string) => words.find((item) => item.word === value);
+
+const hasCompletedAllWords = (stats: Record<string, WordStatistics>, words: WordRecord[]) =>
+    words.every((item) => {
+        const record = stats[item.word];
+        return record && record.learned && record.correctAttempts > 0;
+    });
+
+export default function GuessGamePage({ variant }: { variant: GameVariant }) {
+    const router = useRouter();
+    const words = useMemo(() => WORDS_DICTIONARY, []);
+    const [globalStats, setGlobalStats] = useState<Record<string, WordStatistics>>({});
+    const [variantStats, setVariantStats] = useState<Record<GameVariant, VariantStats>>({
+        guessTheWord: { totalAttempts: 0, correctAttempts: 0, wrongAttempts: 0 },
+        listenAndGuess: { totalAttempts: 0, correctAttempts: 0, wrongAttempts: 0 },
+    });
+    const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
+    const [options, setOptions] = useState<string[]>([]);
+    const [isFinished, setIsFinished] = useState(false);
+    const [glowingOption, setGlowingOption] = useState<string | null>(null);
+    const [shakingOption, setShakingOption] = useState<string | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const managerRef = useRef<WordStatisticsManager | null>(null);
+    const synthRef = useRef<SpeechSynthesis | null>(null);
+
+    const speak = useCallback(
+        (value: string) => {
+            if (!synthRef.current) {
+                setError('Speech synthesis is not available in this browser.');
+                return;
+            }
+            setError(null);
+            synthRef.current.cancel();
+            const utterance = new SpeechSynthesisUtterance(value);
+            synthRef.current.speak(utterance);
+        },
+        [setError],
+    );
+
+    const setupRound = useCallback(
+        (stats: Record<string, WordStatistics>) => {
+            const candidates = words.filter((item) => {
+                const record = stats[item.word];
+                return !record || !record.learned || record.correctAttempts === 0;
+            });
+
+            if (candidates.length === 0) {
+                setIsFinished(true);
+                setCurrentWord(null);
+                setOptions([]);
+                return;
+            }
+
+            const next = candidates[Math.floor(Math.random() * candidates.length)];
+            setIsFinished(false);
+            setCurrentWord(next);
+            setOptions(buildOptions(words, next));
+            setGlowingOption(null);
+            setShakingOption(null);
+            setIsTransitioning(false);
+
+            if (VARIANT_CONFIG[variant].cardMode === WordCardMode.ListenAndGuess) {
+                speak(next.word);
+            }
+        },
+        [speak, variant, words],
+    );
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            synthRef.current = window.speechSynthesis;
+        } else {
+            setError('Speech synthesis is not available in this browser.');
+        }
+
+        const manager = new WordStatisticsManager(words);
+        managerRef.current = manager;
+        const { globalStats: loadedGlobal, variantStats: loadedVariants } = manager.loadAll();
+
+        setGlobalStats(loadedGlobal);
+        setVariantStats(loadedVariants);
+        setupRound(loadedGlobal);
+
+        return () => synthRef.current?.cancel();
+    }, [setupRound, words]);
+
+    useEffect(() => {
+        if (currentWord && VARIANT_CONFIG[variant].cardMode === WordCardMode.ListenAndGuess) {
+            speak(currentWord.word);
+        }
+    }, [currentWord, speak, variant]);
+
+    const pronounceWord = useCallback(() => {
+        if (currentWord) {
+            speak(currentWord.word);
+        }
+    }, [currentWord, speak]);
+
+    const handleGuess = useCallback(
+        (guess: string) => {
+            if (!currentWord || isTransitioning) {
+                return;
+            }
+
+            const isCorrect = guess === currentWord.word;
+            const config = VARIANT_CONFIG[variant];
+            const updated = managerRef.current?.recordAttempt(variant, guess, isCorrect);
+            if (updated) {
+                setGlobalStats(updated.globalStats);
+                setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+            }
+
+            if (isCorrect) {
+                if (config.optionMode === 'word') {
+                    speak(currentWord.word);
+                }
+
+                setGlowingOption(guess);
+                setIsTransitioning(true);
+
+                window.setTimeout(() => {
+                    const latestGlobal = managerRef.current?.getGlobalStats() ?? globalStats;
+                    const complete = hasCompletedAllWords(latestGlobal, words);
+                    if (complete) {
+                        setIsFinished(true);
+                        setCurrentWord(null);
+                        setOptions([]);
+                    } else {
+                        setupRound(latestGlobal);
+                    }
+                    setGlowingOption(null);
+                    setIsTransitioning(false);
+                }, 3000);
+                return;
+            }
+
+            setShakingOption(guess);
+            window.setTimeout(() => setShakingOption(null), 700);
+        },
+        [currentWord, globalStats, isTransitioning, setupRound, speak, variant, words],
+    );
+
+    const handleRestart = useCallback(() => {
+        const updated = managerRef.current?.resetLearnedFlags();
+        if (updated) {
+            setGlobalStats(updated.globalStats);
+            setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+            setupRound(updated.globalStats);
+        }
+        setGlowingOption(null);
+        setShakingOption(null);
+        setIsTransitioning(false);
+        setIsFinished(false);
+    }, [setupRound]);
+
+    const handleResetStats = useCallback(() => {
+        const updated = managerRef.current?.resetAll();
+        if (updated) {
+            setGlobalStats(updated.globalStats);
+            setVariantStats(updated.variantStats as Record<GameVariant, VariantStats>);
+            setupRound(updated.globalStats);
+        }
+        setIsFinished(false);
+        setGlowingOption(null);
+        setShakingOption(null);
+        setIsTransitioning(false);
+    }, [setupRound]);
+
+    const learnedCount = useMemo(
+        () =>
+            Object.values(globalStats).filter(
+                (stat) => stat.learned && stat.correctAttempts > 0,
+            ).length,
+        [globalStats],
+    );
+    const score = Math.round((learnedCount / words.length) * 100);
+    const optionMode = VARIANT_CONFIG[variant].optionMode;
+    const activeVariantStats = variantStats[variant] ?? { totalAttempts: 0, correctAttempts: 0, wrongAttempts: 0 };
+
+    return (
+        <Container maxWidth="md">
+            <Box sx={{ minHeight: '100vh', py: 4, position: 'relative' }}>
+                <GuessScoreHeader
+                    learnedCount={learnedCount}
+                    totalCount={words.length}
+                    score={score}
+                    showScore={!isFinished}
+                    variant={variant}
+                    onExit={() => router.push('/')}
+                />
+
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+
+                {isFinished ? (
+                    <FinishedSummary
+                        score={score}
+                        learnedCount={learnedCount}
+                        totalCount={words.length}
+                        onRestart={handleRestart}
+                        onResetStats={handleResetStats}
+                        wordStats={words.map((item) =>
+                            globalStats[item.word] ?? {
+                                word: item.word,
+                                learned: false,
+                                totalAttempts: 0,
+                                correctAttempts: 0,
+                                wrongAttempts: 0,
+                            },
+                        )}
+                        variantLabel={VARIANT_CONFIG[variant].label}
+                        variantStats={activeVariantStats}
+                    />
+                ) : (
+                    <Stack spacing={3}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 2,
+                            }}
+                        >
+                            <Box sx={{ width: { xs: '100%', sm: 360 }, maxWidth: 420 }}>
+                                {currentWord && (
+                                    <WordCard
+                                        word={currentWord}
+                                        mode={VARIANT_CONFIG[variant].cardMode}
+                                        onPronounce={pronounceWord}
+                                    />
+                                )}
+                            </Box>
+                            <Typography variant="body2" color="text.secondary" textAlign="center">
+                                Pick the correct option below. The card stays put until you answer correctly.
+                            </Typography>
+                            <VariantStatsBar stats={activeVariantStats} />
+                        </Box>
+
+                        <Stack spacing={1.5}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: 1.5,
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                {options.map((option) => {
+                                    const optionWord = findWord(words, option);
+                                    const label =
+                                        optionMode === 'translation'
+                                            ? optionWord?.translation || option
+                                            : optionWord?.word || option;
+                                    const isGlowing = glowingOption === option;
+                                    const isShaking = shakingOption === option;
+                                    const shouldFade = isTransitioning && !isGlowing;
+
+                                    return (
+                                        <OptionButton
+                                            key={option}
+                                            value={option}
+                                            label={label}
+                                            isGlowing={isGlowing}
+                                            isShaking={isShaking}
+                                            shouldFade={shouldFade}
+                                            isLocked={isTransitioning}
+                                            onGuess={handleGuess}
+                                        />
+                                    );
+                                })}
+                            </Box>
+                        </Stack>
+                    </Stack>
+                )}
+            </Box>
+        </Container>
+    );
+}

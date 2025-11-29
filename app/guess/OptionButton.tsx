@@ -31,7 +31,8 @@ const fadeAwayAnimation = keyframes`
 `;
 
 interface OptionButtonProps {
-    option: string;
+    label: string;
+    value: string;
     isGlowing: boolean;
     isShaking: boolean;
     shouldFade: boolean;
@@ -40,20 +41,21 @@ interface OptionButtonProps {
 }
 
 export default function OptionButton({
-    option,
+    label,
+    value,
     isGlowing,
     isShaking,
     shouldFade,
     isLocked,
     onGuess,
 }: OptionButtonProps) {
-    const minWidth = Math.max(option.length * 14, 140);
+    const minWidth = Math.max(label.length * 14, 140);
     return (
         <Button
             variant={isGlowing ? 'contained' : 'outlined'}
             color={isShaking ? 'error' : isGlowing ? 'success' : 'primary'}
             size="large"
-            onClick={() => onGuess(option)}
+            onClick={() => onGuess(value)}
             sx={{
                 textTransform: 'none',
                 fontWeight: 700,
@@ -74,7 +76,7 @@ export default function OptionButton({
                 opacity: shouldFade ? 0 : 1,
             }}
         >
-            {option}
+            {label}
         </Button>
     );
 }
