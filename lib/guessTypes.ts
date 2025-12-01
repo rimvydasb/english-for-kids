@@ -1,18 +1,21 @@
+// @Todo: rename this file to lib/types.ts
+
 import { WordCardMode } from '@/components/WordCard';
+import {InGameStatistics} from "@/lib/PhrasesStatisticsManager";
 
 export type GameVariant = 'guessTheWord' | 'listenAndGuess';
 export type OptionMode = 'word' | 'translation';
 
+// @Todo: move to lib/types.ts - create if not exists
 export interface GlobalWordStatistics {
     word: string;
     correctAttempts: number;
     wrongAttempts: number;
 }
 
-export interface WordStatistics extends GlobalWordStatistics {
-    word: string;
-    totalAttempts: number;
-    learned: boolean;
+// @Todo: move to lib/types.ts - create if not exists
+export interface WordStatistics extends GlobalWordStatistics, InGameStatistics {
+
 }
 
 export const VARIANT_CONFIG: Record<

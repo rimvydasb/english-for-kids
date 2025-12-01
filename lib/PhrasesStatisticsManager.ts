@@ -5,15 +5,22 @@ import {
     StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
 
+// @Todo: move to lib/types.ts - create if not exists
+export interface InGameStatistics {
+    totalAttempts: number;
+    learned: boolean;
+}
+
+// @Todo: move to lib/types.ts - create if not exists
 export interface GlobalPhraseStatistics {
     phrase: string;
     correctAttempts: number;
     wrongAttempts: number;
 }
 
-export interface InGamePhraseStatistics extends GlobalPhraseStatistics {
-    totalAttempts: number;
-    learned: boolean;
+// @Todo: move to lib/types.ts - create if not exists
+export interface InGamePhraseStatistics extends GlobalPhraseStatistics, InGameStatistics {
+
 }
 
 const GLOBAL_KEY = 'GLOBAL_PHRASE_STATS';

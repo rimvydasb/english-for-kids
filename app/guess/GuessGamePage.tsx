@@ -26,7 +26,7 @@ const hasCompletedAllWords = (stats: Record<string, WordStatistics>, words: Word
 export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     const router = useRouter();
     const words = useMemo(() => WORDS_DICTIONARY, []);
-    // @Todo: WordStatisticsManager manages global statistics as well and updates them only when game is completed.++
+    // @Todo: WordStatisticsManager manages global statistics as well and updates them only when game is completed, so there's no need having separate state for global stats here.
     const [globalStats, setGlobalStats] = useState<Record<string, GlobalWordStatistics>>({});
     const [variantWordStats, setVariantWordStats] = useState<
         Record<GameVariant, Record<string, WordStatistics>>

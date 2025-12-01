@@ -1,3 +1,4 @@
+// @Todo: move to lib/types.ts - create if not exists
 export interface WordEntry {
     word: string;
     translation?: string;
@@ -5,6 +6,7 @@ export interface WordEntry {
     type: 'noun' | 'verb' | 'adjective' | 'color';
 }
 
+// @Todo: move to lib/types.ts - create if not exists
 export class WordRecord {
     word: string;
     translation?: string;
@@ -23,6 +25,7 @@ export class WordRecord {
     }
 }
 
+// @Todo: this is a completely different configuration, so move it to WORDS_DICTIONARY_DATA.ts
 export const WORDS_DICTIONARY_DATA: WordEntry[] = [
     {
         word: 'apple',

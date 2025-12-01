@@ -1,8 +1,10 @@
+// @Todo: move to lib/types.ts - create if not exists
 export interface PhraseEntry {
     phrase: string;
     translation?: string;
 }
 
+// @Todo: move to lib/types.ts - create if not exists
 export class PhraseRecord {
     phrase: string;
 
@@ -18,6 +20,7 @@ export class PhraseRecord {
     }
 }
 
+// @Todo: this is a completely different configuration, so move it to PHRASES_DICTIONARY_DATA.ts
 export const PHRASES_DICTIONARY_DATA: PhraseEntry[] = [
     { phrase: 'The Hello Song', translation: 'Pasisveikinimo daina' },
     { phrase: 'Hello', translation: 'Labas' },
