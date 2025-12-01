@@ -41,7 +41,7 @@ export function usePronunciation() {
         const now = Date.now();
         const last = lastPronouncedRef.current;
         const allowExamples = options?.allowExamples ?? true;
-        const withinWindow = last && last.word === wordData.word && now - last.timestamp <= 5000;
+        const withinWindow = last && last.word === wordData.word && now - last.timestamp <= 2000;
         const hasExamples = Array.isArray(wordData.examples) && wordData.examples.length > 0;
         const shouldUseExample = allowExamples && withinWindow && hasExamples;
         const utteranceText = shouldUseExample

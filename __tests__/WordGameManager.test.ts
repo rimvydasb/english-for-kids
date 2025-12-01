@@ -1,4 +1,4 @@
-import { buildWordOptions } from '@/lib/WordGameManager';
+import { GameManager } from '@/lib/GameManager';
 import { WordRecord } from '@/lib/words';
 
 const getType = (records: WordRecord[], word: string) =>
@@ -15,10 +15,11 @@ describe('buildWordOptions', () => {
         new WordRecord({ word: 'dog', translation: 'šuo', type: 'noun' }),
         new WordRecord({ word: 'desk', translation: 'rašomasis stalas', type: 'noun' }),
     ];
+    const manager = new GameManager(words, { groupBy: (record) => record.type });
 
     it('returns 1 answer + 4 decoys, all from the same type when enough options exist', () => {
         const answer = words[0];
-        const options = buildWordOptions(words, answer);
+        const options = manager.buildOptions(answer);
         const decoys = options.filter((option) => option !== answer.word);
 
         expect(options).toHaveLength(5);
@@ -29,7 +30,9 @@ describe('buildWordOptions', () => {
     it('fills remaining decoys with other types if there are not enough of the same type', () => {
         const shortList = words.filter((item) => item.word !== 'green' && item.word !== 'yellow');
         const answer = shortList.find((item) => item.word === 'black') as WordRecord;
-        const options = buildWordOptions(shortList, answer);
+        const options = new GameManager(shortList, { groupBy: (record) => record.type }).buildOptions(
+            answer,
+        );
         const decoys = options.filter((option) => option !== answer.word);
 
         expect(options).toHaveLength(5);
