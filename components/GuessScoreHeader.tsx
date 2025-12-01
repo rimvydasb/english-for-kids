@@ -4,7 +4,7 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
 import { keyframes } from '@mui/material/styles';
-import { GameVariant, VARIANT_CONFIG } from '@/lib/guessTypes';
+import { GameVariant, VARIANT_CONFIG } from '@/lib/guessConfig';
 
 export interface ScoreHeaderProps {
     learnedCount: number;
@@ -77,7 +77,6 @@ export default function GuessScoreHeader({
                 >
                     {boxes.map((isLearned, index) => (
                         <Box
-                            // eslint-disable-next-line react/no-array-index-key
                             key={index}
                             sx={{
                                 width: 18,

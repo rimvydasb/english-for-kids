@@ -1,65 +1,28 @@
 import { WordRecord } from '@/lib/words';
-import {
-    GameVariant,
-    GlobalWordStatistics,
-    VARIANT_CONFIG,
-    WordStatistics,
-} from '@/lib/guessTypes';
+import { VARIANT_CONFIG } from '@/lib/guessConfig';
+import { GameVariant } from '@/lib/types';
 import {
     AStatisticsManager,
     GeneralPhraseVariantStats,
+    GlobalStatsMap,
+    InGameStatsMap,
     StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
-
-const GLOBAL_KEY = 'GLOBAL_WORD_STATS';
-
-const createEmptyGlobalStats = (words: WordRecord[]): Record<string, GlobalWordStatistics> =>
-    words.reduce<Record<string, GlobalWordStatistics>>((acc, item) => {
-        acc[item.word] = {
-            word: item.word,
-            correctAttempts: 0,
-            wrongAttempts: 0,
-        };
-        return acc;
-    }, {});
-
-const createEmptyWordStats = (words: WordRecord[]): Record<string, WordStatistics> =>
-    words.reduce<Record<string, WordStatistics>>((acc, item) => {
-        acc[item.word] = {
-            word: item.word,
-            learned: false,
-            totalAttempts: 0,
-            correctAttempts: 0,
-            wrongAttempts: 0,
-        };
-        return acc;
-    }, {});
-
-const cloneWordStats = (stats: Record<string, WordStatistics>) =>
-    Object.keys(stats).reduce<Record<string, WordStatistics>>((acc, key) => {
-        acc[key] = { ...stats[key] };
-        return acc;
-    }, {});
-
-const cloneVariantWordStats = (stats: Record<GameVariant, Record<string, WordStatistics>>) => ({
-    guessTheWord: cloneWordStats(stats.guessTheWord),
-    listenAndGuess: cloneWordStats(stats.listenAndGuess),
-});
 
 export class WordStatisticsManager extends AStatisticsManager {
     private words: WordRecord[];
 
-    private globalStats: Record<string, GlobalWordStatistics>;
+    private globalStats: GlobalStatsMap;
 
-    private variantWordStats: Record<GameVariant, Record<string, WordStatistics>>;
+    private variantWordStats: Record<GameVariant, InGameStatsMap>;
 
     constructor(words: WordRecord[], storage?: StorageLike) {
         super(storage);
         this.words = words;
-        this.globalStats = createEmptyGlobalStats(words);
+        this.globalStats = this.createEmptyGlobalStats(words);
         this.variantWordStats = {
-            guessTheWord: createEmptyWordStats(words),
-            listenAndGuess: createEmptyWordStats(words),
+            guessTheWord: this.createEmptyInGameStats(words),
+            listenAndGuess: this.createEmptyInGameStats(words),
         };
         this.loadAll();
     }
@@ -72,19 +35,19 @@ export class WordStatisticsManager extends AStatisticsManager {
 
     getSnapshot() {
         return {
-            globalStats: { ...this.globalStats },
+            globalStats: this.cloneGlobalStats(this.globalStats),
             variantStats: this.computeVariantStatsSnapshot(),
-            variantWordStats: cloneVariantWordStats(this.variantWordStats),
+            variantWordStats: this.cloneVariantStats(),
         };
     }
 
     getGlobalStats() {
-        return { ...this.globalStats };
+        return this.cloneGlobalStats(this.globalStats);
     }
 
     recordAttempt(variant: GameVariant, word: string, isCorrect: boolean) {
         const variantWordStats = this.variantWordStats[variant];
-        const updated = this.ensureVariantWord(variantWordStats, word);
+        const updated = this.ensureInGameEntry(variantWordStats, word);
 
         updated.totalAttempts += 1;
         if (isCorrect) {
@@ -103,96 +66,54 @@ export class WordStatisticsManager extends AStatisticsManager {
     }
 
     resetVariant(variant: GameVariant) {
-        this.variantWordStats[variant] = createEmptyWordStats(this.words);
+        this.variantWordStats[variant] = this.createEmptyInGameStats(this.words);
         this.saveVariantWordStats(variant);
         return this.getSnapshot();
     }
 
     resetGlobal() {
-        this.globalStats = createEmptyGlobalStats(this.words);
+        this.globalStats = this.createEmptyGlobalStats(this.words);
         this.saveGlobalStats();
         return this.getSnapshot();
     }
 
     finalizeVariant() {
-        this.globalStats = this.rebuildGlobalStats();
+        this.globalStats = this.rebuildGlobalFromVariants(this.variantWordStats, this.words);
         this.saveGlobalStats();
         return this.getSnapshot();
     }
 
-    private ensureVariantWord(stats: Record<string, WordStatistics>, word: string): WordStatistics {
-        if (!stats[word]) {
-            stats[word] = {
-                word,
-                learned: false,
-                totalAttempts: 0,
-                correctAttempts: 0,
-                wrongAttempts: 0,
-            };
-        }
-        return { ...stats[word] };
+    private cloneVariantStats(): Record<GameVariant, InGameStatsMap> {
+        return {
+            guessTheWord: this.cloneInGameStats(this.variantWordStats.guessTheWord),
+            listenAndGuess: this.cloneInGameStats(this.variantWordStats.listenAndGuess),
+        };
     }
 
     private loadGlobalStats() {
         return this.loadFromStorage(
-            GLOBAL_KEY,
-            () => createEmptyGlobalStats(this.words),
-            (parsed) => {
-                if (!parsed || typeof parsed !== 'object') return null;
-                const incoming = parsed as Record<string, GlobalWordStatistics>;
-                const fresh = createEmptyGlobalStats(this.words);
-                Object.keys(incoming).forEach((key) => {
-                    const value = incoming[key];
-                    if (
-                        value &&
-                        typeof value.correctAttempts === 'number' &&
-                        typeof value.wrongAttempts === 'number'
-                    ) {
-                        fresh[key] = {
-                            word: key,
-                            correctAttempts: value.correctAttempts,
-                            wrongAttempts: value.wrongAttempts,
-                        };
-                    }
-                });
-                return fresh;
-            },
+            'GLOBAL_WORD_STATS',
+            () => this.createEmptyGlobalStats(this.words),
+            (parsed) => this.sanitizeGlobalStats(parsed, this.words),
         );
     }
 
     private saveGlobalStats() {
-        this.saveToStorage(GLOBAL_KEY, this.globalStats);
+        this.saveToStorage('GLOBAL_WORD_STATS', this.globalStats);
     }
 
-    private loadVariantWordStats(): Record<GameVariant, Record<string, WordStatistics>> {
-        const result: Record<GameVariant, Record<string, WordStatistics>> = {
-            guessTheWord: createEmptyWordStats(this.words),
-            listenAndGuess: createEmptyWordStats(this.words),
+    private loadVariantWordStats(): Record<GameVariant, InGameStatsMap> {
+        const result: Record<GameVariant, InGameStatsMap> = {
+            guessTheWord: this.createEmptyInGameStats(this.words),
+            listenAndGuess: this.createEmptyInGameStats(this.words),
         };
 
         (Object.keys(VARIANT_CONFIG) as GameVariant[]).forEach((variant) => {
             const key = VARIANT_CONFIG[variant].statsKey;
             result[variant] = this.loadFromStorage(
                 key,
-                () => createEmptyWordStats(this.words),
-                (parsed) => {
-                    if (!parsed || typeof parsed !== 'object') return null;
-                    const incoming = parsed as Record<string, WordStatistics>;
-                    const merged = createEmptyWordStats(this.words);
-                    Object.keys(incoming).forEach((wordKey) => {
-                        const value = incoming[wordKey];
-                        if (
-                            value &&
-                            typeof value.totalAttempts === 'number' &&
-                            typeof value.correctAttempts === 'number' &&
-                            typeof value.wrongAttempts === 'number' &&
-                            typeof value.learned === 'boolean'
-                        ) {
-                            merged[wordKey] = { ...merged[wordKey], ...value, word: wordKey };
-                        }
-                    });
-                    return merged;
-                },
+                () => this.createEmptyInGameStats(this.words),
+                (parsed) => this.sanitizeInGameStats(parsed, this.words),
             );
         });
 
@@ -205,43 +126,9 @@ export class WordStatisticsManager extends AStatisticsManager {
     }
 
     private computeVariantStatsSnapshot(): Record<GameVariant, GeneralPhraseVariantStats> {
-        const compute = (stats: Record<string, WordStatistics>): GeneralPhraseVariantStats => {
-            const values = Object.values(stats);
-            const totalAttempts = values.reduce((sum, item) => sum + item.totalAttempts, 0);
-            const correctAttempts = values.reduce((sum, item) => sum + item.correctAttempts, 0);
-            const wrongAttempts = values.reduce((sum, item) => sum + item.wrongAttempts, 0);
-            const learnedItemsCount = values.filter(
-                (item) => item.learned && item.correctAttempts > 0,
-            ).length;
-
-            return {
-                totalAttempts,
-                correctAttempts,
-                wrongAttempts,
-                learnedItemsCount,
-                totalItemsCount: values.length,
-            };
-        };
-
         return {
-            guessTheWord: compute(this.variantWordStats.guessTheWord),
-            listenAndGuess: compute(this.variantWordStats.listenAndGuess),
+            guessTheWord: this.computeVariantStats(this.variantWordStats.guessTheWord),
+            listenAndGuess: this.computeVariantStats(this.variantWordStats.listenAndGuess),
         };
-    }
-
-    private rebuildGlobalStats(): Record<string, GlobalWordStatistics> {
-        const totals = createEmptyGlobalStats(this.words);
-        (Object.keys(this.variantWordStats) as GameVariant[]).forEach((variant) => {
-            Object.values(this.variantWordStats[variant]).forEach(
-                ({ word, correctAttempts, wrongAttempts }) => {
-                    if (!totals[word]) {
-                        totals[word] = { word, correctAttempts: 0, wrongAttempts: 0 };
-                    }
-                    totals[word].correctAttempts += correctAttempts;
-                    totals[word].wrongAttempts += wrongAttempts;
-                },
-            );
-        });
-        return totals;
     }
 }

@@ -32,9 +32,10 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 ## Pronunciation & Assets
 
 - Speech via the browser Web Speech API; no external audio.
-- Images live at `public/images/{word}.png`. Word list and helpers are in `lib/words.ts` (`WordRecord`,
-  `WORDS_DICTIONARY_DATA`/`WORDS_DICTIONARY`).
-- Phrases live in `lib/phrases.ts` (`PHRASES_DICTIONARY_DATA`/`PHRASES_DICTIONARY`); phrases are text-only with speech.
+- Images live at `public/images/{word}.png`. Word data is stored in `lib/WORDS_DICTIONARY_DATA.ts` and exposed via
+  `lib/words.ts` (`WordRecord`, `WORDS_DICTIONARY`).
+- Phrases live in `lib/PHRASES_DICTIONARY_DATA.ts` and flow through `lib/phrases.ts` (`PHRASES_DICTIONARY`);
+  phrases are text-only with speech. Shared models live in `lib/types.ts`.
 
 ## Development
 
