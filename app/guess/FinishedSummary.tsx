@@ -1,11 +1,11 @@
-import {Box, Button, Divider, IconButton, Stack, Typography} from '@mui/material';
+import { Box, Button, Divider, IconButton, Stack, Typography } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import {keyframes} from '@mui/material/styles';
-import {GeneralPhraseVariantStats} from '@/lib/statistics/AStatisticsManager';
-import WordCard, {WordCardMode} from '@/components/WordCard';
-import {WordRecord} from '@/lib/words';
-import {PhraseRecord} from '@/lib/types';
+import { keyframes } from '@mui/material/styles';
+import { GeneralPhraseVariantStats, GlobalStatsMap } from '@/lib/statistics/AStatisticsManager';
+import WordCard, { WordCardMode } from '@/components/WordCard';
+import { WordRecord } from '@/lib/words';
+import { PhraseRecord } from '@/lib/types';
 
 interface FinishedSummaryProps {
     score: number;
@@ -17,6 +17,7 @@ interface FinishedSummaryProps {
     onPronounceWord?: (word: WordRecord) => void;
     worstPhrases?: PhraseRecord[];
     onPronouncePhrase?: (phrase: PhraseRecord) => void;
+    globalStats?: GlobalStatsMap;
 }
 
 export default function FinishedSummary({
@@ -29,6 +30,7 @@ export default function FinishedSummary({
                                             onPronounceWord,
                                             worstPhrases = [],
                                             onPronouncePhrase,
+                                            globalStats,
                                         }: FinishedSummaryProps) {
     const gradientShift = keyframes`
         0% {
@@ -99,6 +101,7 @@ export default function FinishedSummary({
                                 word={word}
                                 mode={WordCardMode.Learning}
                                 onPronounce={() => onPronounceWord?.(word)}
+                                globalStats={globalStats?.[word.word]}
                             />
                         ))}
                     </Box>

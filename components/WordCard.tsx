@@ -7,6 +7,8 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { WordRecord } from '@/lib/words';
+import { GlobalStatistics } from '@/lib/types';
+import { CardHeader } from '@mui/material';
 
 export enum WordCardMode {
     Learning = 'learning',
@@ -19,14 +21,16 @@ interface WordCardProps {
     active?: boolean;
     onPronounce?: () => void;
     mode?: WordCardMode;
+    globalStats?: GlobalStatistics;
 }
 
 export default function WordCard({
-    word,
-    active,
-    onPronounce,
-    mode = WordCardMode.Learning,
-}: WordCardProps) {
+                                     word,
+                                     active,
+                                     onPronounce,
+                                     mode = WordCardMode.Learning,
+                                     globalStats,
+                                 }: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
 
     const toggleFlip = () => {
@@ -44,10 +48,15 @@ export default function WordCard({
         () => (mode === WordCardMode.Learning ? word.word : '???'),
         [mode, word.word],
     );
+    const stats: GlobalStatistics = globalStats ?? {
+        key: word.word,
+        correctAttempts: 0,
+        wrongAttempts: 0,
+    };
 
     const bottomRow = (
-        <CardContent sx={{ flexShrink: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        <CardContent sx={{flexShrink: 0}}>
+            <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1}}>
                 <Typography
                     variant="h6"
                     component="div"
@@ -64,7 +73,7 @@ export default function WordCard({
                     onClick={handlePronounce}
                     color={active ? 'secondary' : 'primary'}
                 >
-                    <VolumeUpIcon />
+                    <VolumeUpIcon/>
                 </IconButton>
             </Box>
         </CardContent>
@@ -155,6 +164,18 @@ export default function WordCard({
                             borderRadius: 4,
                         }}
                     >
+                        <CardHeader
+                            subheader={
+                                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                                    <Typography variant="body2" color="success.main" sx={{ fontWeight: 600 }}>
+                                        Correct: {stats.correctAttempts}
+                                    </Typography>
+                                    <Typography variant="body2" color="error.main" sx={{ fontWeight: 600 }}>
+                                        Wrong: {stats.wrongAttempts}
+                                    </Typography>
+                                </Box>
+                            }
+                        />
                         <CardContent
                             sx={{
                                 display: 'flex',
@@ -164,10 +185,8 @@ export default function WordCard({
                                 flexGrow: 1,
                             }}
                         >
-                            <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                                {showTranslation
-                                    ? word.translation || 'Translation unavailable'
-                                    : 'Keep listening and guessing!'}
+                            <Typography variant="h6" component="div" sx={{fontWeight: 600}}>
+                                {showTranslation ? word.translation || '-' : ''}
                             </Typography>
                         </CardContent>
                         {bottomRow}

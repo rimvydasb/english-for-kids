@@ -249,6 +249,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                         onRestart={handleRestart}
                         variantStats={activeVariantStats}
                         worstWords={gameManager.getWorstGuesses(6)}
+                        globalStats={snapshot.globalStats}
                         onPronounceWord={(word) => playWord(word)}
                     />
                 ) : (
@@ -268,6 +269,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                         mode={cardModeOverride ?? VARIANT_CONFIG[variant].cardMode}
                                         active={activeWord === currentWord.word}
                                         onPronounce={() => playWord(currentWord)}
+                                        globalStats={snapshot.globalStats[currentWord.word]}
                                     />
                                 )}
                             </Box>
