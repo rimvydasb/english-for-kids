@@ -52,7 +52,7 @@ export abstract class GameManager<T extends SubjectRecord, Snapshot> {
         this.groupBy = options?.groupBy;
         this.statistics = statistics;
         this.snapshot = statistics.loadAll();
-        this.subjects = subjects.slice(0, 3);
+        this.subjects = subjects; //.slice(0, 3);
     }
 
     getSubjects(): T[] {
