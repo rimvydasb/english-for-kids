@@ -11,7 +11,7 @@ import GuessScoreHeader from '@/components/GuessScoreHeader';
 import PhraseCard from '@/components/PhraseCard';
 import { PHRASES_DICTIONARY, PhraseRecord } from '@/lib/phrases';
 import { usePronunciation } from '@/lib/usePronunciation';
-import { PhasesGameManager } from '@/lib/PhasesGameManager';
+import { PhasesGameManager } from '@/lib/game/PhasesGameManager';
 import { GeneralPhraseVariantStats } from '@/lib/statistics/AStatisticsManager';
 
 export default function PhraseGuessGamePage() {
@@ -35,9 +35,46 @@ export default function PhraseGuessGamePage() {
     const [pendingCompletion, setPendingCompletion] = useState(false);
     const [showTranslation, setShowTranslation] = useState(false);
     const [glowSeed, setGlowSeed] = useState(0);
+    const [worstPhrases, setWorstPhrases] = useState<PhraseRecord[]>([]);
     const hasAnnouncedFinishRef = useRef(false);
     const { activeWord, error, pronounceWord: playPhrase } = usePronunciation();
     const congratulationsRecord = useMemo(() => ({ word: 'Great job' }), []);
+
+    const computeWorstPhrases = useCallback(
+        (stats: Record<
+            string,
+            { totalAttempts: number; correctAttempts: number; wrongAttempts: number; learned: boolean }
+        >) => {
+            return Object.entries(stats)
+                .filter(([, item]) => item.wrongAttempts > 0)
+                .map(([key, value]) => {
+                    const phrase = gameManager.findBySubject(key);
+                    if (!phrase) return null;
+                    const attempts = value.totalAttempts || value.correctAttempts + value.wrongAttempts;
+                    const wrongRate = attempts === 0 ? 0 : value.wrongAttempts / attempts;
+                    return { phrase, wrongRate, attempts, wrong: value.wrongAttempts };
+                })
+                .filter(
+                    (
+                        item,
+                    ): item is {
+                        phrase: PhraseRecord;
+                        wrongRate: number;
+                        attempts: number;
+                        wrong: number;
+                    } => Boolean(item),
+                )
+                .sort((a, b) => {
+                    if (b.wrongRate !== a.wrongRate) return b.wrongRate - a.wrongRate;
+                    if (b.wrong !== a.wrong) return b.wrong - a.wrong;
+                    if (b.attempts !== a.attempts) return b.attempts - a.attempts;
+                    return a.phrase.getSubject().localeCompare(b.phrase.getSubject());
+                })
+                .slice(0, 5)
+                .map((item) => item.phrase);
+        },
+        [gameManager],
+    );
 
     const setupRound = useCallback(
         () => {
@@ -124,6 +161,7 @@ export default function PhraseGuessGamePage() {
             setIsFinished(true);
             setCurrentPhrase(null);
             setOptions([]);
+            setWorstPhrases(computeWorstPhrases(updated.inGameStats));
         } else {
             setupRound();
         }
@@ -135,7 +173,7 @@ export default function PhraseGuessGamePage() {
         setPendingCompletion(false);
         setShowTranslation(false);
         setGlowSeed(0);
-    }, [gameManager, pendingCompletion, setupRound]);
+    }, [computeWorstPhrases, gameManager, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
         const updated = gameManager.resetVariant();
@@ -149,7 +187,8 @@ export default function PhraseGuessGamePage() {
         setPendingCompletion(false);
         setShowTranslation(false);
         setGlowSeed(0);
-    }, [gameManager, setupRound]);
+        setWorstPhrases([]);
+    }, [computeWorstPhrases, gameManager, setupRound]);
 
     const learnedCount = variantStats.learnedItemsCount;
     const score = Math.round((learnedCount / variantStats.totalItemsCount) * 100);
@@ -179,6 +218,13 @@ export default function PhraseGuessGamePage() {
                         totalCount={variantStats.totalItemsCount}
                         onRestart={handleRestart}
                         variantStats={variantStats}
+                        worstPhrases={worstPhrases}
+                        onPronouncePhrase={(phrase) =>
+                            playPhrase(phrase, {
+                                suppressPendingError: true,
+                                suppressNotAllowedError: true,
+                            })
+                        }
                     />
                 ) : (
                     <Stack spacing={3}>

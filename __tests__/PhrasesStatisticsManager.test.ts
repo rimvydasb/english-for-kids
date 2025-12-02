@@ -1,4 +1,4 @@
-import { PhrasesStatisticsManager } from '@/lib/PhrasesStatisticsManager';
+import { PhrasesStatisticsManager } from '@/lib/statistics/PhrasesStatisticsManager';
 import { PhraseRecord } from '@/lib/phrases';
 
 class MockStorage implements Storage {

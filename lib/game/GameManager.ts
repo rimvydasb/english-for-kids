@@ -1,4 +1,4 @@
-import { GlobalStatistics, InGameStatistics, SubjectRecord } from '@/lib/types';
+import {GlobalStatistics, InGameStatistics, SubjectRecord} from '@/lib/types';
 
 const DEFAULT_DECOYS = 4;
 
@@ -15,11 +15,17 @@ export interface GuessResult<Snapshot> {
 
 export interface GameStatisticsAdapter<Snapshot> {
     loadAll(): Snapshot;
+
     recordAttempt(subject: string, isCorrect: boolean): Snapshot;
+
     finalizeVariant(): Snapshot;
+
     resetVariant(): Snapshot;
+
     resetGlobal(): Snapshot;
+
     getInGameStats(snapshot: Snapshot): Record<string, InGameStatistics>;
+
     getGlobalStats(snapshot: Snapshot): Record<string, GlobalStatistics>;
 }
 
@@ -42,6 +48,7 @@ export abstract class GameManager<T extends SubjectRecord, Snapshot> {
         statistics: GameStatisticsAdapter<Snapshot>,
         options?: GameManagerOptions<T>,
     ) {
+        // take just 3 subjects for testing
         this.subjects = subjects;
         this.decoysNeeded = options?.decoysNeeded ?? DEFAULT_DECOYS;
         this.groupBy = options?.groupBy;
@@ -150,23 +157,20 @@ export abstract class GameManager<T extends SubjectRecord, Snapshot> {
     }
 
     getWorstGuesses(count: number): T[] {
-        const globalStats = this.statistics.getGlobalStats(this.snapshot);
-        const scored = this.subjects.map((subject) => {
-            const key = subject.getSubject();
-            const stats = globalStats[key] ?? { key, correctAttempts: 0, wrongAttempts: 0 };
-            const attempts = stats.correctAttempts + stats.wrongAttempts;
-            const wrongRate = attempts === 0 ? 0 : stats.wrongAttempts / attempts;
-            return { subject, wrongRate, attempts, wrong: stats.wrongAttempts };
-        });
-
-        scored.sort((a, b) => {
-            if (b.wrongRate !== a.wrongRate) return b.wrongRate - a.wrongRate;
-            if (b.wrong !== a.wrong) return b.wrong - a.wrong;
-            if (b.attempts !== a.attempts) return b.attempts - a.attempts;
-            return a.subject.getSubject().localeCompare(b.subject.getSubject());
-        });
-
-        return scored.slice(0, count).map((item) => item.subject);
+        const inGameStats = this.statistics.getInGameStats(this.snapshot);
+        return this.subjects
+            .map((subject) => {
+                const stats = inGameStats[subject.getSubject()];
+                if (stats && stats.wrongAttempts > 0) {
+                    return {subject, wrong: stats.wrongAttempts};
+                } else {
+                    return null;
+                }
+            })
+            .filter((item): item is { subject: T; wrong: number } => item !== null)
+            .sort((a, b) => a.wrong - b.wrong)
+            .map((item) => item.subject)
+            .slice(0, count);
     }
 
     private getInGameStats(snapshot: Snapshot): Record<string, InGameStatistics> {

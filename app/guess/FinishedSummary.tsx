@@ -1,7 +1,11 @@
-import { Button, Card, CardContent, Divider, Stack, Typography } from '@mui/material';
+import { Button, Card, CardContent, Divider, Stack, Typography, Box, IconButton } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { keyframes } from '@mui/material/styles';
 import { GeneralPhraseVariantStats } from '@/lib/statistics/AStatisticsManager';
+import WordCard, { WordCardMode } from '@/components/WordCard';
+import { WordRecord } from '@/lib/words';
+import { PhraseRecord } from '@/lib/types';
 
 interface FinishedSummaryProps {
     score: number;
@@ -9,6 +13,10 @@ interface FinishedSummaryProps {
     totalCount: number;
     onRestart: () => void;
     variantStats: GeneralPhraseVariantStats;
+    worstWords?: WordRecord[];
+    onPronounceWord?: (word: WordRecord) => void;
+    worstPhrases?: PhraseRecord[];
+    onPronouncePhrase?: (phrase: PhraseRecord) => void;
 }
 
 export default function FinishedSummary({
@@ -17,6 +25,10 @@ export default function FinishedSummary({
     totalCount,
     onRestart,
     variantStats,
+    worstWords = [],
+    onPronounceWord,
+    worstPhrases = [],
+    onPronouncePhrase,
 }: FinishedSummaryProps) {
     const gradientShift = keyframes`
       0% { background-position: 0% 50%; }
@@ -76,6 +88,65 @@ export default function FinishedSummary({
                             <RestartAltIcon />
                         </Button>
                     </Stack>
+
+                    {worstWords.length > 0 && (
+                        <Box sx={{ width: '100%' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                                Practice these next:
+                            </Typography>
+                            <Box
+                                sx={{
+                                    display: 'grid',
+                                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                                    gap: 2,
+                                }}
+                            >
+                                {worstWords.map((word) => (
+                                    <WordCard
+                                        key={word.word}
+                                        word={word}
+                                        mode={WordCardMode.Learning}
+                                        onPronounce={() => onPronounceWord?.(word)}
+                                    />
+                                ))}
+                            </Box>
+                        </Box>
+                    )}
+
+                    {worstPhrases.length > 0 && (
+                        <Box sx={{ width: '100%' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                                Tricky phrases to revisit:
+                            </Typography>
+                            <Stack spacing={1.5}>
+                                {worstPhrases.map((phrase) => (
+                                    <Box
+                                        key={phrase.getSubject()}
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            p: 1.5,
+                                            borderRadius: 2,
+                                            border: '1px solid',
+                                            borderColor: 'divider',
+                                            bgcolor: 'background.paper',
+                                        }}
+                                    >
+                                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                            {phrase.getSubject()}
+                                        </Typography>
+                                        <IconButton
+                                            aria-label={`Hear ${phrase.getSubject()}`}
+                                            onClick={() => onPronouncePhrase?.(phrase)}
+                                        >
+                                            <VolumeUpIcon />
+                                        </IconButton>
+                                    </Box>
+                                ))}
+                            </Stack>
+                        </Box>
+                    )}
                 </Stack>
             </CardContent>
         </Card>
