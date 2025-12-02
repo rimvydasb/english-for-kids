@@ -11,9 +11,51 @@ import GuessScoreHeader from '@/components/GuessScoreHeader';
 import VariantStatsBar from '@/components/VariantStatsBar';
 import { VARIANT_CONFIG } from '@/lib/guessConfig';
 import { GameVariant } from '@/lib/types';
-import { WordStatisticsSnapshot } from '@/lib/WordStatisticsManager';
-import { WordsGameManager } from '@/lib/WordsGameManager';
+import { WordStatisticsSnapshot } from '@/lib/statistics/WordStatisticsManager';
+import { WordsGameManager } from '@/lib/game/WordsGameManager';
 import { usePronunciation } from '@/lib/usePronunciation';
+
+const createEmptySnapshot = (words: WordRecord[]): WordStatisticsSnapshot => {
+    const emptyGlobal = words.reduce<Record<string, { key: string; correctAttempts: number; wrongAttempts: number }>>(
+        (acc, word) => {
+            acc[word.word] = { key: word.word, correctAttempts: 0, wrongAttempts: 0 };
+            return acc;
+        },
+        {},
+    );
+    const buildVariantStats = () => ({
+        totalAttempts: 0,
+        correctAttempts: 0,
+        wrongAttempts: 0,
+        learnedItemsCount: 0,
+        totalItemsCount: words.length,
+    });
+    const emptyVariantWordStats = words.reduce<Record<string, { key: string; totalAttempts: number; correctAttempts: number; wrongAttempts: number; learned: boolean }>>(
+        (acc, word) => {
+            acc[word.word] = {
+                key: word.word,
+                totalAttempts: 0,
+                correctAttempts: 0,
+                wrongAttempts: 0,
+                learned: false,
+            };
+            return acc;
+        },
+        {},
+    );
+
+    return {
+        globalStats: emptyGlobal,
+        variantStats: {
+            guessTheWord: buildVariantStats(),
+            listenAndGuess: buildVariantStats(),
+        },
+        variantWordStats: {
+            guessTheWord: { ...emptyVariantWordStats },
+            listenAndGuess: { ...emptyVariantWordStats },
+        },
+    };
+};
 
 export default function GuessGamePage({ variant }: { variant: GameVariant }) {
     const router = useRouter();
@@ -22,7 +64,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
         () => new WordsGameManager(words, variant, { groupBy: (word: WordRecord) => word.type }),
         [variant, words],
     );
-    const [snapshot, setSnapshot] = useState<WordStatisticsSnapshot>(() => gameManager.getSnapshot());
+    const [snapshot, setSnapshot] = useState<WordStatisticsSnapshot>(() => createEmptySnapshot(words));
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
     const [isFinished, setIsFinished] = useState(false);
@@ -140,6 +182,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
             setIsFinished(true);
             setCurrentWord(null);
             setOptions([]);
+            const variantWordStats = updated.variantWordStats[variant] ?? {};
         } else {
             setupRound();
         }
@@ -205,6 +248,9 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                         totalCount={activeVariantStats.totalItemsCount}
                         onRestart={handleRestart}
                         variantStats={activeVariantStats}
+                        worstWords={gameManager.getWorstGuesses(6)}
+                        globalStats={snapshot.globalStats}
+                        onPronounceWord={(word) => playWord(word)}
                     />
                 ) : (
                     <Stack spacing={3}>
@@ -223,6 +269,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                                         mode={cardModeOverride ?? VARIANT_CONFIG[variant].cardMode}
                                         active={activeWord === currentWord.word}
                                         onPronounce={() => playWord(currentWord)}
+                                        globalStats={snapshot.globalStats[currentWord.word]}
                                     />
                                 )}
                             </Box>

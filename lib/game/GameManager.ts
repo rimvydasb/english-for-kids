@@ -1,4 +1,4 @@
-import { GlobalStatistics, InGameStatistics, SubjectRecord } from '@/lib/types';
+import {GlobalStatistics, InGameStatistics, SubjectRecord} from '@/lib/types';
 
 const DEFAULT_DECOYS = 4;
 
@@ -15,11 +15,17 @@ export interface GuessResult<Snapshot> {
 
 export interface GameStatisticsAdapter<Snapshot> {
     loadAll(): Snapshot;
+
     recordAttempt(subject: string, isCorrect: boolean): Snapshot;
+
     finalizeVariant(): Snapshot;
+
     resetVariant(): Snapshot;
+
     resetGlobal(): Snapshot;
+
     getInGameStats(snapshot: Snapshot): Record<string, InGameStatistics>;
+
     getGlobalStats(snapshot: Snapshot): Record<string, GlobalStatistics>;
 }
 
@@ -37,16 +43,16 @@ export abstract class GameManager<T extends SubjectRecord, Snapshot> {
 
     private snapshot: Snapshot;
 
-    constructor(
+    protected constructor(
         subjects: T[],
         statistics: GameStatisticsAdapter<Snapshot>,
         options?: GameManagerOptions<T>,
     ) {
-        this.subjects = subjects;
         this.decoysNeeded = options?.decoysNeeded ?? DEFAULT_DECOYS;
         this.groupBy = options?.groupBy;
         this.statistics = statistics;
         this.snapshot = statistics.loadAll();
+        this.subjects = subjects; //.slice(0, 3);
     }
 
     getSubjects(): T[] {
@@ -150,23 +156,26 @@ export abstract class GameManager<T extends SubjectRecord, Snapshot> {
     }
 
     getWorstGuesses(count: number): T[] {
-        const globalStats = this.statistics.getGlobalStats(this.snapshot);
-        const scored = this.subjects.map((subject) => {
-            const key = subject.getSubject();
-            const stats = globalStats[key] ?? { key, correctAttempts: 0, wrongAttempts: 0 };
-            const attempts = stats.correctAttempts + stats.wrongAttempts;
-            const wrongRate = attempts === 0 ? 0 : stats.wrongAttempts / attempts;
-            return { subject, wrongRate, attempts, wrong: stats.wrongAttempts };
-        });
+        const inGameStats = this.statistics.getInGameStats(this.snapshot);
+        const subjects = this.subjects
+            .map((subject) => {
+                const stats = inGameStats[subject.getSubject()];
+                if (stats && stats.wrongAttempts > 0) {
+                    return {subject, wrong: stats.wrongAttempts};
+                } else {
+                    return null;
+                }
+            })
+            .filter((item): item is { subject: T; wrong: number } => item !== null)
+            .sort((a, b) => a.wrong - b.wrong)
+            .map((item) => item.subject)
+            .slice(0, count);
 
-        scored.sort((a, b) => {
-            if (b.wrongRate !== a.wrongRate) return b.wrongRate - a.wrongRate;
-            if (b.wrong !== a.wrong) return b.wrong - a.wrong;
-            if (b.attempts !== a.attempts) return b.attempts - a.attempts;
-            return a.subject.getSubject().localeCompare(b.subject.getSubject());
-        });
+        if (subjects.length <= 0) {
+            console.warn('No worst guesses found.');
+        }
 
-        return scored.slice(0, count).map((item) => item.subject);
+        return subjects;
     }
 
     private getInGameStats(snapshot: Snapshot): Record<string, InGameStatistics> {

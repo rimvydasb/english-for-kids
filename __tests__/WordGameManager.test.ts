@@ -1,4 +1,4 @@
-import { WordsGameManager } from '@/lib/WordsGameManager';
+import { WordsGameManager } from '@/lib/game/WordsGameManager';
 import { WordRecord } from '@/lib/words';
 
 class MockStorage implements Storage {
@@ -121,8 +121,7 @@ describe('game flow with statistics', () => {
         expect(afterFinalize.globalStats.green.correctAttempts).toBe(1);
 
         const worst = manager.getWorstGuesses(2).map((item) => item.word);
-        expect(worst[0]).toBe('red');
-        expect(worst).toContain('green');
+        expect(worst).toEqual(['red']);
 
         const afterResetVariant = manager.resetVariant();
         expect(afterResetVariant.variantWordStats.guessTheWord.red.totalAttempts).toBe(0);
@@ -131,5 +130,27 @@ describe('game flow with statistics', () => {
         const afterResetGlobal = manager.resetGlobal();
         expect(afterResetGlobal.globalStats.red.wrongAttempts).toBe(0);
         expect(afterResetGlobal.globalStats.green.correctAttempts).toBe(0);
+    });
+});
+
+describe('getWorstGuesses', () => {
+    it('returns up to requested count based on wrong attempts', () => {
+        const words: WordRecord[] = [
+            new WordRecord({ word: 'a', translation: 'a', type: 'noun' }),
+            new WordRecord({ word: 'b', translation: 'b', type: 'noun' }),
+            new WordRecord({ word: 'c', translation: 'c', type: 'noun' }),
+            new WordRecord({ word: 'd', translation: 'd', type: 'noun' }),
+            new WordRecord({ word: 'e', translation: 'e', type: 'noun' }),
+        ];
+        const manager = new WordsGameManager(words, 'guessTheWord', undefined, new MockStorage());
+        manager.doGuess(words[0], 'x');
+        manager.doGuess(words[1], 'x');
+        manager.doGuess(words[2], 'x');
+        manager.doGuess(words[3], 'x');
+        manager.doGuess(words[4], 'x');
+
+        const worst = manager.getWorstGuesses(5).map((w) => w.word);
+        expect(worst).toHaveLength(5);
+        expect(new Set(worst).size).toBe(5);
     });
 });

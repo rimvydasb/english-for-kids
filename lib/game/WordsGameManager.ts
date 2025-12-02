@@ -11,7 +11,7 @@ import {
 } from '@/lib/statistics/WordStatisticsManager';
 
 export class WordsGameManager extends GameManager<WordRecord, WordStatisticsSnapshot> {
-    private variant: GameVariant;
+    private readonly variant: GameVariant;
 
     constructor(
         subjects: WordRecord[],

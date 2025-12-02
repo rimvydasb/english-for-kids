@@ -1,16 +1,25 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Box, Container, IconButton, Typography } from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { WORDS_DICTIONARY } from '@/lib/words';
 import WordCard, { WordCardMode } from '@/components/WordCard';
 import { usePronunciation } from '@/lib/usePronunciation';
+import { GlobalStatsMap } from '@/lib/statistics/AStatisticsManager';
+import { WordStatisticsManager } from '@/lib/statistics/WordStatisticsManager';
 
 export default function WordsPage() {
     const { activeWord, error, pronounceWord } = usePronunciation();
     const router = useRouter();
-    const words = WORDS_DICTIONARY;
+    const words = useMemo(() => WORDS_DICTIONARY, []);
+    const [globalStats, setGlobalStats] = useState<GlobalStatsMap>({});
+
+    useEffect(() => {
+        const manager = new WordStatisticsManager(words);
+        setGlobalStats(manager.getGlobalStats());
+    }, [words]);
 
     return (
         <Container maxWidth="md">
@@ -61,6 +70,7 @@ export default function WordsPage() {
                             mode={WordCardMode.Learning}
                             active={activeWord === item.word}
                             onPronounce={() => pronounceWord(item)}
+                            globalStats={globalStats[item.word]}
                         />
                     ))}
                 </Box>
