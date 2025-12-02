@@ -248,7 +248,7 @@ export default function GuessGamePage({ variant }: { variant: GameVariant }) {
                         totalCount={activeVariantStats.totalItemsCount}
                         onRestart={handleRestart}
                         variantStats={activeVariantStats}
-                        worstWords={gameManager.getWorstGuesses(5)}
+                        worstWords={gameManager.getWorstGuesses(6)}
                         onPronounceWord={(word) => playWord(word)}
                     />
                 ) : (

@@ -43,17 +43,16 @@ export abstract class GameManager<T extends SubjectRecord, Snapshot> {
 
     private snapshot: Snapshot;
 
-    constructor(
+    protected constructor(
         subjects: T[],
         statistics: GameStatisticsAdapter<Snapshot>,
         options?: GameManagerOptions<T>,
     ) {
-        // take just 3 subjects for testing
-        this.subjects = subjects;
         this.decoysNeeded = options?.decoysNeeded ?? DEFAULT_DECOYS;
         this.groupBy = options?.groupBy;
         this.statistics = statistics;
         this.snapshot = statistics.loadAll();
+        this.subjects = subjects.slice(0, 3);
     }
 
     getSubjects(): T[] {
@@ -158,7 +157,7 @@ export abstract class GameManager<T extends SubjectRecord, Snapshot> {
 
     getWorstGuesses(count: number): T[] {
         const inGameStats = this.statistics.getInGameStats(this.snapshot);
-        return this.subjects
+        const subjects = this.subjects
             .map((subject) => {
                 const stats = inGameStats[subject.getSubject()];
                 if (stats && stats.wrongAttempts > 0) {
@@ -171,6 +170,12 @@ export abstract class GameManager<T extends SubjectRecord, Snapshot> {
             .sort((a, b) => a.wrong - b.wrong)
             .map((item) => item.subject)
             .slice(0, count);
+
+        if (subjects.length <= 0) {
+            console.warn('No worst guesses found.');
+        }
+
+        return subjects;
     }
 
     private getInGameStats(snapshot: Snapshot): Record<string, InGameStatistics> {

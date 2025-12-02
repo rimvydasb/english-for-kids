@@ -35,7 +35,6 @@ export default function PhraseGuessGamePage() {
     const [pendingCompletion, setPendingCompletion] = useState(false);
     const [showTranslation, setShowTranslation] = useState(false);
     const [glowSeed, setGlowSeed] = useState(0);
-    const [worstPhrases, setWorstPhrases] = useState<PhraseRecord[]>([]);
     const hasAnnouncedFinishRef = useRef(false);
     const { activeWord, error, pronounceWord: playPhrase } = usePronunciation();
     const congratulationsRecord = useMemo(() => ({ word: 'Great job' }), []);
@@ -161,7 +160,6 @@ export default function PhraseGuessGamePage() {
             setIsFinished(true);
             setCurrentPhrase(null);
             setOptions([]);
-            setWorstPhrases(computeWorstPhrases(updated.inGameStats));
         } else {
             setupRound();
         }
@@ -187,7 +185,6 @@ export default function PhraseGuessGamePage() {
         setPendingCompletion(false);
         setShowTranslation(false);
         setGlowSeed(0);
-        setWorstPhrases([]);
     }, [computeWorstPhrases, gameManager, setupRound]);
 
     const learnedCount = variantStats.learnedItemsCount;
@@ -218,7 +215,7 @@ export default function PhraseGuessGamePage() {
                         totalCount={variantStats.totalItemsCount}
                         onRestart={handleRestart}
                         variantStats={variantStats}
-                        worstPhrases={worstPhrases}
+                        worstPhrases={gameManager.getWorstGuesses(6)}
                         onPronouncePhrase={(phrase) =>
                             playPhrase(phrase, {
                                 suppressPendingError: true,
