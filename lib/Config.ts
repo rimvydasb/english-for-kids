@@ -1,5 +1,13 @@
 import {PhraseEntry, PhraseRecord, WordEntry, WordRecord} from '@/lib/types';
 
+export const GlobalConfig = {
+
+    // Start the game only with X subjects to guess and circle through them
+    // Worst learned words and phrases will be used to draw the variants
+    TOTAL_IN_GAME_SUBJECTS_TO_LEARN: 5,
+    DEFAULT_DECOYS: 4
+}
+
 export const PHRASES_DICTIONARY_DATA: PhraseEntry[] = [
     { phrase: 'The Hello Song', translation: 'Pasisveikinimo daina' },
     { phrase: 'Hello', translation: 'Labas' },
