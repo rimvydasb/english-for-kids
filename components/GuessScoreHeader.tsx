@@ -4,14 +4,14 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
 import { keyframes } from '@mui/material/styles';
-import { GameVariant, VARIANT_CONFIG } from '@/lib/guessConfig';
+import { VARIANT_CONFIG, WordGameVariant } from '@/lib/guessConfig';
 
 export interface ScoreHeaderProps {
     learnedCount: number;
     totalCount: number;
     onExit: () => void;
     showScore?: boolean;
-    variant?: GameVariant;
+    variant?: WordGameVariant;
     icon?: ReactNode;
 }
 

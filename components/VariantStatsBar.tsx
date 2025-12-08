@@ -1,8 +1,8 @@
 import { Divider, Stack, Typography } from '@mui/material';
-import { GeneralPhraseVariantStats } from '@/lib/statistics/AStatisticsManager';
+import { InGameAggregatedStatistics } from '@/lib/statistics/AStatisticsManager';
 
 interface VariantStatsBarProps {
-    stats: GeneralPhraseVariantStats;
+    stats: InGameAggregatedStatistics;
 }
 
 export default function VariantStatsBar({ stats }: VariantStatsBarProps) {

@@ -110,43 +110,48 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 
 ## Next Steps:
 
-- [ ] Split WordsGameManager to GuessTheWordGameManager and ListenAndGuessGameManager for better separation of concerns.
-- [ ] GuessTheWordGameManager, ListenAndGuessGameManager and PhasesGameManager draws subjects based on
+- [x] Split WordsGameManager to GuessTheWordGameManager and ListenAndGuessGameManager for better separation of concerns.
+- [x] GuessTheWordGameManager, ListenAndGuessGameManager and PhasesGameManager draws subjects based on
   GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, method is `startTheGame(): SubjectRecord[]`
-- [ ] Introduce `startTheGame()` method in each game manager that draws subjects for the dictionary and returns to the global React state.
-- [ ] Use DEFAULT_DECOYS from GlobalConfig
-- [ ] Game managers will be constructed in own page.tsx files, such as `guess-the-word/page.tsx` (GuessTheWordPage, ListenAndGuessPage, GuessPhrasesPage)
+- [x] Introduce `startTheGame()` method in each game manager that draws subjects for the dictionary and returns to the global React state.
+- [x] Use DEFAULT_DECOYS from GlobalConfig
+- [x] Game managers will be constructed in own page.tsx files, such as `guess-the-word/page.tsx` (GuessTheWordPage, ListenAndGuessPage, GuessPhrasesPage)
 Those pages should be `use client` and become client components (not server)
-- [ ] `GameVariant` will be returned by game managers
+- [x] `GameVariant` will be returned by game managers
 
 ### Do a complete refactoring and simplification of statistics management:
 
-- [ ] Create a base class `BaseStatisticsManager` that will handle common statistics logic
-- [ ] `BaseStatisticsManager` will accept:
+- [x] Create a base class `BaseStatisticsManager` that will handle common statistics logic
+- [x] `BaseStatisticsManager` will accept:
     - `storageKey: string` in the constructor to handle localStorage operations
     - `globalStorageKey: string` in the constructor to handle global statistics updates
     - storage (for testing the mock will be passed)
-- [ ] global statistics should not live in global state, but must be updated in localStorage only when a game variant is finalized.
+- [x] global statistics should not live in global state, but must be updated in localStorage only when a game variant is finalized.
 Global statistics are used in GUI only in `words/page.tsx`
-- [ ] Rename `GeneralPhraseVariantStats` to `InGameAggregatedStatistics`
-- [ ] `BaseStatisticsManager` will have a method:
+- [x] Rename `GeneralPhraseVariantStats` to `InGameAggregatedStatistics`
+- [x] `BaseStatisticsManager` will have a method:
   `recordAttempt(current: InGameStatsMap, subject: string, isCorrect: boolean): InGameStatsMap`
 1. This method will update in-game statistics map with the new attempt and will return the updated map.
 2. This method will persist to local storage only the updated in-game statistics map.
 3. This method will NOT update global statistics yet.
-- [ ] `BaseStatisticsManager` will also provide aggregation method:
+- [x] `BaseStatisticsManager` will also provide aggregation method:
   `aggregate(current: InGameStatsMap): InGameAggregatedStatistics`
-- [ ] `BaseStatisticsManager` will have a method to finalize the variant:
+- [x] `BaseStatisticsManager` will have a method to finalize the variant:
   `finishGame(current: InGameStatsMap): InGameAggregatedStatistics`
 1. `GlobalStatistics` will be updated based on `globalStorageKey` - global statistics will be read from localStorage, updated with
    the data from `current` in-game statistics map, and persisted back to localStorage. No in-memory global statistics will be used.
 2. `InGameStatsMap` will NOT be cleared from localStorage
 3. `InGameAggregatedStatistics` will be returned based on current in-game statistics map
-- [ ] `BaseStatisticsManager` will have a method to reset global statistics:
+- [x] `BaseStatisticsManager` will have a method to reset global statistics:
   `resetGlobalStatistics(): void`
-- [ ] `BaseStatisticsManager` will have a method to reset in-game statistics:
+- [x] `BaseStatisticsManager` will have a method to reset in-game statistics:
   `resetInGameStatistics(): void`
 
 ### Use Global Config for game settings:
 
-- [ ] Use GlobalConfig GAMES settings for each game variant
+- [x] Use GlobalConfig GAMES settings for each game variant
+
+### General principles:
+
+- [x] Variables are kept in React state and game managers and statistics managers are stateless and
+expose methods that modify and return new state.

@@ -2,7 +2,7 @@ import { Box, Button, Divider, IconButton, Stack, Typography } from '@mui/materi
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { keyframes } from '@mui/material/styles';
-import { GeneralPhraseVariantStats, GlobalStatsMap } from '@/lib/statistics/AStatisticsManager';
+import { GlobalStatsMap, InGameAggregatedStatistics } from '@/lib/statistics/AStatisticsManager';
 import WordCard, { WordCardMode } from '@/components/WordCard';
 import { WordRecord } from '@/lib/words';
 import { PhraseRecord } from '@/lib/types';
@@ -12,7 +12,7 @@ interface FinishedSummaryProps {
     learnedCount: number;
     totalCount: number;
     onRestart: () => void;
-    variantStats: GeneralPhraseVariantStats;
+    variantStats: InGameAggregatedStatistics;
     worstWords?: WordRecord[];
     onPronounceWord?: (word: WordRecord) => void;
     worstPhrases?: PhraseRecord[];

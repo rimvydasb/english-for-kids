@@ -1,34 +1,15 @@
-import {
-    GameManager,
-    GameManagerOptions,
-    GameStatisticsAdapter,
-} from '@/lib/game/GameManager';
-import { InGameStatistics, PhraseRecord } from '@/lib/types';
+import { GameManager, GameManagerOptions } from '@/lib/game/GameManager';
+import { PhrasesStatisticsManager } from '@/lib/statistics/PhrasesStatisticsManager';
 import { StorageLike } from '@/lib/statistics/AStatisticsManager';
-import {
-    PhraseStatisticsSnapshot,
-    PhrasesStatisticsManager,
-} from '@/lib/statistics/PhrasesStatisticsManager';
+import { GameVariant, PhraseRecord } from '@/lib/types';
 
-export class PhasesGameManager extends GameManager<PhraseRecord, PhraseStatisticsSnapshot> {
+export class PhasesGameManager extends GameManager<PhraseRecord> {
     constructor(subjects: PhraseRecord[], options?: GameManagerOptions<PhraseRecord>, storage?: StorageLike) {
-        const manager = new PhrasesStatisticsManager(subjects, storage);
-        super(subjects, PhasesGameManager.createAdapter(manager), options);
+        const statistics = new PhrasesStatisticsManager(subjects, storage);
+        super(subjects, statistics, options);
     }
 
-    private static createAdapter(
-        manager: PhrasesStatisticsManager,
-    ): GameStatisticsAdapter<PhraseStatisticsSnapshot> {
-        return {
-            loadAll: () => manager.loadAll(),
-            recordAttempt: (subject: string, isCorrect: boolean) =>
-                manager.recordAttempt(subject, isCorrect),
-            finalizeVariant: () => manager.finalizeVariant(),
-            resetVariant: () => manager.resetVariant(),
-            resetGlobal: () => manager.resetGlobal(),
-            getInGameStats: (snapshot: PhraseStatisticsSnapshot): Record<string, InGameStatistics> =>
-                snapshot.inGameStats,
-            getGlobalStats: (snapshot: PhraseStatisticsSnapshot) => snapshot.globalStats,
-        };
+    getVariant(): GameVariant {
+        return 'guessPhrase';
     }
 }

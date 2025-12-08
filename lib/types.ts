@@ -1,5 +1,9 @@
 export type OptionMode = 'word' | 'translation';
 
+export type GameVariant = 'guessTheWord' | 'listenAndGuess' | 'guessPhrase';
+
+export type WordGameVariant = Extract<GameVariant, 'guessTheWord' | 'listenAndGuess'>;
+
 export interface GlobalStatistics {
     key: string;
     correctAttempts: number;

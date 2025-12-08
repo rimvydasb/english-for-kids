@@ -1,6 +1,10 @@
-import {PhraseEntry, PhraseRecord, WordEntry, WordRecord} from '@/lib/types';
+import { GameVariant, PhraseEntry, PhraseRecord, WordEntry, WordRecord } from '@/lib/types';
 
-export type GameVariant = 'guessTheWord' | 'listenAndGuess' | `guessPhase`
+export interface GameSettings {
+    variant: GameVariant;
+    globalStorageKey: string;
+    storageKey: string;
+}
 
 export const GlobalConfig = {
 
@@ -10,6 +14,9 @@ export const GlobalConfig = {
 
     // How many decoys to show alongside the correct answer
     DEFAULT_DECOYS: 4,
+
+    // How many weakest subjects to surface at the end of a game
+    WORST_GUESSES_COUNT: 6,
 
     // Game specific settings
     GAMES: [
@@ -29,7 +36,19 @@ export const GlobalConfig = {
             storageKey: 'GUESS_THE_PHRASE_GAME_STATS',
         }
     ]
-}
+} satisfies {
+    TOTAL_IN_GAME_SUBJECTS_TO_LEARN: number;
+    DEFAULT_DECOYS: number;
+    GAMES: GameSettings[];
+};
+
+export const getGameSettings = (variant: GameVariant): GameSettings => {
+    const settings = GlobalConfig.GAMES.find((game) => game.variant === variant);
+    if (!settings) {
+        throw new Error(`Unknown game variant: ${variant}`);
+    }
+    return settings;
+};
 
 export const PHRASES_DICTIONARY_DATA: PhraseEntry[] = [
     { phrase: 'The Hello Song', translation: 'Pasisveikinimo daina' },
