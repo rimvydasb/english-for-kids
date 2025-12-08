@@ -1,5 +1,3 @@
-export type GameVariant = 'guessTheWord' | 'listenAndGuess';
-
 export type OptionMode = 'word' | 'translation';
 
 export interface GlobalStatistics {

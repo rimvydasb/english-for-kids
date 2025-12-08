@@ -1,11 +1,34 @@
 import {PhraseEntry, PhraseRecord, WordEntry, WordRecord} from '@/lib/types';
 
+export type GameVariant = 'guessTheWord' | 'listenAndGuess' | `guessPhase`
+
 export const GlobalConfig = {
 
     // Start the game only with X subjects to guess and circle through them
     // Worst learned words and phrases will be used to draw the variants
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: 5,
-    DEFAULT_DECOYS: 4
+
+    // How many decoys to show alongside the correct answer
+    DEFAULT_DECOYS: 4,
+
+    // Game specific settings
+    GAMES: [
+        {
+            variant: 'guessTheWord' as GameVariant,
+            globalStorageKey: 'GLOBAL_WORD_STATS', // global for all word-based games
+            storageKey: 'GUESS_THE_WORD_GAME_STATS',
+        },
+        {
+            variant: 'listenAndGuess' as GameVariant,
+            globalStorageKey: 'GLOBAL_WORD_STATS', // global for all word-based games
+            storageKey: 'LISTEN_AND_GUESS_GAME_STATS',
+        },
+        {
+            variant: 'guessPhrase' as GameVariant,
+            globalStorageKey: 'GLOBAL_PHRASE_STATS',
+            storageKey: 'GUESS_THE_PHRASE_GAME_STATS',
+        }
+    ]
 }
 
 export const PHRASES_DICTIONARY_DATA: PhraseEntry[] = [
