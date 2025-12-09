@@ -19,7 +19,7 @@ export interface WordEntry {
     word: string;
     translation?: string;
     examples?: string[];
-    type: 'noun' | 'verb' | 'adjective' | 'color';
+    type: 'noun' | 'verb' | 'adjective' | 'color' | 'number';
 }
 
 export abstract class SubjectRecord {
@@ -55,7 +55,8 @@ export class WordRecord extends SubjectRecord {
         return this.word;
     }
 
-    getImageUrl(): string {
+    getImageUrl(): string | null {
+        if (this.type === 'number') return null;
         return `/images/${this.word}.png`;
     }
 
