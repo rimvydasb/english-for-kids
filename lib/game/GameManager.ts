@@ -1,185 +1,225 @@
-import {GlobalStatistics, InGameStatistics, SubjectRecord} from '@/lib/types';
+import { GlobalConfig } from '@/lib/Config';
+import {
+    BaseStatisticsManager,
+    GlobalStatsMap,
+    InGameAggregatedStatistics,
+    InGameStatsMap,
+} from '@/lib/statistics/AStatisticsManager';
+import { GameVariant, SubjectRecord } from '@/lib/types';
 
-const DEFAULT_DECOYS = 4;
+export interface GameRoundResult {
+    isCorrect: boolean;
+    isComplete: boolean;
+    inGameStats: InGameStatsMap;
+    aggregated: InGameAggregatedStatistics;
+}
+
+export interface FinishResult {
+    aggregated: InGameAggregatedStatistics;
+    globalStats: GlobalStatsMap;
+}
 
 export interface GameManagerOptions<T extends SubjectRecord> {
     decoysNeeded?: number;
     groupBy?: (subject: T) => string | undefined;
 }
 
-export interface GuessResult<Snapshot> {
-    isCorrect: boolean;
-    isComplete: boolean;
-    snapshot: Snapshot;
-}
-
-export interface GameStatisticsAdapter<Snapshot> {
-    loadAll(): Snapshot;
-
-    recordAttempt(subject: string, isCorrect: boolean): Snapshot;
-
-    finalizeVariant(): Snapshot;
-
-    resetVariant(): Snapshot;
-
-    resetGlobal(): Snapshot;
-
-    getInGameStats(snapshot: Snapshot): Record<string, InGameStatistics>;
-
-    getGlobalStats(snapshot: Snapshot): Record<string, GlobalStatistics>;
-}
-
-/**
- * Abstract game manager to handle common logic for different types of games (words, phrases, etc.)
- */
-export abstract class GameManager<T extends SubjectRecord, Snapshot> {
+export abstract class GameManager<T extends SubjectRecord> {
     protected subjects: T[];
 
     protected decoysNeeded: number;
 
     protected groupBy?: (subject: T) => string | undefined;
 
-    protected statistics: GameStatisticsAdapter<Snapshot>;
-
-    private snapshot: Snapshot;
+    protected statistics: BaseStatisticsManager;
 
     protected constructor(
         subjects: T[],
-        statistics: GameStatisticsAdapter<Snapshot>,
+        statistics: BaseStatisticsManager,
         options?: GameManagerOptions<T>,
     ) {
-        this.decoysNeeded = options?.decoysNeeded ?? DEFAULT_DECOYS;
-        this.groupBy = options?.groupBy;
+        this.subjects = subjects;
         this.statistics = statistics;
-        this.snapshot = statistics.loadAll();
-        this.subjects = subjects; //.slice(0, 3);
+        this.groupBy = options?.groupBy;
+        this.decoysNeeded = options?.decoysNeeded ?? GlobalConfig.DEFAULT_DECOYS;
     }
 
-    getSubjects(): T[] {
-        return [...this.subjects];
+    abstract getVariant(): GameVariant;
+
+    startTheGame(): T[] {
+        const existingSelection = this.statistics
+            .loadActiveSubjects()
+            .map((key) => this.findBySubject(key))
+            .filter((item): item is T => Boolean(item));
+
+        if (existingSelection.length > 0) {
+            return existingSelection;
+        }
+
+        const globalStats = this.statistics.loadGlobalStatistics();
+        const prioritized = GameManager.sortByDifficulty(this.subjects, globalStats);
+        const chosen = prioritized.slice(0, GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN);
+        this.statistics.saveActiveSubjects(chosen.map((item) => item.getSubject()));
+        return chosen;
     }
 
-    getSnapshot(): Snapshot {
-        return this.snapshot;
+    loadInGameStatistics(): InGameStatsMap {
+        return this.statistics.loadInGameStatistics();
     }
 
-    protected updateSnapshot(snapshot: Snapshot): Snapshot {
-        this.snapshot = snapshot;
-        return snapshot;
+    loadGlobalStatistics(): GlobalStatsMap {
+        return this.statistics.loadGlobalStatistics();
     }
 
-    getCandidates(answer: T): T[] {
-        const subjectKey = answer.getSubject();
-        return this.subjects.filter((item) => item.getSubject() !== subjectKey);
+    aggregate(current: InGameStatsMap): InGameAggregatedStatistics {
+        return this.statistics.aggregate(current);
     }
 
-    /**
-     * When each round starts, draw the next candidate that has not been learned yet
-     */
-    drawNextCandidate(): T | null {
-        const stats = this.getInGameStats(this.snapshot);
-        const candidates = this.subjects.filter((item) => {
-            const record = stats[item.getSubject()];
+    drawNextCandidate(activeSubjects: T[], inGameStats: InGameStatsMap): T | null {
+        const candidates = activeSubjects.filter((item) => {
+            const record = inGameStats[item.getSubject()];
             return !record || !record.learned || record.correctAttempts === 0;
         });
-
         if (candidates.length === 0) {
             return null;
         }
-
         return GameManager.shuffle(candidates)[0];
     }
 
-    /**
-     * For the current round, build the list of options including the answer and decoys
-     *
-     * @param answer - the correct answer for the current round
-     */
-    buildOptions(answer: T): string[] {
-        const candidates = this.getCandidates(answer);
+    buildOptions(answer: T, activeSubjects: T[]): string[] {
+        const basePool = activeSubjects.filter((item) => item.getSubject() !== answer.getSubject());
         const groupKey = this.groupBy?.(answer);
         const primaryPool =
             groupKey !== undefined
-                ? candidates.filter((candidate) => this.groupBy?.(candidate) === groupKey)
-                : candidates;
+                ? basePool.filter((candidate) => this.groupBy?.(candidate) === groupKey)
+                : basePool;
 
         let decoys = GameManager.shuffle(primaryPool).slice(0, this.decoysNeeded);
 
         if (decoys.length < this.decoysNeeded) {
             const used = new Set(decoys.map((item) => item.getSubject()));
-            const secondaryPool = candidates.filter((candidate) => !used.has(candidate.getSubject()));
+            const secondaryPool = basePool.filter((candidate) => !used.has(candidate.getSubject()));
             const remaining = this.decoysNeeded - decoys.length;
             decoys = [...decoys, ...GameManager.shuffle(secondaryPool).slice(0, remaining)];
         }
 
-        return GameManager.shuffle([answer, ...decoys]).map((item) => item.getSubject());
+        const usedSubjects = new Set<string>();
+        const uniqueOptions: T[] = [];
+        const addUnique = (item: T) => {
+            const key = item.getSubject();
+            if (usedSubjects.has(key)) return;
+            usedSubjects.add(key);
+            uniqueOptions.push(item);
+        };
+
+        addUnique(answer);
+        decoys.forEach(addUnique);
+
+        if (uniqueOptions.length < this.decoysNeeded + 1) {
+            const fallbackPool = this.subjects.filter((item) => !usedSubjects.has(item.getSubject()));
+            GameManager.shuffle(fallbackPool).forEach((candidate) => {
+                if (uniqueOptions.length >= this.decoysNeeded + 1) return;
+                addUnique(candidate);
+            });
+        }
+
+        return GameManager.shuffle(uniqueOptions).map((item) => item.getSubject());
+    }
+
+    recordAttempt(
+        current: InGameStatsMap,
+        subject: T,
+        guess: string,
+        activeSubjects: T[],
+    ): GameRoundResult {
+        const isCorrect = subject.getSubject() === guess;
+        const inGameStats = this.statistics.recordAttempt(current, subject.getSubject(), isCorrect);
+        const aggregated = this.statistics.aggregate(inGameStats);
+        const isComplete = this.hasCompletedAll(activeSubjects, inGameStats);
+
+        return {
+            isCorrect,
+            isComplete,
+            inGameStats,
+            aggregated,
+        };
+    }
+
+    finishGame(current: InGameStatsMap): FinishResult {
+        const aggregated = this.statistics.finishGame(current);
+        return {
+            aggregated,
+            globalStats: this.statistics.loadGlobalStatistics(),
+        };
+    }
+
+    resetInGameStatistics(): { inGameStats: InGameStatsMap; aggregated: InGameAggregatedStatistics } {
+        this.statistics.resetInGameStatistics();
+        const inGameStats = this.statistics.loadInGameStatistics();
+        return { inGameStats, aggregated: this.statistics.aggregate(inGameStats) };
+    }
+
+    resetGlobalStatistics(): GlobalStatsMap {
+        this.statistics.resetGlobalStatistics();
+        return this.statistics.loadGlobalStatistics();
     }
 
     findBySubject(subject: string): T | undefined {
         return this.subjects.find((item) => item.getSubject() === subject);
     }
 
-    /**
-     * Process the user's guess for the current round and update statistics
-     */
-    doGuess(answer: T, guess: string): GuessResult<Snapshot> {
-        const isCorrect = answer.getSubject() === guess;
-        const snapshot = this.updateSnapshot(
-            this.statistics.recordAttempt(answer.getSubject(), isCorrect),
-        );
-        const isComplete = this.hasCompletedAll(this.getInGameStats(snapshot));
-
-        return {
-            isCorrect,
-            isComplete,
-            snapshot,
-        };
+    getWorstGuesses(count = GlobalConfig.WORST_GUESSES_COUNT, stats: InGameStatsMap, subjects?: T[]): T[] {
+        const scope = subjects ?? this.subjects;
+        return scope
+            .map((subject) => {
+                const record = stats[subject.getSubject()];
+                if (!record || record.wrongAttempts <= 0) {
+                    return null;
+                }
+                return { subject, wrong: record.wrongAttempts };
+            })
+            .filter((item): item is { subject: T; wrong: number } => Boolean(item))
+            .sort((a, b) => b.wrong - a.wrong)
+            .slice(0, count)
+            .map((item) => item.subject);
     }
 
-    finalizeVariant(): Snapshot {
-        return this.updateSnapshot(this.statistics.finalizeVariant());
-    }
-
-    resetVariant(): Snapshot {
-        return this.updateSnapshot(this.statistics.resetVariant());
-    }
-
-    resetGlobal(): Snapshot {
-        return this.updateSnapshot(this.statistics.resetGlobal());
-    }
-
-    private hasCompletedAll(stats: Record<string, InGameStatistics>): boolean {
-        return this.subjects.every((item) => {
+    protected hasCompletedAll(subjects: T[], stats: InGameStatsMap): boolean {
+        return subjects.every((item) => {
             const record = stats[item.getSubject()];
             return Boolean(record && record.learned && record.correctAttempts > 0);
         });
     }
 
-    getWorstGuesses(count: number): T[] {
-        const inGameStats = this.statistics.getInGameStats(this.snapshot);
-        const subjects = this.subjects
-            .map((subject) => {
-                const stats = inGameStats[subject.getSubject()];
-                if (stats && stats.wrongAttempts > 0) {
-                    return {subject, wrong: stats.wrongAttempts};
-                } else {
-                    return null;
-                }
-            })
-            .filter((item): item is { subject: T; wrong: number } => item !== null)
-            .sort((a, b) => a.wrong - b.wrong)
-            .map((item) => item.subject)
-            .slice(0, count);
+    private static sortByDifficulty<U extends SubjectRecord>(
+        subjects: U[],
+        globalStats: GlobalStatsMap,
+    ): U[] {
+        const shuffled = GameManager.shuffle(subjects);
+        return shuffled.sort((a, b) => {
+            const aStats = globalStats[a.getSubject()] ?? {
+                key: a.getSubject(),
+                correctAttempts: 0,
+                wrongAttempts: 0,
+            };
+            const bStats = globalStats[b.getSubject()] ?? {
+                key: b.getSubject(),
+                correctAttempts: 0,
+                wrongAttempts: 0,
+            };
 
-        if (subjects.length <= 0) {
-            console.warn('No worst guesses found.');
-        }
-
-        return subjects;
-    }
-
-    private getInGameStats(snapshot: Snapshot): Record<string, InGameStatistics> {
-        return this.statistics.getInGameStats(snapshot);
+            const aScore = aStats.wrongAttempts - aStats.correctAttempts;
+            const bScore = bStats.wrongAttempts - bStats.correctAttempts;
+            if (aScore !== bScore) {
+                return bScore - aScore;
+            }
+            const aAttempts = aStats.correctAttempts + aStats.wrongAttempts;
+            const bAttempts = bStats.correctAttempts + bStats.wrongAttempts;
+            if (aAttempts !== bAttempts) {
+                return bAttempts - aAttempts;
+            }
+            return a.getSubject().localeCompare(b.getSubject());
+        });
     }
 
     private static shuffle<U>(values: U[]): U[] {

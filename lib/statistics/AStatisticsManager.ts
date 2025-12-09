@@ -6,7 +6,7 @@ export interface StorageLike {
     removeItem?(key: string): void;
 }
 
-export interface GeneralPhraseVariantStats {
+export interface InGameAggregatedStatistics {
     totalAttempts: number;
     correctAttempts: number;
     wrongAttempts: number;
@@ -20,10 +20,13 @@ export type InGameStatsMap = Record<string, InGameStatistics>;
 export abstract class AStatisticsManager {
     protected storage: StorageLike;
 
+    protected storageKey: string;
+
     protected constructor(storage?: StorageLike) {
         this.storage =
             storage ??
             (typeof window !== 'undefined' ? window.localStorage : AStatisticsManager.createMemoryStorage());
+        this.storageKey = 'GENERIC_STATS';
     }
 
     protected static createMemoryStorage(): StorageLike {
@@ -95,7 +98,7 @@ export abstract class AStatisticsManager {
         }, {});
     }
 
-    protected computeVariantStats(stats: InGameStatsMap): GeneralPhraseVariantStats {
+    protected computeAggregatedStats(stats: InGameStatsMap): InGameAggregatedStatistics {
         const values = Object.values(stats);
         const totalAttempts = values.reduce((sum, item) => sum + item.totalAttempts, 0);
         const correctAttempts = values.reduce((sum, item) => sum + item.correctAttempts, 0);
@@ -194,5 +197,110 @@ export abstract class AStatisticsManager {
             }
         });
         return base;
+    }
+}
+
+export class BaseStatisticsManager extends AStatisticsManager {
+    private readonly storageKey: string;
+
+    private readonly globalStorageKey: string;
+
+    private readonly activeSubjectsKey: string;
+
+    private readonly subjects: SubjectRecord[];
+
+    constructor(subjects: SubjectRecord[], storageKey: string, globalStorageKey: string, storage?: StorageLike) {
+        super(storage);
+        this.subjects = subjects;
+        this.storageKey = storageKey;
+        this.globalStorageKey = globalStorageKey;
+        this.activeSubjectsKey = `${storageKey}_ACTIVE_SUBJECTS`;
+    }
+
+    loadInGameStatistics(): InGameStatsMap {
+        return this.loadFromStorage(
+            this.storageKey,
+            () => this.createEmptyInGameStats(this.subjects),
+            (parsed) => this.sanitizeInGameStats(parsed, this.subjects),
+        );
+    }
+
+    loadGlobalStatistics(): GlobalStatsMap {
+        return this.loadFromStorage(
+            this.globalStorageKey,
+            () => this.createEmptyGlobalStats(this.subjects),
+            (parsed) => this.sanitizeGlobalStats(parsed, this.subjects),
+        );
+    }
+
+    recordAttempt(current: InGameStatsMap, subject: string, isCorrect: boolean): InGameStatsMap {
+        const next = this.cloneInGameStats(current);
+        const entry = this.ensureInGameEntry(next, subject);
+
+        entry.totalAttempts += 1;
+        if (isCorrect) {
+            entry.correctAttempts += 1;
+            entry.learned = true;
+        } else {
+            entry.wrongAttempts += 1;
+            entry.learned = false;
+        }
+
+        next[subject] = entry;
+        this.saveToStorage(this.storageKey, next);
+        return next;
+    }
+
+    aggregate(current: InGameStatsMap): InGameAggregatedStatistics {
+        return this.computeAggregatedStats(current);
+    }
+
+    finishGame(current: InGameStatsMap): InGameAggregatedStatistics {
+        const updatedGlobal = this.mergeIntoGlobal(this.loadGlobalStatistics(), current);
+        this.saveToStorage(this.globalStorageKey, updatedGlobal);
+        return this.aggregate(current);
+    }
+
+    resetGlobalStatistics(): void {
+        this.saveToStorage(this.globalStorageKey, this.createEmptyGlobalStats(this.subjects));
+    }
+
+    resetInGameStatistics(): void {
+        this.saveToStorage(this.storageKey, this.createEmptyInGameStats(this.subjects));
+        this.clearActiveSubjects();
+    }
+
+    private mergeIntoGlobal(global: GlobalStatsMap, current: InGameStatsMap): GlobalStatsMap {
+        const merged = this.cloneGlobalStats(global);
+        Object.values(current).forEach(({ key, correctAttempts, wrongAttempts }) => {
+            if (!merged[key]) {
+                merged[key] = { key, correctAttempts: 0, wrongAttempts: 0 };
+            }
+            merged[key].correctAttempts += correctAttempts;
+            merged[key].wrongAttempts += wrongAttempts;
+        });
+        return merged;
+    }
+
+    loadActiveSubjects(): string[] {
+        const stored = this.storage.getItem(this.activeSubjectsKey);
+        if (!stored) return [];
+        try {
+            const parsed: unknown = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.every((item) => typeof item === 'string')) {
+                return parsed as string[];
+            }
+        } catch {
+            // ignore parsing errors and fall back to empty
+        }
+        return [];
+    }
+
+    saveActiveSubjects(subjectKeys: string[]): void {
+        this.storage.setItem(this.activeSubjectsKey, JSON.stringify(subjectKeys));
+    }
+
+    clearActiveSubjects(): void {
+        this.storage.removeItem?.(this.activeSubjectsKey);
     }
 }

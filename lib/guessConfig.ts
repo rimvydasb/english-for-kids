@@ -1,26 +1,30 @@
 import { WordCardMode } from '@/components/WordCard';
-import { GameVariant, OptionMode } from '@/lib/types';
+import { getGameSettings } from '@/lib/Config';
+import { GameVariant, OptionMode, WordGameVariant } from '@/lib/types';
 
 export interface GuessVariantConfig {
     label: string;
     cardMode: WordCardMode;
     optionMode: OptionMode;
-    statsKey: string;
+    storageKey: string;
+    globalStorageKey: string;
 }
 
-export const VARIANT_CONFIG: Record<GameVariant, GuessVariantConfig> = {
+export const VARIANT_CONFIG: Record<WordGameVariant, GuessVariantConfig> = {
     guessTheWord: {
         label: 'Guess The Word',
         cardMode: WordCardMode.GuessWord,
         optionMode: 'word',
-        statsKey: 'GUESS_THE_WORD_STATS',
+        storageKey: getGameSettings('guessTheWord').storageKey,
+        globalStorageKey: getGameSettings('guessTheWord').globalStorageKey,
     },
     listenAndGuess: {
         label: 'Listen & Guess',
         cardMode: WordCardMode.ListenAndGuess,
         optionMode: 'translation',
-        statsKey: 'LISTEN_AND_GUESS_STATS',
+        storageKey: getGameSettings('listenAndGuess').storageKey,
+        globalStorageKey: getGameSettings('listenAndGuess').globalStorageKey,
     },
 };
 
-export type { GameVariant, OptionMode };
+export type { GameVariant, OptionMode, WordGameVariant };

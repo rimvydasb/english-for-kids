@@ -1,38 +1,12 @@
-import { WordsGameManager } from '@/lib/game/WordsGameManager';
+import { GlobalConfig } from '@/lib/Config';
+import { GuessTheWordGameManager, ListenAndGuessGameManager } from '@/lib/game/WordGameManager';
 import { WordRecord } from '@/lib/words';
-
-class MockStorage implements Storage {
-    private store: Record<string, string> = {};
-
-    getItem(key: string): string | null {
-        return this.store[key] ?? null;
-    }
-
-    setItem(key: string, value: string): void {
-        this.store[key] = value;
-    }
-
-    removeItem(key: string): void {
-        delete this.store[key];
-    }
-
-    clear(): void {
-        this.store = {};
-    }
-
-    key(index: number): string | null {
-        return Object.keys(this.store)[index] ?? null;
-    }
-
-    get length(): number {
-        return Object.keys(this.store).length;
-    }
-}
+import { MemoryStorage } from './helpers/mockStorage';
 
 const getType = (records: WordRecord[], word: string) =>
     records.find((item) => item.word === word)?.type;
 
-describe('buildWordOptions', () => {
+describe('Word game managers', () => {
     const words: WordRecord[] = [
         new WordRecord({ word: 'red', translation: 'raudonas', type: 'color' }),
         new WordRecord({ word: 'green', translation: 'žalias', type: 'color' }),
@@ -43,114 +17,153 @@ describe('buildWordOptions', () => {
         new WordRecord({ word: 'dog', translation: 'šuo', type: 'noun' }),
         new WordRecord({ word: 'desk', translation: 'rašomasis stalas', type: 'noun' }),
     ];
-    const manager = new WordsGameManager(words, 'guessTheWord', { groupBy: (record) => record.type });
 
-    it('returns 1 answer + 4 decoys, all from the same type when enough options exist', () => {
+    it('builds options using grouped decoys when available', () => {
+        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
         const answer = words[0];
-        const options = manager.buildOptions(answer);
+        const options = manager.buildOptions(answer, words);
         const decoys = options.filter((option) => option !== answer.word);
 
-        expect(options).toHaveLength(5);
-        expect(new Set(options).size).toBe(5);
+        expect(options).toHaveLength(Math.min(words.length, GlobalConfig.DEFAULT_DECOYS + 1));
+        expect(new Set(options).size).toBe(options.length);
         expect(decoys.every((word) => getType(words, word) === answer.type)).toBe(true);
     });
 
-    it('fills remaining decoys with other types if there are not enough of the same type', () => {
-        const shortList = words.filter((item) => item.word !== 'green' && item.word !== 'yellow');
-        const answer = shortList.find((item) => item.word === 'black') as WordRecord;
-        const options = new WordsGameManager(shortList, 'guessTheWord', {
-            groupBy: (record) => record.type,
-        }).buildOptions(answer);
-        const decoys = options.filter((option) => option !== answer.word);
+    it('records attempts, reports completion, and updates global stats on finish', () => {
+        const manager = new ListenAndGuessGameManager(words, undefined, new MemoryStorage());
+        const activeSubjects = manager.startTheGame();
+        let inGameStats = manager.loadInGameStatistics();
 
-        expect(options).toHaveLength(5);
-        expect(new Set(options).size).toBe(5);
-        const decoyTypes = decoys.map((word) => getType(shortList, word));
-        expect(decoyTypes.filter((type) => type === answer.type).length).toBeGreaterThan(0);
-        expect(decoyTypes.filter((type) => type !== answer.type).length).toBeGreaterThan(0);
-    });
-});
-
-describe('doGuess', () => {
-    const words: WordRecord[] = [
-        new WordRecord({ word: 'red', translation: 'raudonas', type: 'color' }),
-        new WordRecord({ word: 'green', translation: 'žalias', type: 'color' }),
-    ];
-
-    it('records attempts and reports completion', () => {
-        const manager = new WordsGameManager(words, 'guessTheWord');
-        const answer = words[0];
-
-        const firstGuess = manager.doGuess(answer, answer.word);
-        expect(firstGuess.isCorrect).toBe(true);
-        expect(firstGuess.isComplete).toBe(false);
-        expect(firstGuess.snapshot.variantWordStats.guessTheWord.red.correctAttempts).toBe(1);
-        expect(firstGuess.snapshot.variantWordStats.guessTheWord.red.learned).toBe(true);
-
-        const secondGuess = manager.doGuess(words[1], words[1].word);
-        expect(secondGuess.isComplete).toBe(true);
-        expect(secondGuess.snapshot.variantStats.guessTheWord.correctAttempts).toBe(2);
-    });
-});
-
-describe('game flow with statistics', () => {
-    const words: WordRecord[] = [
-        new WordRecord({ word: 'red', translation: 'raudonas', type: 'color' }),
-        new WordRecord({ word: 'green', translation: 'žalias', type: 'color' }),
-        new WordRecord({ word: 'cat', translation: 'katė', type: 'noun' }),
-    ];
-
-    it('plays through guesses, finalizes, resets, and surfaces weakest words', () => {
-        const manager = new WordsGameManager(words, 'guessTheWord', undefined, new MockStorage());
-
-        const firstCandidate = manager.drawNextCandidate();
-        expect(firstCandidate).not.toBeNull();
-
-        const wrong = manager.doGuess(words[0], words[1].word);
-        expect(wrong.isCorrect).toBe(false);
-        expect(wrong.snapshot.variantWordStats.guessTheWord.red.wrongAttempts).toBe(1);
-
-        const correct = manager.doGuess(words[0], words[0].word);
+        const correct = manager.recordAttempt(
+            inGameStats,
+            activeSubjects[0],
+            activeSubjects[0].word,
+            activeSubjects,
+        );
+        inGameStats = correct.inGameStats;
         expect(correct.isCorrect).toBe(true);
-        expect(correct.snapshot.variantWordStats.guessTheWord.red.correctAttempts).toBe(1);
+        expect(inGameStats[activeSubjects[0].word].correctAttempts).toBe(1);
 
-        manager.doGuess(words[1], words[1].word);
-        manager.finalizeVariant();
-        const afterFinalize = manager.getSnapshot();
-        expect(afterFinalize.globalStats.red.wrongAttempts).toBe(1);
-        expect(afterFinalize.globalStats.green.correctAttempts).toBe(1);
+        const wrong = manager.recordAttempt(inGameStats, activeSubjects[1], 'incorrect', activeSubjects);
+        inGameStats = wrong.inGameStats;
+        expect(inGameStats[activeSubjects[1].word].wrongAttempts).toBe(1);
 
-        const worst = manager.getWorstGuesses(2).map((item) => item.word);
-        expect(worst).toEqual(['red']);
-
-        const afterResetVariant = manager.resetVariant();
-        expect(afterResetVariant.variantWordStats.guessTheWord.red.totalAttempts).toBe(0);
-        expect(afterResetVariant.globalStats.red.wrongAttempts).toBe(1);
-
-        const afterResetGlobal = manager.resetGlobal();
-        expect(afterResetGlobal.globalStats.red.wrongAttempts).toBe(0);
-        expect(afterResetGlobal.globalStats.green.correctAttempts).toBe(0);
+        const finish = manager.finishGame(inGameStats);
+        expect(finish.globalStats[activeSubjects[0].word].correctAttempts).toBe(1);
+        expect(finish.globalStats[activeSubjects[1].word].wrongAttempts).toBe(1);
     });
-});
 
-describe('getWorstGuesses', () => {
-    it('returns up to requested count based on wrong attempts', () => {
-        const words: WordRecord[] = [
-            new WordRecord({ word: 'a', translation: 'a', type: 'noun' }),
-            new WordRecord({ word: 'b', translation: 'b', type: 'noun' }),
-            new WordRecord({ word: 'c', translation: 'c', type: 'noun' }),
-            new WordRecord({ word: 'd', translation: 'd', type: 'noun' }),
-            new WordRecord({ word: 'e', translation: 'e', type: 'noun' }),
-        ];
-        const manager = new WordsGameManager(words, 'guessTheWord', undefined, new MockStorage());
-        manager.doGuess(words[0], 'x');
-        manager.doGuess(words[1], 'x');
-        manager.doGuess(words[2], 'x');
-        manager.doGuess(words[3], 'x');
-        manager.doGuess(words[4], 'x');
+    it('limits startTheGame selection to configured subject count', () => {
+        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const selected = manager.startTheGame();
+        expect(selected.length).toBe(Math.min(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, words.length));
+    });
 
-        const worst = manager.getWorstGuesses(5).map((w) => w.word);
-        expect(worst).toHaveLength(5);
-        expect(new Set(worst).size).toBe(5);
+    it('reuses stored active subjects until reset', () => {
+        const storage = new MemoryStorage();
+        const manager = new GuessTheWordGameManager(words, undefined, storage);
+        const firstSelection = manager.startTheGame();
+        const secondSelection = manager.startTheGame();
+        expect(secondSelection.map((item) => item.word)).toEqual(firstSelection.map((item) => item.word));
+
+        manager.resetInGameStatistics();
+        const newSelection = manager.startTheGame();
+        expect(newSelection).toHaveLength(firstSelection.length);
+    });
+
+    it('surface worst guesses based on wrong attempts', () => {
+        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const activeSubjects = words;
+        let inGameStats = manager.loadInGameStatistics();
+
+        inGameStats = manager.recordAttempt(inGameStats, words[0], 'nope', activeSubjects).inGameStats;
+        inGameStats = manager.recordAttempt(inGameStats, words[1], 'nope', activeSubjects).inGameStats;
+        inGameStats = manager.recordAttempt(inGameStats, words[1], 'nope', activeSubjects).inGameStats;
+
+        const worst = manager.getWorstGuesses(1, inGameStats, activeSubjects).map((item) => item.word);
+        expect(worst).toEqual([words[1].word]);
+    });
+
+    it('returns default number of worst guesses from config when no count is provided', () => {
+        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const activeSubjects = manager.startTheGame();
+        let inGameStats = manager.loadInGameStatistics();
+
+        const targets = activeSubjects.slice(0, GlobalConfig.WORST_GUESSES_COUNT);
+        targets.forEach((word, index) => {
+            for (let i = 0; i <= index; i += 1) {
+                inGameStats = manager.recordAttempt(inGameStats, word, 'nope', activeSubjects).inGameStats;
+            }
+        });
+
+        const worst = manager.getWorstGuesses(undefined, inGameStats, activeSubjects);
+        expect(worst.length).toBeLessThanOrEqual(GlobalConfig.WORST_GUESSES_COUNT);
+        expect(worst[0].getSubject()).toBe(targets[targets.length - 1].getSubject());
+    });
+
+    it('returns empty worst guesses when there were no wrong attempts', () => {
+        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const activeSubjects = manager.startTheGame();
+        const inGameStats = manager.loadInGameStatistics();
+
+        const worst = manager.getWorstGuesses(undefined, inGameStats, activeSubjects);
+        expect(worst).toHaveLength(0);
+    });
+
+    it('drawNextCandidate skips learned subjects and stops when all are learned', () => {
+        const manager = new GuessTheWordGameManager(words.slice(0, 3), undefined, new MemoryStorage());
+        const activeSubjects = manager.startTheGame();
+        let inGameStats = manager.loadInGameStatistics();
+
+        const first = manager.drawNextCandidate(activeSubjects, inGameStats);
+        expect(first).not.toBeNull();
+
+        inGameStats = manager.recordAttempt(
+            inGameStats,
+            activeSubjects[0],
+            activeSubjects[0].word,
+            activeSubjects,
+        ).inGameStats;
+        const second = manager.drawNextCandidate(activeSubjects, inGameStats);
+        expect(second).not.toBeNull();
+
+        inGameStats = manager.recordAttempt(
+            inGameStats,
+            activeSubjects[1],
+            activeSubjects[1].word,
+            activeSubjects,
+        ).inGameStats;
+        inGameStats = manager.recordAttempt(
+            inGameStats,
+            activeSubjects[2],
+            activeSubjects[2].word,
+            activeSubjects,
+        ).inGameStats;
+
+        const noneLeft = manager.drawNextCandidate(activeSubjects, inGameStats);
+        expect(noneLeft).toBeNull();
+    });
+
+    it('finds subjects by key and resets global statistics', () => {
+        const manager = new ListenAndGuessGameManager(words, undefined, new MemoryStorage());
+        const activeSubjects = manager.startTheGame();
+        let inGameStats = manager.loadInGameStatistics();
+
+        const found = manager.findBySubject(activeSubjects[0].word);
+        expect(found?.word).toBe(activeSubjects[0].word);
+
+        inGameStats = manager.recordAttempt(
+            inGameStats,
+            activeSubjects[0],
+            activeSubjects[0].word,
+            activeSubjects,
+        ).inGameStats;
+        manager.finishGame(inGameStats);
+        const withStats = manager.loadGlobalStatistics();
+        expect(withStats[activeSubjects[0].word].correctAttempts).toBe(1);
+
+        manager.resetGlobalStatistics();
+        const resetGlobal = manager.loadGlobalStatistics();
+        expect(resetGlobal[activeSubjects[0].word].correctAttempts).toBe(0);
     });
 });

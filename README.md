@@ -69,68 +69,89 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 
 ## Word List
 
-| English  | Lithuanian        |
-|----------|-------------------|
-| apple    | obuolys           |
-| baloon   | balionas          |
-| black    | juodas            |
-| brown    | rudas             |
-| cat      | katė              |
-| crayon   | kreidelė          |
-| desk     | rašomasis stalas  |
-| dog      | šuo               |
-| egg      | kiaušinis         |
-| elephant | dramblys          |
-| farm     | ferma             |
-| fish     | žuvis             |
-| green    | žalias            |
-| notebook | sąsiuvinis        |
-| pencil   | pieštukas         |
-| pink     | rožinis           |
-| plain    | lyguma            |
-| puppet   | lėlė              |
-| purple   | violetinis        |
-| red      | raudonas          |
-| teddy    | meškiukas         |
-| white    | baltas            |
-| yellow   | geltonas          |
+| English  | Lithuanian       |
+|----------|------------------|
+| apple    | obuolys          |
+| baloon   | balionas         |
+| black    | juodas           |
+| brown    | rudas            |
+| cat      | katė             |
+| crayon   | kreidelė         |
+| desk     | rašomasis stalas |
+| dog      | šuo              |
+| egg      | kiaušinis        |
+| elephant | dramblys         |
+| farm     | ferma            |
+| fish     | žuvis            |
+| green    | žalias           |
+| notebook | sąsiuvinis       |
+| pencil   | pieštukas        |
+| pink     | rožinis          |
+| plain    | lyguma           |
+| puppet   | lėlė             |
+| purple   | violetinis       |
+| red      | raudonas         |
+| teddy    | meškiukas        |
+| white    | baltas           |
+| yellow   | geltonas         |
 
 # Phrases Guess Game
 
 - [x] Create the new page `/guess-phrases` similar to `/guess-the-word`.
 - [x] Instead of `WordCard.tsx` create `PhraseCard.tsx` that shows an English phrase with pronunciation icon
 - [x] Below the phrase show multiple Lithuanian translation options to choose from.
-- [x] User is able to see the English phrase in `PhraseCard.tsx`, listen for english pronunciation, and pick the correct Lithuanian translation from the options.
+- [x] User is able to see the English phrase in `PhraseCard.tsx`, listen for english pronunciation, and pick the correct
+  Lithuanian translation from the options.
 - [x] Implement the same game logic, statistics tracking, and persistence as in the existing word guessing games.
 - [x] Use the phrases list provided in the README for the game content.
 - [x] Implement `PhrasesStatisticsManager.ts` and `PhrasesStatisticsManager.test.ts`
 - [x] Add all phrases from Phrases List to `PHRASES_DICTIONARY_DATA`
 - [x] Add new Game in the main menu to access the Phrases Guess Game.
 
-## Phrase Statistics & Persistence
+## Next Steps:
 
-```typescript
-export interface PhraseEntry {
-    phrase: string;
-    translation?: string;
-}
+- [x] Split WordsGameManager to GuessTheWordGameManager and ListenAndGuessGameManager for better separation of concerns.
+- [x] GuessTheWordGameManager, ListenAndGuessGameManager and PhasesGameManager draws subjects based on
+  GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, method is `startTheGame(): SubjectRecord[]`
+- [x] Introduce `startTheGame()` method in each game manager that draws subjects for the dictionary and returns to the global React state.
+- [x] Use DEFAULT_DECOYS from GlobalConfig
+- [x] Game managers will be constructed in own page.tsx files, such as `guess-the-word/page.tsx` (GuessTheWordPage, ListenAndGuessPage, GuessPhrasesPage)
+Those pages should be `use client` and become client components (not server)
+- [x] `GameVariant` will be returned by game managers
 
-export const PHRASES_DICTIONARY_DATA: PhraseEntry[] = [...];
-```
+### Do a complete refactoring and simplification of statistics management:
 
-```typescript
-export interface GlobalPhraseStatstics {
-    phrase: string;
-    correctAttempts: number;
-    wrongAttempts: number;
-}
+- [x] Create a base class `BaseStatisticsManager` that will handle common statistics logic
+- [x] `BaseStatisticsManager` will accept:
+    - `storageKey: string` in the constructor to handle localStorage operations
+    - `globalStorageKey: string` in the constructor to handle global statistics updates
+    - storage (for testing the mock will be passed)
+- [x] global statistics should not live in global state, but must be updated in localStorage only when a game variant is finalized.
+Global statistics are used in GUI only in `words/page.tsx`
+- [x] Rename `GeneralPhraseVariantStats` to `InGameAggregatedStatistics`
+- [x] `BaseStatisticsManager` will have a method:
+  `recordAttempt(current: InGameStatsMap, subject: string, isCorrect: boolean): InGameStatsMap`
+1. This method will update in-game statistics map with the new attempt and will return the updated map.
+2. This method will persist to local storage only the updated in-game statistics map.
+3. This method will NOT update global statistics yet.
+- [x] `BaseStatisticsManager` will also provide aggregation method:
+  `aggregate(current: InGameStatsMap): InGameAggregatedStatistics`
+- [x] `BaseStatisticsManager` will have a method to finalize the variant:
+  `finishGame(current: InGameStatsMap): InGameAggregatedStatistics`
+1. `GlobalStatistics` will be updated based on `globalStorageKey` - global statistics will be read from localStorage, updated with
+   the data from `current` in-game statistics map, and persisted back to localStorage. No in-memory global statistics will be used.
+2. `InGameStatsMap` will NOT be cleared from localStorage
+3. `InGameAggregatedStatistics` will be returned based on current in-game statistics map
+- [x] `BaseStatisticsManager` will have a method to reset global statistics:
+  `resetGlobalStatistics(): void`
+- [x] `BaseStatisticsManager` will have a method to reset in-game statistics:
+  `resetInGameStatistics(): void`
 
-export interface InGamePhraseStatstics extends GlobalPhraseStatstics {
-    totalAttempts: number;
-    learned: boolean;
-}
-```
+### Use Global Config for game settings:
 
-## Clarifications
+- [x] Use GlobalConfig GAMES settings for each game variant
 
-- phrase does not have an image, only text and speech
+### General principles:
+
+- [x] Variables are kept in React state and game managers and statistics managers are stateless and
+expose methods that modify and return new state.

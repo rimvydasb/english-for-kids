@@ -17,8 +17,8 @@ export default function WordsPage() {
     const [globalStats, setGlobalStats] = useState<GlobalStatsMap>({});
 
     useEffect(() => {
-        const manager = new WordStatisticsManager(words);
-        setGlobalStats(manager.getGlobalStats());
+        const manager = new WordStatisticsManager(words, 'guessTheWord');
+        setGlobalStats(manager.loadGlobalStatistics());
     }, [words]);
 
     return (

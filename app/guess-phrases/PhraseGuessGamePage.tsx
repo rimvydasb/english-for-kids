@@ -9,22 +9,24 @@ import FinishedSummary from '../guess/FinishedSummary';
 import VariantStatsBar from '@/components/VariantStatsBar';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import PhraseCard from '@/components/PhraseCard';
-import { PHRASES_DICTIONARY, PhraseRecord } from '@/lib/phrases';
 import { usePronunciation } from '@/lib/usePronunciation';
 import { PhasesGameManager } from '@/lib/game/PhasesGameManager';
-import { GeneralPhraseVariantStats } from '@/lib/statistics/AStatisticsManager';
+import { ensureStatsForSubjects } from '@/lib/game/ensureStats';
+import { PhraseRecord } from '@/lib/types';
+import { InGameAggregatedStatistics, InGameStatsMap } from '@/lib/statistics/AStatisticsManager';
+import { InGameStatistics } from '@/lib/types';
+import { GlobalConfig } from '@/lib/Config';
 
-export default function PhraseGuessGamePage() {
+interface PhraseGuessGamePageProps {
+    gameManager: PhasesGameManager;
+}
+
+export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePageProps) {
     const router = useRouter();
-    const phrases = useMemo(() => PHRASES_DICTIONARY, []);
-    const gameManager = useMemo(() => new PhasesGameManager(phrases), [phrases]);
-    const [variantStats, setVariantStats] = useState<GeneralPhraseVariantStats>({
-        totalAttempts: 0,
-        correctAttempts: 0,
-        wrongAttempts: 0,
-        learnedItemsCount: 0,
-        totalItemsCount: phrases.length,
-    });
+    const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
+    const initialStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
+    const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>(initialSubjects);
+    const [inGameStats, setInGameStats] = useState<InGameStatsMap>(initialStats);
     const [currentPhrase, setCurrentPhrase] = useState<PhraseRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
     const [isFinished, setIsFinished] = useState(false);
@@ -39,45 +41,13 @@ export default function PhraseGuessGamePage() {
     const { activeWord, error, pronounceWord: playPhrase } = usePronunciation();
     const congratulationsRecord = useMemo(() => ({ word: 'Great job' }), []);
 
-    const computeWorstPhrases = useCallback(
-        (stats: Record<
-            string,
-            { totalAttempts: number; correctAttempts: number; wrongAttempts: number; learned: boolean }
-        >) => {
-            return Object.entries(stats)
-                .filter(([, item]) => item.wrongAttempts > 0)
-                .map(([key, value]) => {
-                    const phrase = gameManager.findBySubject(key);
-                    if (!phrase) return null;
-                    const attempts = value.totalAttempts || value.correctAttempts + value.wrongAttempts;
-                    const wrongRate = attempts === 0 ? 0 : value.wrongAttempts / attempts;
-                    return { phrase, wrongRate, attempts, wrong: value.wrongAttempts };
-                })
-                .filter(
-                    (
-                        item,
-                    ): item is {
-                        phrase: PhraseRecord;
-                        wrongRate: number;
-                        attempts: number;
-                        wrong: number;
-                    } => Boolean(item),
-                )
-                .sort((a, b) => {
-                    if (b.wrongRate !== a.wrongRate) return b.wrongRate - a.wrongRate;
-                    if (b.wrong !== a.wrong) return b.wrong - a.wrong;
-                    if (b.attempts !== a.attempts) return b.attempts - a.attempts;
-                    return a.phrase.getSubject().localeCompare(b.phrase.getSubject());
-                })
-                .slice(0, 5)
-                .map((item) => item.phrase);
-        },
-        [gameManager],
-    );
+    const activeAggregatedStats: InGameAggregatedStatistics = useMemo(() => {
+        return gameManager.aggregate(ensureStatsForSubjects(activeSubjects, inGameStats));
+    }, [activeSubjects, gameManager, inGameStats]);
 
     const setupRound = useCallback(
-        () => {
-            const next = gameManager.drawNextCandidate();
+        (subjects: PhraseRecord[], stats: InGameStatsMap) => {
+            const next = gameManager.drawNextCandidate(subjects, stats);
             if (!next) {
                 setIsFinished(true);
                 setCurrentPhrase(null);
@@ -86,7 +56,7 @@ export default function PhraseGuessGamePage() {
             }
 
             setCurrentPhrase(next);
-            setOptions(gameManager.buildOptions(next));
+            setOptions(gameManager.buildOptions(next, subjects));
             setIsFinished(false);
             setGlowingOption(null);
             setShakingOption(null);
@@ -100,10 +70,8 @@ export default function PhraseGuessGamePage() {
     );
 
     useEffect(() => {
-        const loaded = gameManager.getSnapshot();
-        setVariantStats(loaded.variantStats);
-        setupRound();
-    }, [gameManager, setupRound]);
+        setupRound(initialSubjects, initialStats);
+    }, [initialStats, initialSubjects, setupRound]);
 
     useEffect(() => {
         if (!isFinished) {
@@ -128,8 +96,8 @@ export default function PhraseGuessGamePage() {
                 return;
             }
 
-            const result = gameManager.doGuess(currentPhrase, guess);
-            setVariantStats(result.snapshot.variantStats);
+            const result = gameManager.recordAttempt(inGameStats, currentPhrase, guess, activeSubjects);
+            setInGameStats(result.inGameStats);
 
             if (result.isCorrect) {
                 playPhrase(currentPhrase, {
@@ -150,18 +118,17 @@ export default function PhraseGuessGamePage() {
             setShakingOption(guess);
             window.setTimeout(() => setShakingOption(null), 700);
         },
-        [currentPhrase, gameManager, isTransitioning, playPhrase],
+        [activeSubjects, currentPhrase, gameManager, inGameStats, isTransitioning, playPhrase],
     );
 
     const handleNext = useCallback(() => {
         if (pendingCompletion) {
-            const updated = gameManager.finalizeVariant();
-            setVariantStats(updated.variantStats);
+            gameManager.finishGame(inGameStats);
             setIsFinished(true);
             setCurrentPhrase(null);
             setOptions([]);
         } else {
-            setupRound();
+            setupRound(activeSubjects, inGameStats);
         }
 
         setGlowingOption(null);
@@ -171,12 +138,14 @@ export default function PhraseGuessGamePage() {
         setPendingCompletion(false);
         setShowTranslation(false);
         setGlowSeed(0);
-    }, [computeWorstPhrases, gameManager, pendingCompletion, setupRound]);
+    }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
-        const updated = gameManager.resetVariant();
-        setVariantStats(updated.variantStats);
-        setupRound();
+        const { inGameStats: resetStats } = gameManager.resetInGameStatistics();
+        const refreshedSubjects = gameManager.startTheGame();
+        setActiveSubjects(refreshedSubjects);
+        setInGameStats(resetStats);
+        setupRound(refreshedSubjects, resetStats);
         setGlowingOption(null);
         setShakingOption(null);
         setIsTransitioning(false);
@@ -185,10 +154,11 @@ export default function PhraseGuessGamePage() {
         setPendingCompletion(false);
         setShowTranslation(false);
         setGlowSeed(0);
-    }, [computeWorstPhrases, gameManager, setupRound]);
+    }, [gameManager, setupRound]);
 
-    const learnedCount = variantStats.learnedItemsCount;
-    const score = Math.round((learnedCount / variantStats.totalItemsCount) * 100);
+    const learnedCount = activeAggregatedStats.learnedItemsCount;
+    const totalCount = activeSubjects.length;
+    const score = Math.round((learnedCount / (totalCount || 1)) * 100);
     const safeScore = Number.isNaN(score) ? 0 : score;
 
     return (
@@ -196,7 +166,7 @@ export default function PhraseGuessGamePage() {
             <Box sx={{ minHeight: '100vh', py: 4, position: 'relative' }}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
-                    totalCount={variantStats.totalItemsCount}
+                    totalCount={totalCount}
                     showScore={!isFinished}
                     icon={<TranslateIcon color="secondary" sx={{ fontSize: 32 }} />}
                     onExit={() => router.push('/')}
@@ -212,10 +182,14 @@ export default function PhraseGuessGamePage() {
                     <FinishedSummary
                         score={safeScore}
                         learnedCount={learnedCount}
-                        totalCount={variantStats.totalItemsCount}
+                        totalCount={totalCount}
                         onRestart={handleRestart}
-                        variantStats={variantStats}
-                        worstPhrases={gameManager.getWorstGuesses(6)}
+                        variantStats={activeAggregatedStats}
+                        worstPhrases={gameManager.getWorstGuesses(
+                            GlobalConfig.WORST_GUESSES_COUNT,
+                            inGameStats,
+                            activeSubjects,
+                        )}
                         onPronouncePhrase={(phrase) =>
                             playPhrase(phrase, {
                                 suppressPendingError: true,
@@ -299,7 +273,7 @@ export default function PhraseGuessGamePage() {
                                     flexWrap: 'wrap',
                                 }}
                             >
-                                <VariantStatsBar stats={variantStats} />
+                                <VariantStatsBar stats={activeAggregatedStats} />
                             </Box>
                         </Stack>
                     </Stack>
