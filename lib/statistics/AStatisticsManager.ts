@@ -201,8 +201,6 @@ export abstract class AStatisticsManager {
 }
 
 export class BaseStatisticsManager extends AStatisticsManager {
-    private readonly storageKey: string;
-
     private readonly globalStorageKey: string;
 
     private readonly activeSubjectsKey: string;

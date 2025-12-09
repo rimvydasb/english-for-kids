@@ -39,6 +39,7 @@ export const GlobalConfig = {
 } satisfies {
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: number;
     DEFAULT_DECOYS: number;
+    WORST_GUESSES_COUNT: number;
     GAMES: GameSettings[];
 };
 
