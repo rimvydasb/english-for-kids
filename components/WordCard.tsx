@@ -1,7 +1,6 @@
 import { MouseEvent, useMemo, useState } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -9,6 +8,22 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { WordRecord } from '@/lib/words';
 import { GlobalStatistics } from '@/lib/types';
 import { CardHeader } from '@mui/material';
+
+const PASTEL_BACKGROUNDS = ['#FFF897', '#E8F9FD', '#FDE2FF', '#E6FFF7', '#FFEAD2'];
+const PASTEL_TEXTS = ['#A68DAD', '#6FA8DC', '#F4978E', '#7FB685', '#C26DBC'];
+const NUMBER_MAP: Record<string, string> = {
+    zero: '0',
+    one: '1',
+    two: '2',
+    three: '3',
+    four: '4',
+    five: '5',
+    six: '6',
+    seven: '7',
+    eight: '8',
+    nine: '9',
+    ten: '10',
+};
 
 export enum WordCardMode {
     Learning = 'learning',
@@ -32,6 +47,15 @@ export default function WordCard({
                                      globalStats,
                                  }: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
+    const isNumber = word.type === 'number';
+
+    const colorIndex = useMemo(
+        () => word.word.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % PASTEL_BACKGROUNDS.length,
+        [word.word],
+    );
+    const numberDisplay = useMemo(() => {
+        return NUMBER_MAP[word.word] ?? word.word;
+    }, [word.word]);
 
     const toggleFlip = () => {
         setFlipped((prev) => !prev);
@@ -120,17 +144,41 @@ export default function WordCard({
                         }}
                     >
                         {showImage ? (
-                            <CardMedia
-                                component="img"
-                                image={word.getImageUrl()}
-                                alt={`Illustration of ${word.word}`}
-                                sx={{
-                                    objectFit: 'cover',
-                                    width: '100%',
-                                    aspectRatio: '1 / 1',
-                                    flex: '1 0 auto',
-                                }}
-                            />
+                            isNumber ? (
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flex: '1 0 auto',
+                                        bgcolor: PASTEL_BACKGROUNDS[colorIndex],
+                                    }}
+                                >
+                                    <Typography
+                                        component="div"
+                                        sx={{
+                                            fontSize: { xs: 110, sm: 150 },
+                                            fontWeight: 800,
+                                            color: PASTEL_TEXTS[colorIndex % PASTEL_TEXTS.length],
+                                            textShadow: '0 1px 0 rgba(0,0,0,0.08)',
+                                        }}
+                                    >
+                                        {numberDisplay}
+                                    </Typography>
+                                </Box>
+                            ) : (
+                                <Box
+                                    component="img"
+                                    src={word.getImageUrl() ?? undefined}
+                                    alt={`Illustration of ${word.word}`}
+                                    sx={{
+                                        objectFit: 'cover',
+                                        width: '100%',
+                                        aspectRatio: '1 / 1',
+                                        flex: '1 0 auto',
+                                    }}
+                                />
+                            )
                         ) : (
                             <Box
                                 sx={{

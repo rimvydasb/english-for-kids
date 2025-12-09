@@ -155,3 +155,14 @@ Global statistics are used in GUI only in `words/page.tsx`
 
 - [x] Variables are kept in React state and game managers and statistics managers are stateless and
 expose methods that modify and return new state.
+
+## Dictionary Update
+
+- [ ] Add numbers from 1 to 10 to `WORDS_DICTIONARY_DATA`, update with simple sentences that also use existing
+words in dictionary, and Lithuanian translations
+- [ ] Add zero as well
+- [ ] Example sentences must be of 3 - 4 words and not more
+- [ ] Use plain numbers instead of image. Make numbers text in pastel colors (can be randomized), also use very light pastel colors for the background, such as `FFF897`
+- [ ] Remove icon from word entry - no icons for numbers
+- [ ] Apply simple logic, that if type is 'number' then write number instead of searching for image.
+- [ ] Update tests, run them, see if passing, do build and see of building.
