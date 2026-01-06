@@ -1,12 +1,15 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Box, Card, CardContent, Container, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
 import TranslateIcon from '@mui/icons-material/Translate';
+import { GlobalConfig } from '@/lib/Config';
+import { GameManager } from '@/lib/game/GameManager';
 
 const gradientShift = keyframes`
   0% { background-position: 0% 50%; }
@@ -15,6 +18,26 @@ const gradientShift = keyframes`
 `;
 
 export default function Home() {
+  const [hasData, setHasData] = useState(false);
+
+  useEffect(() => {
+    const checkData = () => {
+      const keys = GlobalConfig.GAMES.flatMap((game) => [
+        game.storageKey,
+        `${game.storageKey}_ACTIVE_SUBJECTS`,
+      ]);
+      return keys.some((key) => localStorage.getItem(key));
+    };
+    setHasData(checkData());
+  }, []);
+
+  const handleRestartAll = () => {
+    if (window.confirm('Are you sure you want to restart all games? This will reset current sessions but keep your learned words.')) {
+      GameManager.resetAllOngoingGames();
+      window.location.reload();
+    }
+  };
+
   return (
     <Container maxWidth="sm">
       <Box
@@ -199,6 +222,14 @@ export default function Home() {
             </CardContent>
           </Card>
         </Stack>
+
+        {hasData && (
+          <Stack spacing={2} alignItems="center">
+            <Button color="error" onClick={handleRestartAll}>
+              Restart All Games
+            </Button>
+          </Stack>
+        )}
       </Box>
     </Container>
   );

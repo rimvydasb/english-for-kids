@@ -29,7 +29,7 @@ export abstract class AStatisticsManager {
         this.storageKey = 'GENERIC_STATS';
     }
 
-    protected static createMemoryStorage(): StorageLike {
+    public static createMemoryStorage(): StorageLike {
         const store: Record<string, string> = {};
         return {
             getItem: (key) => (key in store ? store[key] : null),

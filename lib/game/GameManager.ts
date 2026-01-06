@@ -1,9 +1,10 @@
 import { GlobalConfig } from '@/lib/Config';
 import {
+    AStatisticsManager,
     BaseStatisticsManager,
     GlobalStatsMap,
     InGameAggregatedStatistics,
-    InGameStatsMap,
+    InGameStatsMap, StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
 import { GameVariant, SubjectRecord } from '@/lib/types';
 
@@ -53,6 +54,11 @@ export abstract class GameManager<T extends SubjectRecord> {
             .filter((item): item is T => Boolean(item));
 
         if (existingSelection.length > 0) {
+            if (existingSelection.length > GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN) {
+                const truncated = existingSelection.slice(0, GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN);
+                this.statistics.saveActiveSubjects(truncated.map((item) => item.getSubject()));
+                return truncated;
+            }
             return existingSelection;
         }
 
@@ -229,5 +235,16 @@ export abstract class GameManager<T extends SubjectRecord> {
             [arr[i], arr[j]] = [arr[j], arr[i]];
         }
         return arr;
+    }
+
+    static resetAllOngoingGames(storage?: StorageLike): void {
+        const store =
+            storage ??
+            (typeof window !== 'undefined' ? window.localStorage : AStatisticsManager.createMemoryStorage());
+
+        GlobalConfig.GAMES.forEach((game) => {
+            store.removeItem?.(game.storageKey);
+            store.removeItem?.(`${game.storageKey}_ACTIVE_SUBJECTS`);
+        });
     }
 }
