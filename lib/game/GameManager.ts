@@ -1,9 +1,10 @@
 import { GlobalConfig } from '@/lib/Config';
 import {
+    AStatisticsManager,
     BaseStatisticsManager,
     GlobalStatsMap,
     InGameAggregatedStatistics,
-    InGameStatsMap,
+    InGameStatsMap, StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
 import { GameVariant, SubjectRecord } from '@/lib/types';
 
