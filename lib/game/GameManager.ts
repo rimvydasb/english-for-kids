@@ -235,4 +235,15 @@ export abstract class GameManager<T extends SubjectRecord> {
         }
         return arr;
     }
+
+    static resetAllOngoingGames(storage?: StorageLike): void {
+        const store =
+            storage ??
+            (typeof window !== 'undefined' ? window.localStorage : AStatisticsManager.createMemoryStorage());
+
+        GlobalConfig.GAMES.forEach((game) => {
+            store.removeItem?.(game.storageKey);
+            store.removeItem?.(`${game.storageKey}_ACTIVE_SUBJECTS`);
+        });
+    }
 }
