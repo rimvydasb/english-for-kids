@@ -5,10 +5,10 @@ export const ensureStatsForSubjects = <T extends SubjectRecord>(
     subjects: T[],
     stats: InGameStatsMap,
 ): InGameStatsMap => {
-    const next: InGameStatsMap = { ...stats };
+    const next: InGameStatsMap = {};
     subjects.forEach((subject) => {
         const key = subject.getSubject();
-        const existing = next[key];
+        const existing = stats[key];
         next[key] =
             existing ??
             {

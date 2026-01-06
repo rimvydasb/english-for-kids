@@ -53,6 +53,11 @@ export abstract class GameManager<T extends SubjectRecord> {
             .filter((item): item is T => Boolean(item));
 
         if (existingSelection.length > 0) {
+            if (existingSelection.length > GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN) {
+                const truncated = existingSelection.slice(0, GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN);
+                this.statistics.saveActiveSubjects(truncated.map((item) => item.getSubject()));
+                return truncated;
+            }
             return existingSelection;
         }
 
