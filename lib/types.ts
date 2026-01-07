@@ -20,6 +20,7 @@ export interface WordEntry {
     translation?: string;
     examples?: string[];
     type: 'noun' | 'verb' | 'adjective' | 'color' | 'number';
+    imageFile?: string;
 }
 
 export abstract class SubjectRecord {
@@ -39,12 +40,15 @@ export class WordRecord extends SubjectRecord {
 
     type: WordEntry['type'];
 
+    imageFile?: string;
+
     constructor(entry: WordEntry) {
         super();
         this.word = entry.word;
         this.translation = entry.translation;
         this.examples = entry.examples;
         this.type = entry.type;
+        this.imageFile = entry.imageFile;
     }
 
     getSubjectType(): 'word' | 'phrase' {
@@ -57,7 +61,7 @@ export class WordRecord extends SubjectRecord {
 
     getImageUrl(): string | null {
         if (this.type === 'number') return null;
-        return `/images/${this.word}.png`;
+        return `/images/${this.imageFile || this.word + '.png'}`;
     }
 
     getTranslation(): string | undefined {

@@ -279,6 +279,76 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         examples: ['Ten white teddies.'],
         type: 'number',
     },
+    {
+        word: 'dad',
+        translation: 'tėtis',
+        examples: ['This is my dad.'],
+        type: 'noun',
+    },
+    {
+        word: 'mum',
+        translation: 'mama',
+        examples: ['This is my mum.'],
+        type: 'noun',
+    },
+    {
+        word: 'grandma',
+        translation: 'močiutė',
+        examples: ['This is my grandma.'],
+        type: 'noun',
+    },
+    {
+        word: 'grandpa',
+        translation: 'senelis',
+        examples: ['This is my grandpa.'],
+        type: 'noun',
+    },
+    {
+        word: 'hat',
+        translation: 'kepurė',
+        examples: ['Wear a hat.'],
+        type: 'noun',
+    },
+    {
+        word: 'horse',
+        translation: 'arklys',
+        examples: ['Horse runs fast.'],
+        type: 'noun',
+    },
+    {
+        word: 'insect',
+        translation: 'vabzdys',
+        examples: ['Small insect crawls.'],
+        type: 'noun',
+    },
+    {
+        word: 'boy',
+        translation: 'berniukas',
+        examples: ['The boy plays.'],
+        type: 'noun',
+        imageFile: 'boy,brother.png'
+    },
+    {
+        word: 'brother',
+        translation: 'brolis',
+        examples: ['This is my brother.'],
+        type: 'noun',
+        imageFile: 'boy,brother.png'
+    },
+    {
+        word: 'girl',
+        translation: 'mergaitė',
+        examples: ['The girl sings.'],
+        type: 'noun',
+        imageFile: 'girl,sister.png'
+    },
+    {
+        word: 'sister',
+        translation: 'sesė',
+        examples: ['This is my sister.'],
+        type: 'noun',
+        imageFile: 'girl,sister.png'
+    },
 ];
 
 export const PHRASES_DICTIONARY: PhraseRecord[] = PHRASES_DICTIONARY_DATA.map(
