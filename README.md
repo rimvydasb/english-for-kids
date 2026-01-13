@@ -113,10 +113,12 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 - [x] Split WordsGameManager to GuessTheWordGameManager and ListenAndGuessGameManager for better separation of concerns.
 - [x] GuessTheWordGameManager, ListenAndGuessGameManager and PhasesGameManager draws subjects based on
   GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, method is `startTheGame(): SubjectRecord[]`
-- [x] Introduce `startTheGame()` method in each game manager that draws subjects for the dictionary and returns to the global React state.
+- [x] Introduce `startTheGame()` method in each game manager that draws subjects for the dictionary and returns to the
+  global React state.
 - [x] Use DEFAULT_DECOYS from GlobalConfig
-- [x] Game managers will be constructed in own page.tsx files, such as `guess-the-word/page.tsx` (GuessTheWordPage, ListenAndGuessPage, GuessPhrasesPage)
-Those pages should be `use client` and become client components (not server)
+- [x] Game managers will be constructed in own page.tsx files, such as `guess-the-word/page.tsx` (GuessTheWordPage,
+  ListenAndGuessPage, GuessPhrasesPage)
+  Those pages should be `use client` and become client components (not server)
 - [x] `GameVariant` will be returned by game managers
 
 ### Do a complete refactoring and simplification of statistics management:
@@ -126,22 +128,29 @@ Those pages should be `use client` and become client components (not server)
     - `storageKey: string` in the constructor to handle localStorage operations
     - `globalStorageKey: string` in the constructor to handle global statistics updates
     - storage (for testing the mock will be passed)
-- [x] global statistics should not live in global state, but must be updated in localStorage only when a game variant is finalized.
-Global statistics are used in GUI only in `words/page.tsx`
+- [x] global statistics should not live in global state, but must be updated in localStorage only when a game variant is
+  finalized.
+  Global statistics are used in GUI only in `words/page.tsx`
 - [x] Rename `GeneralPhraseVariantStats` to `InGameAggregatedStatistics`
 - [x] `BaseStatisticsManager` will have a method:
   `recordAttempt(current: InGameStatsMap, subject: string, isCorrect: boolean): InGameStatsMap`
+
 1. This method will update in-game statistics map with the new attempt and will return the updated map.
 2. This method will persist to local storage only the updated in-game statistics map.
 3. This method will NOT update global statistics yet.
+
 - [x] `BaseStatisticsManager` will also provide aggregation method:
   `aggregate(current: InGameStatsMap): InGameAggregatedStatistics`
 - [x] `BaseStatisticsManager` will have a method to finalize the variant:
   `finishGame(current: InGameStatsMap): InGameAggregatedStatistics`
-1. `GlobalStatistics` will be updated based on `globalStorageKey` - global statistics will be read from localStorage, updated with
-   the data from `current` in-game statistics map, and persisted back to localStorage. No in-memory global statistics will be used.
+
+1. `GlobalStatistics` will be updated based on `globalStorageKey` - global statistics will be read from localStorage,
+   updated with
+   the data from `current` in-game statistics map, and persisted back to localStorage. No in-memory global statistics
+   will be used.
 2. `InGameStatsMap` will NOT be cleared from localStorage
 3. `InGameAggregatedStatistics` will be returned based on current in-game statistics map
+
 - [x] `BaseStatisticsManager` will have a method to reset global statistics:
   `resetGlobalStatistics(): void`
 - [x] `BaseStatisticsManager` will have a method to reset in-game statistics:
@@ -154,15 +163,36 @@ Global statistics are used in GUI only in `words/page.tsx`
 ### General principles:
 
 - [x] Variables are kept in React state and game managers and statistics managers are stateless and
-expose methods that modify and return new state.
+  expose methods that modify and return new state.
 
 ## Dictionary Update
 
 - [ ] Add numbers from 1 to 10 to `WORDS_DICTIONARY_DATA`, update with simple sentences that also use existing
-words in dictionary, and Lithuanian translations
+  words in dictionary, and Lithuanian translations
 - [ ] Add zero as well
 - [ ] Example sentences must be of 3 - 4 words and not more
-- [ ] Use plain numbers instead of image. Make numbers text in pastel colors (can be randomized), also use very light pastel colors for the background, such as `FFF897`
+- [ ] Use plain numbers instead of image. Make numbers text in pastel colors (can be randomized), also use very light
+  pastel colors for the background, such as `FFF897`
 - [ ] Remove icon from word entry - no icons for numbers
 - [ ] Apply simple logic, that if type is 'number' then write number instead of searching for image.
 - [ ] Update tests, run them, see if passing, do build and see of building.
+
+## Games Configuration (Next Story)
+
+WordCard properties:
+
+- showImage: whether to show image on the card
+- showTranslation: whether to show Lithuanian translation on the card
+- showWord: whether to show English word on the card
+- showWordPronunciation: whether to show pronunciation icon `VolumeUpIcon` to hear the word
+
+Option Button properties:
+- showWordPronunciation: whether to show pronunciation icon `VolumeUpIcon` to hear the option word
+- showOptionText: whether to show option text (English word or Lithuanian translation)
+- optionWord: word in the option button (English word or Lithuanian translation), optional
+
+| Name           | GameVariant    | showImage | showTranslation | showWord | showWordPronunciation | Options            |
+|----------------|----------------|-----------|-----------------|----------|-----------------------|--------------------|
+| Guess The Word | guessTheWord   | true      | true            | false    | true                  | English words      |
+| Listen & Guess | listenAndGuess | false     | false           | false    | true                  | Lithuanian words   |
+| Guess Phrases  | guessPhrases   | false     | false           | true     | true                  | Lithuanian phrases |

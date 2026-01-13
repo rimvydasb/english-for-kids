@@ -55,6 +55,16 @@ export function usePronunciation() {
         synth.cancel();
 
         const utterance = new SpeechSynthesisUtterance(utteranceText);
+        const voices = synth.getVoices();
+        const preferredVoice = voices.find((v) =>
+            v.name.includes('Google US English') ||
+            v.name.includes('Samantha') ||
+            v.name.toLowerCase().includes('female')
+        );
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+
         console.info('[pronunciation] Speaking', {
             word: wordData.word,
             utterance: utteranceText,
