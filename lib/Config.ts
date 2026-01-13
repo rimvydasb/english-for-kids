@@ -306,7 +306,7 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
     {
         word: 'hat',
         translation: 'kepurė',
-        examples: ['Wear a hat.'],
+        examples: ['Where is my hat?'],
         type: 'noun',
     },
     {
@@ -318,7 +318,7 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
     {
         word: 'insect',
         translation: 'vabzdys',
-        examples: ['Small insect crawls.'],
+        examples: ['This is small insect.'],
         type: 'noun',
     },
     {
