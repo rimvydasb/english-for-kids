@@ -81,13 +81,15 @@ export default function WordCard({
                 >
                     {displayedWord}
                 </Typography>
-                <IconButton
-                    aria-label={`Hear ${word.word}`}
-                    onClick={handlePronounce}
-                    color={active ? 'secondary' : 'primary'}
-                >
-                    <VolumeUpIcon/>
-                </IconButton>
+                {showWordPronunciation && (
+                    <IconButton
+                        aria-label={`Hear ${word.word}`}
+                        onClick={handlePronounce}
+                        color={active ? 'secondary' : 'primary'}
+                    >
+                        <VolumeUpIcon/>
+                    </IconButton>
+                )}
             </Box>
         </CardContent>
     );
