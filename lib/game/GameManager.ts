@@ -1,12 +1,13 @@
-import { GlobalConfig } from '@/lib/Config';
+import {GlobalConfig} from '@/lib/Config';
 import {
     AStatisticsManager,
     BaseStatisticsManager,
     GlobalStatsMap,
     InGameAggregatedStatistics,
-    InGameStatsMap, StorageLike,
+    InGameStatsMap,
+    StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
-import { GameVariant, SubjectRecord } from '@/lib/types';
+import {GameVariant, SubjectRecord} from '@/lib/types';
 
 export interface GameRoundResult {
     isCorrect: boolean;
@@ -34,11 +35,7 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     protected statistics: BaseStatisticsManager;
 
-    protected constructor(
-        subjects: T[],
-        statistics: BaseStatisticsManager,
-        options?: GameManagerOptions<T>,
-    ) {
+    protected constructor(subjects: T[], statistics: BaseStatisticsManager, options?: GameManagerOptions<T>) {
         this.subjects = subjects;
         this.statistics = statistics;
         this.groupBy = options?.groupBy;
@@ -96,9 +93,7 @@ export abstract class GameManager<T extends SubjectRecord> {
         const basePool = activeSubjects.filter((item) => item.getSubject() !== answer.getSubject());
         const groupKey = this.groupBy?.(answer);
         const primaryPool =
-            groupKey !== undefined
-                ? basePool.filter((candidate) => this.groupBy?.(candidate) === groupKey)
-                : basePool;
+            groupKey !== undefined ? basePool.filter((candidate) => this.groupBy?.(candidate) === groupKey) : basePool;
 
         let decoys = GameManager.shuffle(primaryPool).slice(0, this.decoysNeeded);
 
@@ -132,12 +127,7 @@ export abstract class GameManager<T extends SubjectRecord> {
         return GameManager.shuffle(uniqueOptions).map((item) => item.getSubject());
     }
 
-    recordAttempt(
-        current: InGameStatsMap,
-        subject: T,
-        guess: string,
-        activeSubjects: T[],
-    ): GameRoundResult {
+    recordAttempt(current: InGameStatsMap, subject: T, guess: string, activeSubjects: T[]): GameRoundResult {
         const isCorrect = subject.getSubject() === guess;
         const inGameStats = this.statistics.recordAttempt(current, subject.getSubject(), isCorrect);
         const aggregated = this.statistics.aggregate(inGameStats);
@@ -159,10 +149,10 @@ export abstract class GameManager<T extends SubjectRecord> {
         };
     }
 
-    resetInGameStatistics(): { inGameStats: InGameStatsMap; aggregated: InGameAggregatedStatistics } {
+    resetInGameStatistics(): {inGameStats: InGameStatsMap; aggregated: InGameAggregatedStatistics} {
         this.statistics.resetInGameStatistics();
         const inGameStats = this.statistics.loadInGameStatistics();
-        return { inGameStats, aggregated: this.statistics.aggregate(inGameStats) };
+        return {inGameStats, aggregated: this.statistics.aggregate(inGameStats)};
     }
 
     resetGlobalStatistics(): GlobalStatsMap {
@@ -182,9 +172,9 @@ export abstract class GameManager<T extends SubjectRecord> {
                 if (!record || record.wrongAttempts <= 0) {
                     return null;
                 }
-                return { subject, wrong: record.wrongAttempts };
+                return {subject, wrong: record.wrongAttempts};
             })
-            .filter((item): item is { subject: T; wrong: number } => Boolean(item))
+            .filter((item): item is {subject: T; wrong: number} => Boolean(item))
             .sort((a, b) => b.wrong - a.wrong)
             .slice(0, count)
             .map((item) => item.subject);
@@ -197,10 +187,7 @@ export abstract class GameManager<T extends SubjectRecord> {
         });
     }
 
-    private static sortByDifficulty<U extends SubjectRecord>(
-        subjects: U[],
-        globalStats: GlobalStatsMap,
-    ): U[] {
+    private static sortByDifficulty<U extends SubjectRecord>(subjects: U[], globalStats: GlobalStatsMap): U[] {
         const shuffled = GameManager.shuffle(subjects);
         return shuffled.sort((a, b) => {
             const aStats = globalStats[a.getSubject()] ?? {
@@ -239,8 +226,7 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     static resetAllOngoingGames(storage?: StorageLike): void {
         const store =
-            storage ??
-            (typeof window !== 'undefined' ? window.localStorage : AStatisticsManager.createMemoryStorage());
+            storage ?? (typeof window !== 'undefined' ? window.localStorage : AStatisticsManager.createMemoryStorage());
 
         GlobalConfig.GAMES.forEach((game) => {
             store.removeItem?.(game.storageKey);
