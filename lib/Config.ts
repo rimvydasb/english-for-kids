@@ -75,8 +75,28 @@ export const NUMBERS_DATA: WordEntry[] = [
     displayAs: displayAs as string,
 }));
 
+export const COLORS_DATA: WordEntry[] = [
+    ['blue', 'mėlynas', 'Blue sky above.'],
+    ['orange', 'oranžinis', 'Orange carrot here.'],
+    ['red', 'raudonas', 'Red rose blooms.'],
+    ['green', 'žalias', 'Green leaf falls.'],
+    ['yellow', 'geltonas', 'Yellow banana peels.'],
+    ['pink', 'rožinis', 'Pink pig oinks.'],
+    ['purple', 'violetinis', 'Purple grape grows.'],
+    ['white', 'baltas', 'White snow falls.'],
+    ['black', 'juodas', 'Black night falls.'],
+    ['brown', 'rudas', 'Brown bear roams.'],
+    ['gray', 'pilkas', 'Gray cloud looms.']
+].map(([word, translation, example]) => ({
+    word: word as string,
+    translation: translation as string,
+    examples: [example as string],
+    type: 'color' as const,
+}));
+
 export const WORDS_DICTIONARY_DATA: WordEntry[] = [
     ...NUMBERS_DATA,
+    ...COLORS_DATA,
     {
         word: 'apple',
         translation: 'obuolys',
@@ -88,18 +108,6 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         translation: 'balionas',
         examples: ['Green baloon floats.'],
         type: 'noun',
-    },
-    {
-        word: 'black',
-        translation: 'juodas',
-        examples: ['Black cat naps.'],
-        type: 'color',
-    },
-    {
-        word: 'brown',
-        translation: 'rudas',
-        examples: ['Brown desk here.'],
-        type: 'color',
     },
     {
         word: 'cat',
@@ -150,12 +158,6 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         type: 'noun',
     },
     {
-        word: 'green',
-        translation: 'žalias',
-        examples: ['Green grass grows.'],
-        type: 'color',
-    },
-    {
         word: 'notebook',
         translation: 'sąsiuvinis',
         examples: ['Notebook is open.'],
@@ -166,12 +168,6 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         translation: 'pieštukas',
         examples: ['Sharp pencil ready.'],
         type: 'noun',
-    },
-    {
-        word: 'pink',
-        translation: 'rožinis',
-        examples: ['Pink flower grows.'],
-        type: 'color',
     },
     {
         word: 'plain',
@@ -186,34 +182,10 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         type: 'noun',
     },
     {
-        word: 'purple',
-        translation: 'violetinis',
-        examples: ['Purple hat fits.'],
-        type: 'color',
-    },
-    {
-        word: 'red',
-        translation: 'raudonas',
-        examples: ['Red baloon floats.'],
-        type: 'color',
-    },
-    {
         word: 'teddy',
         translation: 'meškiukas',
         examples: ['Teddy sits here.'],
         type: 'noun',
-    },
-    {
-        word: 'white',
-        translation: 'baltas',
-        examples: ['White clouds move.'],
-        type: 'color',
-    },
-    {
-        word: 'yellow',
-        translation: 'geltonas',
-        examples: ['Yellow sun shines.'],
-        type: 'color',
     },
     {
         word: 'dad',
