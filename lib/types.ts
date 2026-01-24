@@ -1,5 +1,33 @@
 export type OptionMode = 'word' | 'translation';
 
+export enum WordCardMode {
+    Learning = 'learning',
+    GuessWord = 'guessWord',
+    ListenAndGuess = 'listenAndGuess',
+}
+
+export interface GameRules {
+    name: string;
+    variant: GameVariant;
+    storageKey: string;
+    globalStorageKey: string;
+    wordCardMode?: WordCardMode;
+    showImage: boolean;
+    showTranslation: boolean;
+    showWord: boolean;
+    showWordPronunciation: boolean;
+    options: OptionMode;
+    optionPronunciation: boolean;
+}
+
+export const DEFAULT_RULES: Partial<GameRules> = {
+    wordCardMode: WordCardMode.Learning,
+    showImage: true,
+    showTranslation: true,
+    showWord: true,
+    showWordPronunciation: true,
+};
+
 export type GameVariant = 'guessTheWord' | 'listenAndGuess' | 'guessPhrase';
 
 export type WordGameVariant = Extract<GameVariant, 'guessTheWord' | 'listenAndGuess'>;
@@ -21,6 +49,9 @@ export interface WordEntry {
     examples?: string[];
     type: 'noun' | 'verb' | 'adjective' | 'color' | 'number';
     imageFile?: string;
+
+    // Optional display override
+    displayAs?: string;
 }
 
 export abstract class SubjectRecord {
@@ -42,8 +73,11 @@ export class WordRecord extends SubjectRecord {
 
     imageFile?: string;
 
+    entry: WordEntry;
+
     constructor(entry: WordEntry) {
         super();
+        this.entry = entry;
         this.word = entry.word;
         this.translation = entry.translation;
         this.examples = entry.examples;

@@ -1,17 +1,18 @@
-import { ReactNode } from 'react';
-import { Box, IconButton } from '@mui/material';
+import {ReactNode} from 'react';
+import {Box, IconButton} from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
-import { keyframes } from '@mui/material/styles';
-import { VARIANT_CONFIG, WordGameVariant } from '@/lib/guessConfig';
+import {keyframes} from '@mui/material/styles';
+import {GameVariant} from '@/lib/types';
 
 export interface ScoreHeaderProps {
     learnedCount: number;
     totalCount: number;
     onExit: () => void;
     showScore?: boolean;
-    variant?: WordGameVariant;
+    variant?: GameVariant;
+    label?: string;
     icon?: ReactNode;
 }
 
@@ -21,6 +22,7 @@ export default function GuessScoreHeader({
     onExit,
     showScore = true,
     variant,
+    label,
     icon,
 }: ScoreHeaderProps) {
     const gradientShift = keyframes`
@@ -30,12 +32,12 @@ export default function GuessScoreHeader({
     `;
     const defaultIcon =
         variant === 'listenAndGuess' ? (
-            <HearingIcon color="primary" sx={{ fontSize: 32 }} />
+            <HearingIcon color="primary" sx={{fontSize: 32}} />
         ) : (
-            <SportsEsportsIcon color="secondary" sx={{ fontSize: 32 }} />
+            <SportsEsportsIcon color="secondary" sx={{fontSize: 32}} />
         );
     const chosenIcon = icon ?? defaultIcon;
-    const boxes = Array.from({ length: totalCount }, (_, index) => index < learnedCount);
+    const boxes = Array.from({length: totalCount}, (_, index) => index < learnedCount);
 
     return (
         <Box
@@ -48,7 +50,7 @@ export default function GuessScoreHeader({
             }}
         >
             <Box
-                aria-label={variant ? `${VARIANT_CONFIG[variant].label} icon` : 'Game icon'}
+                aria-label={label ? `${label} icon` : 'Game icon'}
                 sx={{
                     width: 52,
                     height: 52,
@@ -96,7 +98,7 @@ export default function GuessScoreHeader({
                     ))}
                 </Box>
             ) : (
-                <Box sx={{ flex: 1 }} />
+                <Box sx={{flex: 1}} />
             )}
             <IconButton aria-label="Return to main menu" onClick={onExit}>
                 <HighlightOffIcon fontSize="large" />

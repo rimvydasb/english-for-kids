@@ -1,35 +1,16 @@
-import { MouseEvent, useMemo, useState } from 'react';
+import {MouseEvent, useMemo, useState} from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import { WordRecord } from '@/lib/words';
-import { GlobalStatistics } from '@/lib/types';
-import { CardHeader } from '@mui/material';
+import {WordRecord} from '@/lib/words';
+import {GlobalStatistics, WordCardMode} from '@/lib/types';
+import {CardHeader} from '@mui/material';
 
 const PASTEL_BACKGROUNDS = ['#FFF897', '#E8F9FD', '#FDE2FF', '#E6FFF7', '#FFEAD2'];
 const PASTEL_TEXTS = ['#A68DAD', '#6FA8DC', '#F4978E', '#7FB685', '#C26DBC'];
-const NUMBER_MAP: Record<string, string> = {
-    zero: '0',
-    one: '1',
-    two: '2',
-    three: '3',
-    four: '4',
-    five: '5',
-    six: '6',
-    seven: '7',
-    eight: '8',
-    nine: '9',
-    ten: '10',
-};
-
-export enum WordCardMode {
-    Learning = 'learning',
-    GuessWord = 'guessWord',
-    ListenAndGuess = 'listenAndGuess',
-}
 
 interface WordCardProps {
     word: WordRecord;
@@ -37,25 +18,35 @@ interface WordCardProps {
     onPronounce?: () => void;
     mode?: WordCardMode;
     globalStats?: GlobalStatistics;
+    showImage?: boolean;
+    showTranslation?: boolean;
+    showWord?: boolean;
+    showWordPronunciation?: boolean;
 }
 
 export default function WordCard({
-                                     word,
-                                     active,
-                                     onPronounce,
-                                     mode = WordCardMode.Learning,
-                                     globalStats,
-                                 }: WordCardProps) {
+    word,
+    active,
+    onPronounce,
+    mode = WordCardMode.Learning,
+    globalStats,
+    showImage: propShowImage,
+    showTranslation: propShowTranslation,
+    showWord: propShowWord,
+    showWordPronunciation: propShowWordPronunciation,
+}: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
     const isNumber = word.type === 'number';
+
+    const showWordPronunciation = propShowWordPronunciation ?? mode !== WordCardMode.GuessWord;
 
     const colorIndex = useMemo(
         () => word.word.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % PASTEL_BACKGROUNDS.length,
         [word.word],
     );
     const numberDisplay = useMemo(() => {
-        return NUMBER_MAP[word.word] ?? word.word;
-    }, [word.word]);
+        return word.entry.displayAs ?? word.word;
+    }, [word.word, word.entry.displayAs]);
 
     const toggleFlip = () => {
         setFlipped((prev) => !prev);
@@ -66,12 +57,10 @@ export default function WordCard({
         onPronounce?.();
     };
 
-    const showImage = mode !== WordCardMode.ListenAndGuess;
-    const showTranslation = mode !== WordCardMode.ListenAndGuess;
-    const displayedWord = useMemo(
-        () => (mode === WordCardMode.Learning ? word.word : '???'),
-        [mode, word.word],
-    );
+    const showImage = propShowImage ?? mode !== WordCardMode.ListenAndGuess;
+    const showTranslation = propShowTranslation ?? mode !== WordCardMode.ListenAndGuess;
+    const showWord = propShowWord ?? mode === WordCardMode.Learning;
+    const displayedWord = useMemo(() => (showWord ? word.word : '???'), [showWord, word.word]);
     const stats: GlobalStatistics = globalStats ?? {
         key: word.word,
         correctAttempts: 0,
@@ -92,13 +81,15 @@ export default function WordCard({
                 >
                     {displayedWord}
                 </Typography>
-                <IconButton
-                    aria-label={`Hear ${word.word}`}
-                    onClick={handlePronounce}
-                    color={active ? 'secondary' : 'primary'}
-                >
-                    <VolumeUpIcon/>
-                </IconButton>
+                {showWordPronunciation && (
+                    <IconButton
+                        aria-label={`Hear ${word.word}`}
+                        onClick={handlePronounce}
+                        color={active ? 'secondary' : 'primary'}
+                    >
+                        <VolumeUpIcon />
+                    </IconButton>
+                )}
             </Box>
         </CardContent>
     );
@@ -157,7 +148,7 @@ export default function WordCard({
                                     <Typography
                                         component="div"
                                         sx={{
-                                            fontSize: { xs: 110, sm: 150 },
+                                            fontSize: {xs: 110, sm: 150},
                                             fontWeight: 800,
                                             color: PASTEL_TEXTS[colorIndex % PASTEL_TEXTS.length],
                                             textShadow: '0 1px 0 rgba(0,0,0,0.08)',
@@ -214,11 +205,11 @@ export default function WordCard({
                     >
                         <CardHeader
                             subheader={
-                                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-                                    <Typography variant="body2" color="success.main" sx={{ fontWeight: 600 }}>
+                                <Box sx={{display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center'}}>
+                                    <Typography variant="body2" color="success.main" sx={{fontWeight: 600}}>
                                         Correct: {stats.correctAttempts}
                                     </Typography>
-                                    <Typography variant="body2" color="error.main" sx={{ fontWeight: 600 }}>
+                                    <Typography variant="body2" color="error.main" sx={{fontWeight: 600}}>
                                         Wrong: {stats.wrongAttempts}
                                     </Typography>
                                 </Box>

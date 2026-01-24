@@ -26,14 +26,10 @@ const theme = createTheme({
     },
 });
 
-export default function ThemeRegistry({
-                                          children,
-                                      }: {
-    children: React.ReactNode;
-}) {
+export default function ThemeRegistry({children}: {children: React.ReactNode}) {
     return (
         <ThemeProvider theme={theme}>
-            <CssBaseline/>
+            <CssBaseline />
             {children}
         </ThemeProvider>
     );

@@ -1,28 +1,28 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Alert, Box, Button, Container, Stack } from '@mui/material';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {Alert, Box, Button, Container, Stack} from '@mui/material';
 import TranslateIcon from '@mui/icons-material/Translate';
 import OptionButton from '../guess/OptionButton';
 import FinishedSummary from '../guess/FinishedSummary';
 import VariantStatsBar from '@/components/VariantStatsBar';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import PhraseCard from '@/components/PhraseCard';
-import { usePronunciation } from '@/lib/usePronunciation';
-import { PhasesGameManager } from '@/lib/game/PhasesGameManager';
-import { ensureStatsForSubjects } from '@/lib/game/ensureStats';
-import { PhraseRecord } from '@/lib/types';
-import { InGameAggregatedStatistics, InGameStatsMap } from '@/lib/statistics/AStatisticsManager';
-import { InGameStatistics } from '@/lib/types';
-import { GlobalConfig } from '@/lib/Config';
+import {usePronunciation} from '@/lib/usePronunciation';
+import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
+import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
+import {DEFAULT_RULES, GameRules, PhraseRecord} from '@/lib/types';
+import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
+import {GlobalConfig} from '@/lib/Config';
 
 interface PhraseGuessGamePageProps {
     gameManager: PhasesGameManager;
 }
 
-export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePageProps) {
+export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePageProps) {
     const router = useRouter();
+    const rules = useMemo(() => gameManager.getGameRules(), [gameManager]);
     const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
     const initialStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
     const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>(initialSubjects);
@@ -35,11 +35,12 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
     const [resolvedOption, setResolvedOption] = useState<string | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [pendingCompletion, setPendingCompletion] = useState(false);
-    const [showTranslation, setShowTranslation] = useState(false);
     const [glowSeed, setGlowSeed] = useState(0);
+    const [currentRules, setCurrentRules] = useState<GameRules>(rules);
+
     const hasAnnouncedFinishRef = useRef(false);
-    const { activeWord, error, pronounceWord: playPhrase } = usePronunciation();
-    const congratulationsRecord = useMemo(() => ({ word: 'Great job' }), []);
+    const {activeWord, error, pronounceWord: playPhrase} = usePronunciation();
+    const congratulationsRecord = useMemo(() => ({word: 'Great job'}), []);
 
     const activeAggregatedStats: InGameAggregatedStatistics = useMemo(() => {
         return gameManager.aggregate(ensureStatsForSubjects(activeSubjects, inGameStats));
@@ -63,10 +64,10 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
             setResolvedOption(null);
             setIsTransitioning(false);
             setPendingCompletion(false);
-            setShowTranslation(false);
             setGlowSeed(0);
+            setCurrentRules(rules);
         },
-        [gameManager],
+        [gameManager, rules],
     );
 
     useEffect(() => {
@@ -108,9 +109,9 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
                 setGlowingOption(guess);
                 setShakingOption(null);
                 setResolvedOption(guess);
+                setCurrentRules({...rules, ...DEFAULT_RULES});
                 setIsTransitioning(true);
                 setPendingCompletion(result.isComplete);
-                setShowTranslation(true);
                 setGlowSeed(Math.random());
                 return;
             }
@@ -118,7 +119,7 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
             setShakingOption(guess);
             window.setTimeout(() => setShakingOption(null), 700);
         },
-        [activeSubjects, currentPhrase, gameManager, inGameStats, isTransitioning, playPhrase],
+        [activeSubjects, currentPhrase, gameManager, inGameStats, isTransitioning, playPhrase, rules],
     );
 
     const handleNext = useCallback(() => {
@@ -136,12 +137,11 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
         setResolvedOption(null);
         setIsTransitioning(false);
         setPendingCompletion(false);
-        setShowTranslation(false);
         setGlowSeed(0);
     }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
-        const { inGameStats: resetStats } = gameManager.resetInGameStatistics();
+        const {inGameStats: resetStats} = gameManager.resetInGameStatistics();
         const refreshedSubjects = gameManager.startTheGame();
         setActiveSubjects(refreshedSubjects);
         setInGameStats(resetStats);
@@ -152,7 +152,6 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
         setIsFinished(false);
         setResolvedOption(null);
         setPendingCompletion(false);
-        setShowTranslation(false);
         setGlowSeed(0);
     }, [gameManager, setupRound]);
 
@@ -163,17 +162,19 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
 
     return (
         <Container maxWidth="md">
-            <Box sx={{ minHeight: '100vh', py: 4, position: 'relative' }}>
+            <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
                     totalCount={totalCount}
                     showScore={!isFinished}
-                    icon={<TranslateIcon color="secondary" sx={{ fontSize: 32 }} />}
+                    variant={rules.variant}
+                    label={rules.name}
+                    icon={<TranslateIcon color="secondary" sx={{fontSize: 32}} />}
                     onExit={() => router.push('/')}
                 />
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <Alert severity="error" sx={{mb: 2}}>
                         {error}
                     </Alert>
                 )}
@@ -199,13 +200,15 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
                     />
                 ) : (
                     <Stack spacing={3}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                            <Box sx={{ width: { xs: '100%', sm: 420 }, maxWidth: 540 }}>
+                        <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2}}>
+                            <Box sx={{width: {xs: '100%', sm: 420}, maxWidth: 540}}>
                                 {currentPhrase && (
                                     <PhraseCard
                                         phrase={currentPhrase}
                                         active={activeWord === currentPhrase.word}
-                                        showTranslation={showTranslation}
+                                        showTranslation={currentRules.showTranslation}
+                                        showPhrase={currentRules.showWord}
+                                        showPhrasePronunciation={currentRules.showWordPronunciation}
                                         onPronounce={() =>
                                             playPhrase(currentPhrase, {
                                                 suppressPendingError: true,
@@ -246,19 +249,23 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
                                             isLocked={isTransitioning}
                                             glowSeed={glowSeed}
                                             onGuess={handleGuess}
+                                            showPronunciation={currentRules.optionPronunciation}
+                                            onPronounce={() => {
+                                                if (optionPhrase) {
+                                                    playPhrase(optionPhrase, {
+                                                        suppressPendingError: true,
+                                                        suppressNotAllowedError: true,
+                                                    });
+                                                }
+                                            }}
                                         />
                                     );
                                 })}
                             </Box>
 
                             {resolvedOption && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <Button
-                                        variant="contained"
-                                        color="secondary"
-                                        size="large"
-                                        onClick={handleNext}
-                                    >
+                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
+                                    <Button variant="contained" color="secondary" size="large" onClick={handleNext}>
                                         {pendingCompletion ? 'Finish!' : 'Next'}
                                     </Button>
                                 </Box>

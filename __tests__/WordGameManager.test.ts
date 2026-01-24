@@ -1,25 +1,24 @@
-import { GlobalConfig } from '@/lib/Config';
-import { GuessTheWordGameManager, ListenAndGuessGameManager } from '@/lib/game/WordGameManager';
-import { WordRecord } from '@/lib/words';
-import { MemoryStorage } from './helpers/mockStorage';
+import {GlobalConfig} from '@/lib/Config';
+import {GuessTheWordGameManager, ListenAndGuessGameManager} from '@/lib/game/WordGameManager';
+import {WordRecord} from '@/lib/words';
+import {MemoryStorage} from './helpers/mockStorage';
 
-const getType = (records: WordRecord[], word: string) =>
-    records.find((item) => item.word === word)?.type;
+const getType = (records: WordRecord[], word: string) => records.find((item) => item.word === word)?.type;
 
 describe('Word game managers', () => {
     const words: WordRecord[] = [
-        new WordRecord({ word: 'red', translation: 'raudonas', type: 'color' }),
-        new WordRecord({ word: 'green', translation: 'žalias', type: 'color' }),
-        new WordRecord({ word: 'yellow', translation: 'geltonas', type: 'color' }),
-        new WordRecord({ word: 'black', translation: 'juodas', type: 'color' }),
-        new WordRecord({ word: 'white', translation: 'baltas', type: 'color' }),
-        new WordRecord({ word: 'cat', translation: 'katė', type: 'noun' }),
-        new WordRecord({ word: 'dog', translation: 'šuo', type: 'noun' }),
-        new WordRecord({ word: 'desk', translation: 'rašomasis stalas', type: 'noun' }),
+        new WordRecord({word: 'red', translation: 'raudonas', type: 'color'}),
+        new WordRecord({word: 'green', translation: 'žalias', type: 'color'}),
+        new WordRecord({word: 'yellow', translation: 'geltonas', type: 'color'}),
+        new WordRecord({word: 'black', translation: 'juodas', type: 'color'}),
+        new WordRecord({word: 'white', translation: 'baltas', type: 'color'}),
+        new WordRecord({word: 'cat', translation: 'katė', type: 'noun'}),
+        new WordRecord({word: 'dog', translation: 'šuo', type: 'noun'}),
+        new WordRecord({word: 'desk', translation: 'rašomasis stalas', type: 'noun'}),
     ];
 
     it('builds options using grouped decoys when available', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const answer = words[0];
         const options = manager.buildOptions(answer, words);
         const decoys = options.filter((option) => option !== answer.word);
@@ -30,16 +29,11 @@ describe('Word game managers', () => {
     });
 
     it('records attempts, reports completion, and updates global stats on finish', () => {
-        const manager = new ListenAndGuessGameManager(words, undefined, new MemoryStorage());
+        const manager = new ListenAndGuessGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
-        const correct = manager.recordAttempt(
-            inGameStats,
-            activeSubjects[0],
-            activeSubjects[0].word,
-            activeSubjects,
-        );
+        const correct = manager.recordAttempt(inGameStats, activeSubjects[0], activeSubjects[0].word, activeSubjects);
         inGameStats = correct.inGameStats;
         expect(correct.isCorrect).toBe(true);
         expect(inGameStats[activeSubjects[0].word].correctAttempts).toBe(1);
@@ -54,14 +48,14 @@ describe('Word game managers', () => {
     });
 
     it('limits startTheGame selection to configured subject count', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const selected = manager.startTheGame();
         expect(selected.length).toBe(Math.min(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, words.length));
     });
 
     it('reuses stored active subjects until reset', () => {
         const storage = new MemoryStorage();
-        const manager = new GuessTheWordGameManager(words, undefined, storage);
+        const manager = new GuessTheWordGameManager(words, storage);
         const firstSelection = manager.startTheGame();
         const secondSelection = manager.startTheGame();
         expect(secondSelection.map((item) => item.word)).toEqual(firstSelection.map((item) => item.word));
@@ -72,7 +66,7 @@ describe('Word game managers', () => {
     });
 
     it('surface worst guesses based on wrong attempts', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const activeSubjects = words;
         let inGameStats = manager.loadInGameStatistics();
 
@@ -85,7 +79,7 @@ describe('Word game managers', () => {
     });
 
     it('returns default number of worst guesses from config when no count is provided', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -102,7 +96,7 @@ describe('Word game managers', () => {
     });
 
     it('returns empty worst guesses when there were no wrong attempts', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         const inGameStats = manager.loadInGameStatistics();
 
@@ -111,7 +105,7 @@ describe('Word game managers', () => {
     });
 
     it('drawNextCandidate skips learned subjects and stops when all are learned', () => {
-        const manager = new GuessTheWordGameManager(words.slice(0, 3), undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words.slice(0, 3), new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -145,7 +139,7 @@ describe('Word game managers', () => {
     });
 
     it('finds subjects by key and resets global statistics', () => {
-        const manager = new ListenAndGuessGameManager(words, undefined, new MemoryStorage());
+        const manager = new ListenAndGuessGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 

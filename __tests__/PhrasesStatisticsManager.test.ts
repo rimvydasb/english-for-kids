@@ -1,11 +1,11 @@
-import { PhrasesStatisticsManager } from '@/lib/statistics/PhrasesStatisticsManager';
-import { PhraseRecord } from '@/lib/types';
-import { MemoryStorage } from './helpers/mockStorage';
+import {PhrasesStatisticsManager} from '@/lib/statistics/PhrasesStatisticsManager';
+import {PhraseRecord} from '@/lib/types';
+import {MemoryStorage} from './helpers/mockStorage';
 
 describe('PhrasesStatisticsManager', () => {
     const phrases: PhraseRecord[] = [
-        new PhraseRecord({ phrase: 'Hello', translation: 'Labas' }),
-        new PhraseRecord({ phrase: 'Goodbye', translation: 'Viso gero' }),
+        new PhraseRecord({phrase: 'Hello', translation: 'Labas'}),
+        new PhraseRecord({phrase: 'Goodbye', translation: 'Viso gero'}),
     ];
 
     it('records attempts, aggregates, and persists global statistics on finish', () => {

@@ -1,21 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Alert, Box, Button, Container, Stack } from '@mui/material';
-import WordCard, { WordCardMode } from '@/components/WordCard';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {Alert, Box, Button, Container, Stack} from '@mui/material';
+import WordCard from '@/components/WordCard';
 import OptionButton from './OptionButton';
 import FinishedSummary from './FinishedSummary';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import VariantStatsBar from '@/components/VariantStatsBar';
-import { VARIANT_CONFIG } from '@/lib/guessConfig';
-import { GuessTheWordGameManager, ListenAndGuessGameManager } from '@/lib/game/WordGameManager';
-import { ensureStatsForSubjects } from '@/lib/game/ensureStats';
-import { usePronunciation } from '@/lib/usePronunciation';
-import { WordRecord } from '@/lib/words';
-import { InGameAggregatedStatistics, InGameStatsMap } from '@/lib/statistics/AStatisticsManager';
-import { InGameStatistics } from '@/lib/types';
-import { GlobalConfig } from '@/lib/Config';
+import {GuessTheWordGameManager, ListenAndGuessGameManager} from '@/lib/game/WordGameManager';
+import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
+import {usePronunciation} from '@/lib/usePronunciation';
+import {WordRecord} from '@/lib/words';
+import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
+import {DEFAULT_RULES, GameRules, WordCardMode} from '@/lib/types';
+import {GlobalConfig} from '@/lib/Config';
 
 type WordGameManager = GuessTheWordGameManager | ListenAndGuessGameManager;
 
@@ -23,11 +22,10 @@ interface GuessGamePageProps {
     gameManager: WordGameManager;
 }
 
-export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
+export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const router = useRouter();
-    const variant = gameManager.getVariant();
-    const { optionMode, cardMode } = VARIANT_CONFIG[variant];
-    const { activeWord, error, pronounceWord: playWord, voicesReady } = usePronunciation();
+    const rules = useMemo(() => gameManager.getGameRules(), [gameManager]);
+    const {activeWord, error, pronounceWord: playWord, voicesReady} = usePronunciation();
 
     const initialInGameStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
     const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
@@ -41,11 +39,12 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [resolvedOption, setResolvedOption] = useState<string | null>(null);
     const [pendingCompletion, setPendingCompletion] = useState(false);
-    const [cardModeOverride, setCardModeOverride] = useState<WordCardMode | null>(null);
     const [glowSeed, setGlowSeed] = useState(0);
+    const [currentRules, setCurrentRules] = useState<GameRules>(rules);
+
     const hasAnnouncedFinishRef = useRef(false);
     const playedOnOpenRef = useRef(false);
-    const congratulationsRecord = useMemo(() => new WordRecord({ type: 'verb', word: 'Great job' }), []);
+    const congratulationsRecord = useMemo(() => new WordRecord({type: 'verb', word: 'Great job'}), []);
 
     const activeAggregatedStats: InGameAggregatedStatistics = useMemo(() => {
         return gameManager.aggregate(ensureStatsForSubjects(activeSubjects, inGameStats));
@@ -69,11 +68,11 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
             setResolvedOption(null);
             setIsTransitioning(false);
             setPendingCompletion(false);
-            setCardModeOverride(null);
             setGlowSeed(0);
+            setCurrentRules(rules);
             playedOnOpenRef.current = false;
         },
-        [gameManager],
+        [gameManager, rules],
     );
 
     useEffect(() => {
@@ -81,11 +80,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
     }, [initialInGameStats, initialSubjects, setupRound]);
 
     useEffect(() => {
-        if (
-            currentWord &&
-            cardMode === WordCardMode.ListenAndGuess &&
-            !playedOnOpenRef.current
-        ) {
+        if (currentWord && currentRules.wordCardMode === WordCardMode.ListenAndGuess && !playedOnOpenRef.current) {
             playWord(currentWord, {
                 allowExamples: false,
                 suppressPendingError: true,
@@ -93,7 +88,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
             });
             playedOnOpenRef.current = true;
         }
-    }, [cardMode, currentWord, playWord, voicesReady]);
+    }, [currentRules.wordCardMode, currentWord, playWord, voicesReady]);
 
     useEffect(() => {
         if (!isFinished) {
@@ -132,7 +127,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
                 setGlowingOption(guess);
                 setShakingOption(null);
                 setResolvedOption(guess);
-                setCardModeOverride(WordCardMode.Learning);
+                setCurrentRules({...rules, ...DEFAULT_RULES});
                 setIsTransitioning(true);
                 setPendingCompletion(result.isComplete);
                 setGlowSeed(Math.random());
@@ -142,7 +137,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
             setShakingOption(guess);
             window.setTimeout(() => setShakingOption(null), 700);
         },
-        [activeSubjects, currentWord, gameManager, inGameStats, isTransitioning, playWord],
+        [activeSubjects, currentWord, gameManager, inGameStats, isTransitioning, playWord, rules],
     );
 
     const handleNextWord = useCallback(() => {
@@ -158,20 +153,18 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
         setGlowingOption(null);
         setShakingOption(null);
         setResolvedOption(null);
-        setCardModeOverride(null);
         setPendingCompletion(false);
         setIsTransitioning(false);
         setGlowSeed(0);
     }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
-        const { inGameStats: resetStats } = gameManager.resetInGameStatistics();
+        const {inGameStats: resetStats} = gameManager.resetInGameStatistics();
         const refreshedSubjects = gameManager.startTheGame();
         setActiveSubjects(refreshedSubjects);
         setInGameStats(resetStats);
         setIsFinished(false);
         setResolvedOption(null);
-        setCardModeOverride(null);
         setPendingCompletion(false);
         setIsTransitioning(false);
         setGlowSeed(0);
@@ -185,17 +178,18 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
 
     return (
         <Container maxWidth="md">
-            <Box sx={{ minHeight: '100vh', py: 4, position: 'relative' }}>
+            <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
                     totalCount={totalCount}
                     showScore={!isFinished}
-                    variant={variant}
+                    variant={rules.variant}
+                    label={rules.name}
                     onExit={() => router.push('/')}
                 />
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <Alert severity="error" sx={{mb: 2}}>
                         {error}
                     </Alert>
                 )}
@@ -224,13 +218,17 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
                                 gap: 2,
                             }}
                         >
-                            <Box sx={{ width: { xs: '100%', sm: 360 }, maxWidth: 420 }}>
+                            <Box sx={{width: {xs: '100%', sm: 360}, maxWidth: 420}}>
                                 {currentWord && (
                                     <WordCard
                                         word={currentWord}
-                                        mode={cardModeOverride ?? cardMode}
+                                        mode={currentRules.wordCardMode}
                                         active={activeWord === currentWord.word}
                                         onPronounce={() => playWord(currentWord)}
+                                        showImage={currentRules.showImage}
+                                        showTranslation={currentRules.showTranslation}
+                                        showWord={currentRules.showWord}
+                                        showWordPronunciation={currentRules.showWordPronunciation}
                                     />
                                 )}
                             </Box>
@@ -248,7 +246,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
                                 {options.map((option) => {
                                     const optionWord = gameManager.findBySubject(option);
                                     const label =
-                                        optionMode === 'translation'
+                                        currentRules.options === 'translation'
                                             ? optionWord?.translation || option
                                             : optionWord?.word || option;
                                     const isGlowing = glowingOption === option;
@@ -268,19 +266,23 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
                                             isLocked={isTransitioning}
                                             glowSeed={glowSeed}
                                             onGuess={handleGuess}
+                                            showPronunciation={currentRules.optionPronunciation}
+                                            onPronounce={() => {
+                                                if (optionWord) {
+                                                    playWord(optionWord, {
+                                                        suppressPendingError: true,
+                                                        suppressNotAllowedError: true,
+                                                    });
+                                                }
+                                            }}
                                         />
                                     );
                                 })}
                             </Box>
 
                             {resolvedOption && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <Button
-                                        variant="contained"
-                                        color="secondary"
-                                        size="large"
-                                        onClick={handleNextWord}
-                                    >
+                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
+                                    <Button variant="contained" color="secondary" size="large" onClick={handleNextWord}>
                                         {pendingCompletion ? 'Finish!' : 'Next'}
                                     </Button>
                                 </Box>

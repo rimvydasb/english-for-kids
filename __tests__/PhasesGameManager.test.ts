@@ -1,20 +1,20 @@
-import { GlobalConfig } from '@/lib/Config';
-import { PhasesGameManager } from '@/lib/game/PhasesGameManager';
-import { PhraseRecord } from '@/lib/types';
-import { MemoryStorage } from './helpers/mockStorage';
+import {GlobalConfig} from '@/lib/Config';
+import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
+import {PhraseRecord} from '@/lib/types';
+import {MemoryStorage} from './helpers/mockStorage';
 
 describe('PhasesGameManager', () => {
     const phrases: PhraseRecord[] = [
-        new PhraseRecord({ phrase: 'Hello', translation: 'Labas' }),
-        new PhraseRecord({ phrase: 'Goodbye', translation: 'Viso gero' }),
-        new PhraseRecord({ phrase: 'Yes', translation: 'Taip' }),
-        new PhraseRecord({ phrase: 'No', translation: 'Ne' }),
-        new PhraseRecord({ phrase: 'Thanks', translation: 'Ačiū' }),
-        new PhraseRecord({ phrase: 'Please', translation: 'Prašau' }),
+        new PhraseRecord({phrase: 'Hello', translation: 'Labas'}),
+        new PhraseRecord({phrase: 'Goodbye', translation: 'Viso gero'}),
+        new PhraseRecord({phrase: 'Yes', translation: 'Taip'}),
+        new PhraseRecord({phrase: 'No', translation: 'Ne'}),
+        new PhraseRecord({phrase: 'Thanks', translation: 'Ačiū'}),
+        new PhraseRecord({phrase: 'Please', translation: 'Prašau'}),
     ];
 
     it('builds options and tracks completion across rounds', () => {
-        const manager = new PhasesGameManager(phrases, undefined, new MemoryStorage());
+        const manager = new PhasesGameManager(phrases, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         expect(activeSubjects.length).toBe(Math.min(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, phrases.length));
 
@@ -35,12 +35,7 @@ describe('PhasesGameManager', () => {
         );
         inGameStats = latest.inGameStats;
         activeSubjects.slice(1).forEach((subject) => {
-            latest = manager.recordAttempt(
-                latest.inGameStats,
-                subject,
-                subject.getSubject(),
-                activeSubjects,
-            );
+            latest = manager.recordAttempt(latest.inGameStats, subject, subject.getSubject(), activeSubjects);
         });
 
         expect(latest.isComplete).toBe(true);
@@ -48,7 +43,7 @@ describe('PhasesGameManager', () => {
     });
 
     it('reports weakest guesses and supports global reset', () => {
-        const manager = new PhasesGameManager(phrases, undefined, new MemoryStorage());
+        const manager = new PhasesGameManager(phrases, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -68,7 +63,7 @@ describe('PhasesGameManager', () => {
     });
 
     it('limits worst guesses to config default when count omitted', () => {
-        const manager = new PhasesGameManager(phrases, undefined, new MemoryStorage());
+        const manager = new PhasesGameManager(phrases, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -82,7 +77,7 @@ describe('PhasesGameManager', () => {
 
     it('reuses stored active subjects between sessions', () => {
         const storage = new MemoryStorage();
-        const manager = new PhasesGameManager(phrases, undefined, storage);
+        const manager = new PhasesGameManager(phrases, storage);
         const first = manager.startTheGame();
         const second = manager.startTheGame();
         expect(second.map((item) => item.getSubject())).toEqual(first.map((item) => item.getSubject()));

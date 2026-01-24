@@ -1,11 +1,11 @@
-import { Box, Button, Divider, IconButton, Stack, Typography } from '@mui/material';
+import {Box, Button, Divider, IconButton, Stack, Typography} from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import { keyframes } from '@mui/material/styles';
-import { GlobalStatsMap, InGameAggregatedStatistics } from '@/lib/statistics/AStatisticsManager';
-import WordCard, { WordCardMode } from '@/components/WordCard';
-import { WordRecord } from '@/lib/words';
-import { PhraseRecord } from '@/lib/types';
+import {keyframes} from '@mui/material/styles';
+import {GlobalStatsMap, InGameAggregatedStatistics} from '@/lib/statistics/AStatisticsManager';
+import WordCard from '@/components/WordCard';
+import {WordRecord} from '@/lib/words';
+import {PhraseRecord, WordCardMode} from '@/lib/types';
 
 interface FinishedSummaryProps {
     score: number;
@@ -21,17 +21,17 @@ interface FinishedSummaryProps {
 }
 
 export default function FinishedSummary({
-                                            score,
-                                            learnedCount,
-                                            totalCount,
-                                            onRestart,
-                                            variantStats,
-                                            worstWords = [],
-                                            onPronounceWord,
-                                            worstPhrases = [],
-                                            onPronouncePhrase,
-                                            globalStats,
-                                        }: FinishedSummaryProps) {
+    score,
+    learnedCount,
+    totalCount,
+    onRestart,
+    variantStats,
+    worstWords = [],
+    onPronounceWord,
+    worstPhrases = [],
+    onPronouncePhrase,
+    globalStats,
+}: FinishedSummaryProps) {
     const gradientShift = keyframes`
         0% {
             background-position: 0% 50%;
@@ -63,7 +63,7 @@ export default function FinishedSummary({
             <Stack
                 direction="row"
                 spacing={2}
-                divider={<Divider flexItem orientation="vertical"/>}
+                divider={<Divider flexItem orientation="vertical" />}
                 sx={{flexWrap: 'wrap', justifyContent: 'center', width: '100%'}}
             >
                 <Typography variant="body2" color="text.secondary">
@@ -82,7 +82,7 @@ export default function FinishedSummary({
 
             <Stack direction={{xs: 'column', sm: 'row'}} spacing={2} sx={{width: '100%'}} justifyContent="center">
                 <Button variant="contained" size="large" onClick={onRestart} aria-label="restart">
-                    <RestartAltIcon/>
+                    <RestartAltIcon />
                 </Button>
             </Stack>
 
@@ -132,7 +132,7 @@ export default function FinishedSummary({
                                     aria-label={`Hear ${phrase.getSubject()}`}
                                     onClick={() => onPronouncePhrase?.(phrase)}
                                 >
-                                    <VolumeUpIcon/>
+                                    <VolumeUpIcon />
                                 </IconButton>
                             </Box>
                         ))}

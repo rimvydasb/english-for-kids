@@ -1,8 +1,10 @@
-import { GlobalStatistics, InGameStatistics, SubjectRecord } from '@/lib/types';
+import {GlobalStatistics, InGameStatistics, SubjectRecord} from '@/lib/types';
 
 export interface StorageLike {
     getItem(key: string): string | null;
+
     setItem(key: string, value: string): void;
+
     removeItem?(key: string): void;
 }
 
@@ -24,8 +26,7 @@ export abstract class AStatisticsManager {
 
     protected constructor(storage?: StorageLike) {
         this.storage =
-            storage ??
-            (typeof window !== 'undefined' ? window.localStorage : AStatisticsManager.createMemoryStorage());
+            storage ?? (typeof window !== 'undefined' ? window.localStorage : AStatisticsManager.createMemoryStorage());
         this.storageKey = 'GENERIC_STATS';
     }
 
@@ -42,11 +43,7 @@ export abstract class AStatisticsManager {
         };
     }
 
-    protected loadFromStorage<T>(
-        key: string,
-        fallbackFactory: () => T,
-        sanitizer: (value: unknown) => T | null,
-    ): T {
+    protected loadFromStorage<T>(key: string, fallbackFactory: () => T, sanitizer: (value: unknown) => T | null): T {
         const stored = this.storage.getItem(key);
         if (!stored) return fallbackFactory();
         try {
@@ -65,7 +62,7 @@ export abstract class AStatisticsManager {
     protected createEmptyGlobalStats(subjects: SubjectRecord[]): GlobalStatsMap {
         return subjects.reduce<GlobalStatsMap>((acc, subject) => {
             const key = subject.getSubject();
-            acc[key] = { key, correctAttempts: 0, wrongAttempts: 0 };
+            acc[key] = {key, correctAttempts: 0, wrongAttempts: 0};
             return acc;
         }, {});
     }
@@ -86,14 +83,14 @@ export abstract class AStatisticsManager {
 
     protected cloneGlobalStats(stats: GlobalStatsMap): GlobalStatsMap {
         return Object.keys(stats).reduce<GlobalStatsMap>((acc, key) => {
-            acc[key] = { ...stats[key] };
+            acc[key] = {...stats[key]};
             return acc;
         }, {});
     }
 
     protected cloneInGameStats(stats: InGameStatsMap): InGameStatsMap {
         return Object.keys(stats).reduce<InGameStatsMap>((acc, key) => {
-            acc[key] = { ...stats[key] };
+            acc[key] = {...stats[key]};
             return acc;
         }, {});
     }
@@ -103,9 +100,7 @@ export abstract class AStatisticsManager {
         const totalAttempts = values.reduce((sum, item) => sum + item.totalAttempts, 0);
         const correctAttempts = values.reduce((sum, item) => sum + item.correctAttempts, 0);
         const wrongAttempts = values.reduce((sum, item) => sum + item.wrongAttempts, 0);
-        const learnedItemsCount = values.filter(
-            (item) => item.learned && item.correctAttempts > 0,
-        ).length;
+        const learnedItemsCount = values.filter((item) => item.learned && item.correctAttempts > 0).length;
 
         return {
             totalAttempts,
@@ -116,14 +111,11 @@ export abstract class AStatisticsManager {
         };
     }
 
-    protected rebuildGlobalFromInGame(
-        inGameStats: InGameStatsMap,
-        subjects: SubjectRecord[],
-    ): GlobalStatsMap {
+    protected rebuildGlobalFromInGame(inGameStats: InGameStatsMap, subjects: SubjectRecord[]): GlobalStatsMap {
         const totals = this.createEmptyGlobalStats(subjects);
-        Object.values(inGameStats).forEach(({ key, correctAttempts, wrongAttempts }) => {
+        Object.values(inGameStats).forEach(({key, correctAttempts, wrongAttempts}) => {
             if (!totals[key]) {
-                totals[key] = { key, correctAttempts: 0, wrongAttempts: 0 };
+                totals[key] = {key, correctAttempts: 0, wrongAttempts: 0};
             }
             totals[key].correctAttempts += correctAttempts;
             totals[key].wrongAttempts += wrongAttempts;
@@ -137,9 +129,9 @@ export abstract class AStatisticsManager {
     ): GlobalStatsMap {
         const totals = this.createEmptyGlobalStats(subjects);
         Object.values(variants).forEach((variantStats) => {
-            Object.values(variantStats).forEach(({ key, correctAttempts, wrongAttempts }) => {
+            Object.values(variantStats).forEach(({key, correctAttempts, wrongAttempts}) => {
                 if (!totals[key]) {
-                    totals[key] = { key, correctAttempts: 0, wrongAttempts: 0 };
+                    totals[key] = {key, correctAttempts: 0, wrongAttempts: 0};
                 }
                 totals[key].correctAttempts += correctAttempts;
                 totals[key].wrongAttempts += wrongAttempts;
@@ -158,7 +150,7 @@ export abstract class AStatisticsManager {
                 learned: false,
             };
         }
-        return { ...stats[key] };
+        return {...stats[key]};
     }
 
     protected sanitizeGlobalStats(parsed: unknown, subjects: SubjectRecord[]): GlobalStatsMap | null {
@@ -171,7 +163,7 @@ export abstract class AStatisticsManager {
             if (!allowed.has(key)) return;
             const value = incoming[key];
             if (value && typeof value.correctAttempts === 'number' && typeof value.wrongAttempts === 'number') {
-                base[key] = { key, correctAttempts: value.correctAttempts, wrongAttempts: value.wrongAttempts };
+                base[key] = {key, correctAttempts: value.correctAttempts, wrongAttempts: value.wrongAttempts};
             }
         });
         return base;
@@ -193,7 +185,7 @@ export abstract class AStatisticsManager {
                 typeof value.wrongAttempts === 'number' &&
                 typeof value.learned === 'boolean'
             ) {
-                base[key] = { ...base[key], ...value, key };
+                base[key] = {...base[key], ...value, key};
             }
         });
         return base;
@@ -270,9 +262,9 @@ export class BaseStatisticsManager extends AStatisticsManager {
 
     private mergeIntoGlobal(global: GlobalStatsMap, current: InGameStatsMap): GlobalStatsMap {
         const merged = this.cloneGlobalStats(global);
-        Object.values(current).forEach(({ key, correctAttempts, wrongAttempts }) => {
+        Object.values(current).forEach(({key, correctAttempts, wrongAttempts}) => {
             if (!merged[key]) {
-                merged[key] = { key, correctAttempts: 0, wrongAttempts: 0 };
+                merged[key] = {key, correctAttempts: 0, wrongAttempts: 0};
             }
             merged[key].correctAttempts += correctAttempts;
             merged[key].wrongAttempts += wrongAttempts;

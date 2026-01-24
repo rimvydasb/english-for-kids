@@ -1,4 +1,4 @@
-import { StorageLike } from '@/lib/statistics/AStatisticsManager';
+import {StorageLike} from '@/lib/statistics/AStatisticsManager';
 
 export class MemoryStorage implements StorageLike {
     private store: Record<string, string> = {};

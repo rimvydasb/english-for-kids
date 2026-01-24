@@ -45,7 +45,7 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 ## Phrases List
 
 | English phrase                | Lithuanian translation                 |
-|-------------------------------|----------------------------------------|
+| ----------------------------- | -------------------------------------- |
 | The Hello Song                | Pasisveikinimo daina                   |
 | Hello                         | Labas                                  |
 | Hello, hello                  | Labas, labas                           |
@@ -70,7 +70,7 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 ## Word List
 
 | English  | Lithuanian       |
-|----------|------------------|
+| -------- | ---------------- |
 | apple    | obuolys          |
 | baloon   | balionas         |
 | black    | juodas           |
@@ -101,7 +101,7 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 - [x] Instead of `WordCard.tsx` create `PhraseCard.tsx` that shows an English phrase with pronunciation icon
 - [x] Below the phrase show multiple Lithuanian translation options to choose from.
 - [x] User is able to see the English phrase in `PhraseCard.tsx`, listen for english pronunciation, and pick the correct
-  Lithuanian translation from the options.
+      Lithuanian translation from the options.
 - [x] Implement the same game logic, statistics tracking, and persistence as in the existing word guessing games.
 - [x] Use the phrases list provided in the README for the game content.
 - [x] Implement `PhrasesStatisticsManager.ts` and `PhrasesStatisticsManager.test.ts`
@@ -112,13 +112,13 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 
 - [x] Split WordsGameManager to GuessTheWordGameManager and ListenAndGuessGameManager for better separation of concerns.
 - [x] GuessTheWordGameManager, ListenAndGuessGameManager and PhasesGameManager draws subjects based on
-  GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, method is `startTheGame(): SubjectRecord[]`
+      GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, method is `startTheGame(): SubjectRecord[]`
 - [x] Introduce `startTheGame()` method in each game manager that draws subjects for the dictionary and returns to the
-  global React state.
+      global React state.
 - [x] Use DEFAULT_DECOYS from GlobalConfig
 - [x] Game managers will be constructed in own page.tsx files, such as `guess-the-word/page.tsx` (GuessTheWordPage,
-  ListenAndGuessPage, GuessPhrasesPage)
-  Those pages should be `use client` and become client components (not server)
+      ListenAndGuessPage, GuessPhrasesPage)
+      Those pages should be `use client` and become client components (not server)
 - [x] `GameVariant` will be returned by game managers
 
 ### Do a complete refactoring and simplification of statistics management:
@@ -129,20 +129,20 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
     - `globalStorageKey: string` in the constructor to handle global statistics updates
     - storage (for testing the mock will be passed)
 - [x] global statistics should not live in global state, but must be updated in localStorage only when a game variant is
-  finalized.
-  Global statistics are used in GUI only in `words/page.tsx`
+      finalized.
+      Global statistics are used in GUI only in `words/page.tsx`
 - [x] Rename `GeneralPhraseVariantStats` to `InGameAggregatedStatistics`
 - [x] `BaseStatisticsManager` will have a method:
-  `recordAttempt(current: InGameStatsMap, subject: string, isCorrect: boolean): InGameStatsMap`
+      `recordAttempt(current: InGameStatsMap, subject: string, isCorrect: boolean): InGameStatsMap`
 
 1. This method will update in-game statistics map with the new attempt and will return the updated map.
 2. This method will persist to local storage only the updated in-game statistics map.
 3. This method will NOT update global statistics yet.
 
 - [x] `BaseStatisticsManager` will also provide aggregation method:
-  `aggregate(current: InGameStatsMap): InGameAggregatedStatistics`
+      `aggregate(current: InGameStatsMap): InGameAggregatedStatistics`
 - [x] `BaseStatisticsManager` will have a method to finalize the variant:
-  `finishGame(current: InGameStatsMap): InGameAggregatedStatistics`
+      `finishGame(current: InGameStatsMap): InGameAggregatedStatistics`
 
 1. `GlobalStatistics` will be updated based on `globalStorageKey` - global statistics will be read from localStorage,
    updated with
@@ -152,9 +152,9 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 3. `InGameAggregatedStatistics` will be returned based on current in-game statistics map
 
 - [x] `BaseStatisticsManager` will have a method to reset global statistics:
-  `resetGlobalStatistics(): void`
+      `resetGlobalStatistics(): void`
 - [x] `BaseStatisticsManager` will have a method to reset in-game statistics:
-  `resetInGameStatistics(): void`
+      `resetInGameStatistics(): void`
 
 ### Use Global Config for game settings:
 
@@ -163,16 +163,16 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 ### General principles:
 
 - [x] Variables are kept in React state and game managers and statistics managers are stateless and
-  expose methods that modify and return new state.
+      expose methods that modify and return new state.
 
 ## Dictionary Update
 
 - [ ] Add numbers from 1 to 10 to `WORDS_DICTIONARY_DATA`, update with simple sentences that also use existing
-  words in dictionary, and Lithuanian translations
+      words in dictionary, and Lithuanian translations
 - [ ] Add zero as well
 - [ ] Example sentences must be of 3 - 4 words and not more
 - [ ] Use plain numbers instead of image. Make numbers text in pastel colors (can be randomized), also use very light
-  pastel colors for the background, such as `FFF897`
+      pastel colors for the background, such as `FFF897`
 - [ ] Remove icon from word entry - no icons for numbers
 - [ ] Apply simple logic, that if type is 'number' then write number instead of searching for image.
 - [ ] Update tests, run them, see if passing, do build and see of building.
@@ -182,17 +182,18 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 WordCard properties:
 
 - showImage: whether to show image on the card
-- showTranslation: whether to show Lithuanian translation on the card
+- showTranslation: whether to show Lithuanian translation under the card
 - showWord: whether to show English word on the card
 - showWordPronunciation: whether to show pronunciation icon `VolumeUpIcon` to hear the word
 
 Option Button properties:
+
 - showWordPronunciation: whether to show pronunciation icon `VolumeUpIcon` to hear the option word
 - showOptionText: whether to show option text (English word or Lithuanian translation)
 - optionWord: word in the option button (English word or Lithuanian translation), optional
 
-| Name           | GameVariant    | showImage | showTranslation | showWord | showWordPronunciation | Options            |
-|----------------|----------------|-----------|-----------------|----------|-----------------------|--------------------|
-| Guess The Word | guessTheWord   | true      | true            | false    | true                  | English words      |
-| Listen & Guess | listenAndGuess | false     | false           | false    | true                  | Lithuanian words   |
-| Guess Phrases  | guessPhrases   | false     | false           | true     | true                  | Lithuanian phrases |
+| Name           | WordCardMode   | showImage | showTranslation | showWord | showWordPronunciation | options     | optionPronunciation |
+| -------------- | -------------- | --------- | --------------- | -------- | --------------------- | ----------- | ------------------- |
+| Guess The Word | GuessWord      | true      | true            | false    | false                 | word        | true                |
+| Listen & Guess | ListenAndGuess | false     | false           | false    | true                  | translation | false               |
+| Guess Phrases  |                | false     | false           | true     | true                  | translation | false               |

@@ -1,4 +1,3 @@
-import { getGameSettings } from '@/lib/Config';
 import {
     BaseStatisticsManager,
     GlobalStatsMap,
@@ -6,7 +5,7 @@ import {
     InGameStatsMap,
     StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
-import { WordGameVariant, WordRecord } from '@/lib/types';
+import {WordRecord} from '@/lib/types';
 
 export interface WordStatisticsState {
     inGameStats: InGameStatsMap;
@@ -15,8 +14,7 @@ export interface WordStatisticsState {
 }
 
 export class WordStatisticsManager extends BaseStatisticsManager {
-    constructor(words: WordRecord[], variant: WordGameVariant, storage?: StorageLike) {
-        const { storageKey, globalStorageKey } = getGameSettings(variant);
+    constructor(words: WordRecord[], storageKey: string, globalStorageKey: string, storage?: StorageLike) {
         super(words, storageKey, globalStorageKey, storage);
     }
 
