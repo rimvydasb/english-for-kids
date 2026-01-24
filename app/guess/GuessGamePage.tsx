@@ -26,6 +26,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const router = useRouter();
     const rules = useMemo(() => gameManager.getGameRules(), [gameManager]);
     const {activeWord, error, pronounceWord: playWord, voicesReady} = usePronunciation();
+    const {pronounceWord: playOptionWord} = usePronunciation();
 
     const initialInGameStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
     const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
@@ -269,7 +270,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                                             showPronunciation={currentRules.optionPronunciation}
                                             onPronounce={() => {
                                                 if (optionWord) {
-                                                    playWord(optionWord, {
+                                                    playOptionWord(optionWord, {
                                                         suppressPendingError: true,
                                                         suppressNotAllowedError: true,
                                                     });
