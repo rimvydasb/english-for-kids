@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import {WordRecord} from '@/lib/words';
-import {GlobalStatistics} from '@/lib/types';
+import {GlobalStatistics, WordCardMode} from '@/lib/types';
 import {CardHeader} from '@mui/material';
 
 const PASTEL_BACKGROUNDS = ['#FFF897', '#E8F9FD', '#FDE2FF', '#E6FFF7', '#FFEAD2'];
@@ -25,18 +25,16 @@ const NUMBER_MAP: Record<string, string> = {
     ten: '10',
 };
 
-export enum WordCardMode {
-    Learning = 'learning',
-    GuessWord = 'guessWord',
-    ListenAndGuess = 'listenAndGuess',
-}
-
 interface WordCardProps {
     word: WordRecord;
     active?: boolean;
     onPronounce?: () => void;
     mode?: WordCardMode;
     globalStats?: GlobalStatistics;
+    showImage?: boolean;
+    showTranslation?: boolean;
+    showWord?: boolean;
+    showWordPronunciation?: boolean;
 }
 
 export default function WordCard({
@@ -45,11 +43,15 @@ export default function WordCard({
     onPronounce,
     mode = WordCardMode.Learning,
     globalStats,
+    showImage: propShowImage,
+    showTranslation: propShowTranslation,
+    showWord: propShowWord,
+    showWordPronunciation: propShowWordPronunciation,
 }: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
     const isNumber = word.type === 'number';
 
-    const showWordPronunciation = mode !== WordCardMode.GuessWord;
+    const showWordPronunciation = propShowWordPronunciation ?? mode !== WordCardMode.GuessWord;
 
     const colorIndex = useMemo(
         () => word.word.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % PASTEL_BACKGROUNDS.length,
@@ -68,9 +70,10 @@ export default function WordCard({
         onPronounce?.();
     };
 
-    const showImage = mode !== WordCardMode.ListenAndGuess;
-    const showTranslation = mode !== WordCardMode.ListenAndGuess;
-    const displayedWord = useMemo(() => (mode === WordCardMode.Learning ? word.word : '???'), [mode, word.word]);
+    const showImage = propShowImage ?? mode !== WordCardMode.ListenAndGuess;
+    const showTranslation = propShowTranslation ?? mode !== WordCardMode.ListenAndGuess;
+    const showWord = propShowWord ?? mode === WordCardMode.Learning;
+    const displayedWord = useMemo(() => (showWord ? word.word : '???'), [showWord, word.word]);
     const stats: GlobalStatistics = globalStats ?? {
         key: word.word,
         correctAttempts: 0,

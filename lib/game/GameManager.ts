@@ -1,4 +1,4 @@
-import {GlobalConfig} from '@/lib/Config';
+import {GlobalConfig, KNOWN_GAME_STORAGE_KEYS} from '@/lib/Config';
 import {
     AStatisticsManager,
     BaseStatisticsManager,
@@ -7,7 +7,7 @@ import {
     InGameStatsMap,
     StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
-import {GameVariant, SubjectRecord} from '@/lib/types';
+import {GameRules, SubjectRecord} from '@/lib/types';
 
 export interface GameRoundResult {
     isCorrect: boolean;
@@ -42,7 +42,7 @@ export abstract class GameManager<T extends SubjectRecord> {
         this.decoysNeeded = options?.decoysNeeded ?? GlobalConfig.DEFAULT_DECOYS;
     }
 
-    abstract getVariant(): GameVariant;
+    abstract getGameRules(): GameRules;
 
     startTheGame(): T[] {
         const existingSelection = this.statistics
@@ -228,9 +228,9 @@ export abstract class GameManager<T extends SubjectRecord> {
         const store =
             storage ?? (typeof window !== 'undefined' ? window.localStorage : AStatisticsManager.createMemoryStorage());
 
-        GlobalConfig.GAMES.forEach((game) => {
-            store.removeItem?.(game.storageKey);
-            store.removeItem?.(`${game.storageKey}_ACTIVE_SUBJECTS`);
+        KNOWN_GAME_STORAGE_KEYS.forEach((key) => {
+            store.removeItem?.(key);
+            store.removeItem?.(`${key}_ACTIVE_SUBJECTS`);
         });
     }
 }

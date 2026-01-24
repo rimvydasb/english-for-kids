@@ -18,7 +18,7 @@ describe('Word game managers', () => {
     ];
 
     it('builds options using grouped decoys when available', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const answer = words[0];
         const options = manager.buildOptions(answer, words);
         const decoys = options.filter((option) => option !== answer.word);
@@ -29,7 +29,7 @@ describe('Word game managers', () => {
     });
 
     it('records attempts, reports completion, and updates global stats on finish', () => {
-        const manager = new ListenAndGuessGameManager(words, undefined, new MemoryStorage());
+        const manager = new ListenAndGuessGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -48,14 +48,14 @@ describe('Word game managers', () => {
     });
 
     it('limits startTheGame selection to configured subject count', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const selected = manager.startTheGame();
         expect(selected.length).toBe(Math.min(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, words.length));
     });
 
     it('reuses stored active subjects until reset', () => {
         const storage = new MemoryStorage();
-        const manager = new GuessTheWordGameManager(words, undefined, storage);
+        const manager = new GuessTheWordGameManager(words, storage);
         const firstSelection = manager.startTheGame();
         const secondSelection = manager.startTheGame();
         expect(secondSelection.map((item) => item.word)).toEqual(firstSelection.map((item) => item.word));
@@ -66,7 +66,7 @@ describe('Word game managers', () => {
     });
 
     it('surface worst guesses based on wrong attempts', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const activeSubjects = words;
         let inGameStats = manager.loadInGameStatistics();
 
@@ -79,7 +79,7 @@ describe('Word game managers', () => {
     });
 
     it('returns default number of worst guesses from config when no count is provided', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -96,7 +96,7 @@ describe('Word game managers', () => {
     });
 
     it('returns empty worst guesses when there were no wrong attempts', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         const inGameStats = manager.loadInGameStatistics();
 
@@ -105,7 +105,7 @@ describe('Word game managers', () => {
     });
 
     it('drawNextCandidate skips learned subjects and stops when all are learned', () => {
-        const manager = new GuessTheWordGameManager(words.slice(0, 3), undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words.slice(0, 3), new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -139,7 +139,7 @@ describe('Word game managers', () => {
     });
 
     it('finds subjects by key and resets global statistics', () => {
-        const manager = new ListenAndGuessGameManager(words, undefined, new MemoryStorage());
+        const manager = new ListenAndGuessGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 

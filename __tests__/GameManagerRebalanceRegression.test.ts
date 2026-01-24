@@ -22,7 +22,7 @@ describe('GameManager Rebalancing', () => {
         const storedActiveSubjects = words.slice(0, limit + extra).map((w) => w.word);
         storage.setItem('GUESS_THE_WORD_GAME_STATS_ACTIVE_SUBJECTS', JSON.stringify(storedActiveSubjects));
 
-        const manager = new GuessTheWordGameManager(words, undefined, storage);
+        const manager = new GuessTheWordGameManager(words, storage);
 
         const activeSubjects = manager.startTheGame();
 

@@ -8,7 +8,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
 import TranslateIcon from '@mui/icons-material/Translate';
-import {GlobalConfig} from '@/lib/Config';
+import {KNOWN_GAME_STORAGE_KEYS} from '@/lib/Config';
 import {GameManager} from '@/lib/game/GameManager';
 
 const gradientShift = keyframes`
@@ -22,7 +22,7 @@ export default function Home() {
 
     useEffect(() => {
         const checkData = () => {
-            const keys = GlobalConfig.GAMES.flatMap((game) => [game.storageKey, `${game.storageKey}_ACTIVE_SUBJECTS`]);
+            const keys = KNOWN_GAME_STORAGE_KEYS.flatMap((key) => [key, `${key}_ACTIVE_SUBJECTS`]);
             return keys.some((key) => localStorage.getItem(key));
         };
         setHasData(checkData());

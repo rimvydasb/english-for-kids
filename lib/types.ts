@@ -1,5 +1,25 @@
 export type OptionMode = 'word' | 'translation';
 
+export enum WordCardMode {
+    Learning = 'learning',
+    GuessWord = 'guessWord',
+    ListenAndGuess = 'listenAndGuess',
+}
+
+export interface GameRules {
+    name: string;
+    variant: GameVariant;
+    storageKey: string;
+    globalStorageKey: string;
+    wordCardMode?: WordCardMode;
+    showImage: boolean;
+    showTranslation: boolean;
+    showWord: boolean;
+    showWordPronunciation: boolean;
+    options: OptionMode;
+    optionPronunciation: boolean;
+}
+
 export type GameVariant = 'guessTheWord' | 'listenAndGuess' | 'guessPhrase';
 
 export type WordGameVariant = Extract<GameVariant, 'guessTheWord' | 'listenAndGuess'>;

@@ -4,14 +4,15 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
 import {keyframes} from '@mui/material/styles';
-import {VARIANT_CONFIG, WordGameVariant} from '@/lib/guessConfig';
+import {GameVariant} from '@/lib/types';
 
 export interface ScoreHeaderProps {
     learnedCount: number;
     totalCount: number;
     onExit: () => void;
     showScore?: boolean;
-    variant?: WordGameVariant;
+    variant?: GameVariant;
+    label?: string;
     icon?: ReactNode;
 }
 
@@ -21,6 +22,7 @@ export default function GuessScoreHeader({
     onExit,
     showScore = true,
     variant,
+    label,
     icon,
 }: ScoreHeaderProps) {
     const gradientShift = keyframes`
@@ -48,7 +50,7 @@ export default function GuessScoreHeader({
             }}
         >
             <Box
-                aria-label={variant ? `${VARIANT_CONFIG[variant].label} icon` : 'Game icon'}
+                aria-label={label ? `${label} icon` : 'Game icon'}
                 sx={{
                     width: 52,
                     height: 52,

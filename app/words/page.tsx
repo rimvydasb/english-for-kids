@@ -5,7 +5,8 @@ import {useRouter} from 'next/navigation';
 import {Alert, Box, Container, IconButton, Typography} from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {WORDS_DICTIONARY} from '@/lib/words';
-import WordCard, {WordCardMode} from '@/components/WordCard';
+import WordCard from '@/components/WordCard';
+import {WordCardMode} from '@/lib/types';
 import {usePronunciation} from '@/lib/usePronunciation';
 import {GlobalStatsMap} from '@/lib/statistics/AStatisticsManager';
 import {WordStatisticsManager} from '@/lib/statistics/WordStatisticsManager';
@@ -17,7 +18,11 @@ export default function WordsPage() {
     const [globalStats, setGlobalStats] = useState<GlobalStatsMap>({});
 
     useEffect(() => {
-        const manager = new WordStatisticsManager(words, 'guessTheWord');
+        const manager = new WordStatisticsManager(
+            words,
+            'GUESS_THE_WORD_GAME_STATS',
+            'GLOBAL_WORD_STATS',
+        );
         setGlobalStats(manager.loadGlobalStatistics());
     }, [words]);
 

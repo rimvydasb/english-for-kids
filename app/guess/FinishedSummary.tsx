@@ -3,9 +3,9 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import {keyframes} from '@mui/material/styles';
 import {GlobalStatsMap, InGameAggregatedStatistics} from '@/lib/statistics/AStatisticsManager';
-import WordCard, {WordCardMode} from '@/components/WordCard';
+import WordCard from '@/components/WordCard';
 import {WordRecord} from '@/lib/words';
-import {PhraseRecord} from '@/lib/types';
+import {PhraseRecord, WordCardMode} from '@/lib/types';
 
 interface FinishedSummaryProps {
     score: number;

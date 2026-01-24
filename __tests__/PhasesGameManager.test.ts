@@ -14,7 +14,7 @@ describe('PhasesGameManager', () => {
     ];
 
     it('builds options and tracks completion across rounds', () => {
-        const manager = new PhasesGameManager(phrases, undefined, new MemoryStorage());
+        const manager = new PhasesGameManager(phrases, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         expect(activeSubjects.length).toBe(Math.min(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN, phrases.length));
 
@@ -43,7 +43,7 @@ describe('PhasesGameManager', () => {
     });
 
     it('reports weakest guesses and supports global reset', () => {
-        const manager = new PhasesGameManager(phrases, undefined, new MemoryStorage());
+        const manager = new PhasesGameManager(phrases, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -63,7 +63,7 @@ describe('PhasesGameManager', () => {
     });
 
     it('limits worst guesses to config default when count omitted', () => {
-        const manager = new PhasesGameManager(phrases, undefined, new MemoryStorage());
+        const manager = new PhasesGameManager(phrases, new MemoryStorage());
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
@@ -77,7 +77,7 @@ describe('PhasesGameManager', () => {
 
     it('reuses stored active subjects between sessions', () => {
         const storage = new MemoryStorage();
-        const manager = new PhasesGameManager(phrases, undefined, storage);
+        const manager = new PhasesGameManager(phrases, storage);
         const first = manager.startTheGame();
         const second = manager.startTheGame();
         expect(second.map((item) => item.getSubject())).toEqual(first.map((item) => item.getSubject()));

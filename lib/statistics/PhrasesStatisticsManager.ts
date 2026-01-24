@@ -1,4 +1,3 @@
-import {getGameSettings} from '@/lib/Config';
 import {
     BaseStatisticsManager,
     GlobalStatsMap,
@@ -15,8 +14,7 @@ export interface PhraseStatisticsState {
 }
 
 export class PhrasesStatisticsManager extends BaseStatisticsManager {
-    constructor(phrases: PhraseRecord[], storage?: StorageLike) {
-        const {storageKey, globalStorageKey} = getGameSettings('guessPhrase');
+    constructor(phrases: PhraseRecord[], storageKey: string, globalStorageKey: string, storage?: StorageLike) {
         super(phrases, storageKey, globalStorageKey, storage);
     }
 

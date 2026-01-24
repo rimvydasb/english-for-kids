@@ -1,10 +1,4 @@
-import {GameVariant, PhraseEntry, PhraseRecord, WordEntry, WordRecord} from '@/lib/types';
-
-export interface GameSettings {
-    variant: GameVariant;
-    globalStorageKey: string;
-    storageKey: string;
-}
+import {PhraseEntry, PhraseRecord, WordEntry, WordRecord} from '@/lib/types';
 
 export const GlobalConfig = {
     // Start the game only with X subjects to guess and circle through them
@@ -16,39 +10,17 @@ export const GlobalConfig = {
 
     // How many weakest subjects to surface at the end of a game
     WORST_GUESSES_COUNT: 6,
-
-    // Game specific settings
-    GAMES: [
-        {
-            variant: 'guessTheWord' as GameVariant,
-            globalStorageKey: 'GLOBAL_WORD_STATS', // global for all word-based games
-            storageKey: 'GUESS_THE_WORD_GAME_STATS',
-        },
-        {
-            variant: 'listenAndGuess' as GameVariant,
-            globalStorageKey: 'GLOBAL_WORD_STATS', // global for all word-based games
-            storageKey: 'LISTEN_AND_GUESS_GAME_STATS',
-        },
-        {
-            variant: 'guessPhrase' as GameVariant,
-            globalStorageKey: 'GLOBAL_PHRASE_STATS',
-            storageKey: 'GUESS_THE_PHRASE_GAME_STATS',
-        },
-    ],
 } satisfies {
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: number;
     DEFAULT_DECOYS: number;
     WORST_GUESSES_COUNT: number;
-    GAMES: GameSettings[];
 };
 
-export const getGameSettings = (variant: GameVariant): GameSettings => {
-    const settings = GlobalConfig.GAMES.find((game) => game.variant === variant);
-    if (!settings) {
-        throw new Error(`Unknown game variant: ${variant}`);
-    }
-    return settings;
-};
+export const KNOWN_GAME_STORAGE_KEYS = [
+    'GUESS_THE_WORD_GAME_STATS',
+    'LISTEN_AND_GUESS_GAME_STATS',
+    'GUESS_THE_PHRASE_GAME_STATS',
+];
 
 export const PHRASES_DICTIONARY_DATA: PhraseEntry[] = [
     {phrase: 'The Hello Song', translation: 'Pasisveikinimo daina'},

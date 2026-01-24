@@ -13,7 +13,7 @@ describe('Stats Aggregation Bug', () => {
     );
 
     it('aggregates stats only for active subjects', () => {
-        const manager = new GuessTheWordGameManager(words, undefined, new MemoryStorage());
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const activeSubjects = manager.startTheGame(); // Should be totalSubjectsToLearn
         const inGameStats = manager.loadInGameStatistics(); // Should be for all words
 

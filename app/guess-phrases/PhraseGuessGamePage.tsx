@@ -23,6 +23,7 @@ interface PhraseGuessGamePageProps {
 
 export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePageProps) {
     const router = useRouter();
+    const rules = gameManager.getGameRules();
     const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
     const initialStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
     const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>(initialSubjects);
@@ -168,6 +169,8 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                     learnedCount={learnedCount}
                     totalCount={totalCount}
                     showScore={!isFinished}
+                    variant={rules.variant}
+                    label={rules.name}
                     icon={<TranslateIcon color="secondary" sx={{fontSize: 32}} />}
                     onExit={() => router.push('/')}
                 />
@@ -205,7 +208,9 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                     <PhraseCard
                                         phrase={currentPhrase}
                                         active={activeWord === currentPhrase.word}
-                                        showTranslation={showTranslation}
+                                        showTranslation={rules.showTranslation || showTranslation}
+                                        showPhrase={rules.showWord || showTranslation}
+                                        showPhrasePronunciation={rules.showWordPronunciation || showTranslation}
                                         onPronounce={() =>
                                             playPhrase(currentPhrase, {
                                                 suppressPendingError: true,

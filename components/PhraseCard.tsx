@@ -7,10 +7,19 @@ interface PhraseCardProps {
     phrase: PhraseRecord;
     active?: boolean;
     showTranslation?: boolean;
+    showPhrase?: boolean;
+    showPhrasePronunciation?: boolean;
     onPronounce?: () => void;
 }
 
-export default function PhraseCard({phrase, active = false, showTranslation = false, onPronounce}: PhraseCardProps) {
+export default function PhraseCard({
+    phrase,
+    active = false,
+    showTranslation = false,
+    showPhrase = true,
+    showPhrasePronunciation = true,
+    onPronounce,
+}: PhraseCardProps) {
     const handlePronounce = (event: MouseEvent) => {
         event.stopPropagation();
         onPronounce?.();
@@ -39,15 +48,30 @@ export default function PhraseCard({phrase, active = false, showTranslation = fa
                         wordBreak: 'break-word',
                     }}
                 >
-                    {phrase.phrase}
-                    <IconButton
-                        aria-label={`Hear ${phrase.phrase}`}
-                        onClick={handlePronounce}
-                        color={active ? 'secondary' : 'primary'}
-                    >
-                        <VolumeUpIcon />
-                    </IconButton>
+                    {showPhrase ? phrase.phrase : '???'}
+                    {showPhrasePronunciation && (
+                        <IconButton
+                            aria-label={`Hear ${phrase.phrase}`}
+                            onClick={handlePronounce}
+                            color={active ? 'secondary' : 'primary'}
+                        >
+                            <VolumeUpIcon />
+                        </IconButton>
+                    )}
                 </Typography>
+
+                {showTranslation && phrase.translation && (
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            textAlign: 'center',
+                            color: 'text.secondary',
+                            fontStyle: 'italic',
+                        }}
+                    >
+                        {phrase.translation}
+                    </Typography>
+                )}
             </CardContent>
         </Card>
     );
