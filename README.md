@@ -182,17 +182,18 @@ Next.js app for kids to learn vocabulary with images, speech, and two quiz varia
 WordCard properties:
 
 - showImage: whether to show image on the card
-- showTranslation: whether to show Lithuanian translation on the card
+- showTranslation: whether to show Lithuanian translation under the card
 - showWord: whether to show English word on the card
 - showWordPronunciation: whether to show pronunciation icon `VolumeUpIcon` to hear the word
 
 Option Button properties:
+
 - showWordPronunciation: whether to show pronunciation icon `VolumeUpIcon` to hear the option word
 - showOptionText: whether to show option text (English word or Lithuanian translation)
 - optionWord: word in the option button (English word or Lithuanian translation), optional
 
-| Name           | GameVariant    | showImage | showTranslation | showWord | showWordPronunciation | Options            |
-|----------------|----------------|-----------|-----------------|----------|-----------------------|--------------------|
-| Guess The Word | guessTheWord   | true      | true            | false    | true                  | English words      |
-| Listen & Guess | listenAndGuess | false     | false           | false    | true                  | Lithuanian words   |
-| Guess Phrases  | guessPhrases   | false     | false           | true     | true                  | Lithuanian phrases |
+| Name           | GameVariant    | showImage | showTranslation | showWord | showWordPronunciation | Options            | optionPronunciation | 
+|----------------|----------------|-----------|-----------------|----------|-----------------------|--------------------|---------------------|
+| Guess The Word | guessTheWord   | true      | true            | false    | false                 | English words      | true                |
+| Listen & Guess | listenAndGuess | false     | false           | false    | true                  | Lithuanian words   | false               |
+| Guess Phrases  | guessPhrases   | false     | false           | true     | true                  | Lithuanian phrases | false               |
