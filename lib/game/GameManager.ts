@@ -187,7 +187,7 @@ export abstract class GameManager<T extends SubjectRecord> {
         });
     }
 
-    private static sortByDifficulty<U extends SubjectRecord>(subjects: U[], globalStats: GlobalStatsMap): U[] {
+    public static sortByDifficulty<U extends SubjectRecord>(subjects: U[], globalStats: GlobalStatsMap): U[] {
         const shuffled = GameManager.shuffle(subjects);
         return shuffled.sort((a, b) => {
             const aStats = globalStats[a.getSubject()] ?? {
@@ -201,16 +201,26 @@ export abstract class GameManager<T extends SubjectRecord> {
                 wrongAttempts: 0,
             };
 
+            // 1. Prioritize completely new words (0 attempts)
+            const aIsNew = aStats.correctAttempts === 0 && aStats.wrongAttempts === 0;
+            const bIsNew = bStats.correctAttempts === 0 && bStats.wrongAttempts === 0;
+            if (aIsNew && !bIsNew) return -1;
+            if (!aIsNew && bIsNew) return 1;
+
+            // 2. Struggle Score (Higher is harder)
             const aScore = aStats.wrongAttempts - aStats.correctAttempts;
             const bScore = bStats.wrongAttempts - bStats.correctAttempts;
             if (aScore !== bScore) {
                 return bScore - aScore;
             }
+
+            // 3. Total Attempts (Higher frequency first)
             const aAttempts = aStats.correctAttempts + aStats.wrongAttempts;
             const bAttempts = bStats.correctAttempts + bStats.wrongAttempts;
             if (aAttempts !== bAttempts) {
                 return bAttempts - aAttempts;
             }
+
             return a.getSubject().localeCompare(b.getSubject());
         });
     }
