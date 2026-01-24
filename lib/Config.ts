@@ -45,7 +45,38 @@ export const PHRASES_DICTIONARY_DATA: PhraseEntry[] = [
     {phrase: "No, it isn't.", translation: 'Ne, tai nėra.'},
 ];
 
+export const NUMBERS_DATA: WordEntry[] = [
+    [0, 'zero', 'nulis', 'Zero red apples.'],
+    [1, 'one', 'vienas', 'One black cat.'],
+    [2, 'two', 'du', 'Two dogs play.'],
+    [3, 'three', 'trys', 'Three red apples.'],
+    [4, 'four', 'keturi', 'Four fish swim.'],
+    [5, 'five', 'penki', 'Five green balloons.'],
+    [6, 'six', 'šeši', 'Six crayons on the desk.'],
+    [7, 'seven', 'septyni', 'Seven yellow puppets.'],
+    [8, 'eight', 'aštuoni', 'Eight purple pencils.'],
+    [9, 'nine', 'devyni', 'Nine brown eggs.'],
+    [10, 'ten', 'dešimt', 'Ten white teddies.'],
+    [11, 'eleven', 'vienuolika', 'Eleven red roses.'],
+    [12, 'twelve', 'dvylika', 'Twelve blue birds.'],
+    [13, 'thirteen', 'trylika', 'Thirteen green frogs.'],
+    [14, 'fourteen', 'keturiolika', 'Fourteen yellow stars.'],
+    [15, 'fifteen', 'penkiolika', 'Fifteen pink flowers.'],
+    [16, 'sixteen', 'šešiolika', 'Sixteen orange fish.'],
+    [17, 'seventeen', 'septyniolika', 'Seventeen white clouds.'],
+    [18, 'eighteen', 'aštuoniolika', 'Eighteen black cats.'],
+    [19, 'nineteen', 'devyniolika', 'Nineteen brown dogs.'],
+    [20, 'twenty', 'dvidešimt', 'Twenty red apples.'],
+].map(([displayAs, word, translation, example]) => ({
+    word: word as string,
+    translation: translation as string,
+    examples: [example as string],
+    type: 'number' as const,
+    displayAs: displayAs as string,
+}));
+
 export const WORDS_DICTIONARY_DATA: WordEntry[] = [
+    ...NUMBERS_DATA,
     {
         word: 'apple',
         translation: 'obuolys',
@@ -183,72 +214,6 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         translation: 'geltonas',
         examples: ['Yellow sun shines.'],
         type: 'color',
-    },
-    {
-        word: 'zero',
-        translation: 'nulis',
-        examples: ['Zero red apples.'],
-        type: 'number',
-    },
-    {
-        word: 'one',
-        translation: 'vienas',
-        examples: ['One black cat.'],
-        type: 'number',
-    },
-    {
-        word: 'two',
-        translation: 'du',
-        examples: ['Two dogs play.'],
-        type: 'number',
-    },
-    {
-        word: 'three',
-        translation: 'trys',
-        examples: ['Three red apples.'],
-        type: 'number',
-    },
-    {
-        word: 'four',
-        translation: 'keturi',
-        examples: ['Four fish swim.'],
-        type: 'number',
-    },
-    {
-        word: 'five',
-        translation: 'penki',
-        examples: ['Five green balloons.'],
-        type: 'number',
-    },
-    {
-        word: 'six',
-        translation: 'šeši',
-        examples: ['Six crayons on the desk.'],
-        type: 'number',
-    },
-    {
-        word: 'seven',
-        translation: 'septyni',
-        examples: ['Seven yellow puppets.'],
-        type: 'number',
-    },
-    {
-        word: 'eight',
-        translation: 'aštuoni',
-        examples: ['Eight purple pencils.'],
-        type: 'number',
-    },
-    {
-        word: 'nine',
-        translation: 'devyni',
-        examples: ['Nine brown eggs.'],
-        type: 'number',
-    },
-    {
-        word: 'ten',
-        translation: 'dešimt',
-        examples: ['Ten white teddies.'],
-        type: 'number',
     },
     {
         word: 'dad',

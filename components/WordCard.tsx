@@ -11,19 +11,6 @@ import {CardHeader} from '@mui/material';
 
 const PASTEL_BACKGROUNDS = ['#FFF897', '#E8F9FD', '#FDE2FF', '#E6FFF7', '#FFEAD2'];
 const PASTEL_TEXTS = ['#A68DAD', '#6FA8DC', '#F4978E', '#7FB685', '#C26DBC'];
-const NUMBER_MAP: Record<string, string> = {
-    zero: '0',
-    one: '1',
-    two: '2',
-    three: '3',
-    four: '4',
-    five: '5',
-    six: '6',
-    seven: '7',
-    eight: '8',
-    nine: '9',
-    ten: '10',
-};
 
 interface WordCardProps {
     word: WordRecord;
@@ -38,16 +25,16 @@ interface WordCardProps {
 }
 
 export default function WordCard({
-    word,
-    active,
-    onPronounce,
-    mode = WordCardMode.Learning,
-    globalStats,
-    showImage: propShowImage,
-    showTranslation: propShowTranslation,
-    showWord: propShowWord,
-    showWordPronunciation: propShowWordPronunciation,
-}: WordCardProps) {
+                                     word,
+                                     active,
+                                     onPronounce,
+                                     mode = WordCardMode.Learning,
+                                     globalStats,
+                                     showImage: propShowImage,
+                                     showTranslation: propShowTranslation,
+                                     showWord: propShowWord,
+                                     showWordPronunciation: propShowWordPronunciation,
+                                 }: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
     const isNumber = word.type === 'number';
 
@@ -58,7 +45,7 @@ export default function WordCard({
         [word.word],
     );
     const numberDisplay = useMemo(() => {
-        return NUMBER_MAP[word.word] ?? word.word;
+        return word.entry.displayAs ?? word.word;
     }, [word.word]);
 
     const toggleFlip = () => {
@@ -99,7 +86,7 @@ export default function WordCard({
                     onClick={handlePronounce}
                     color={active ? 'secondary' : 'primary'}
                 >
-                    <VolumeUpIcon />
+                    <VolumeUpIcon/>
                 </IconButton>
             </Box>
         </CardContent>

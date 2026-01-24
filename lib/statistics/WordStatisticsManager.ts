@@ -14,12 +14,7 @@ export interface WordStatisticsState {
 }
 
 export class WordStatisticsManager extends BaseStatisticsManager {
-    constructor(
-        words: WordRecord[],
-        storageKey: string,
-        globalStorageKey: string,
-        storage?: StorageLike,
-    ) {
+    constructor(words: WordRecord[], storageKey: string, globalStorageKey: string, storage?: StorageLike) {
         super(words, storageKey, globalStorageKey, storage);
     }
 

@@ -49,6 +49,9 @@ export interface WordEntry {
     examples?: string[];
     type: 'noun' | 'verb' | 'adjective' | 'color' | 'number';
     imageFile?: string;
+
+    // Optional display override
+    displayAs?: string;
 }
 
 export abstract class SubjectRecord {
@@ -70,8 +73,11 @@ export class WordRecord extends SubjectRecord {
 
     imageFile?: string;
 
+    entry: WordEntry;
+
     constructor(entry: WordEntry) {
         super();
+        this.entry = entry;
         this.word = entry.word;
         this.translation = entry.translation;
         this.examples = entry.examples;

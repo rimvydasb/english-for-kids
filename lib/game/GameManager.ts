@@ -149,7 +149,7 @@ export abstract class GameManager<T extends SubjectRecord> {
         };
     }
 
-    resetInGameStatistics(): { inGameStats: InGameStatsMap; aggregated: InGameAggregatedStatistics } {
+    resetInGameStatistics(): {inGameStats: InGameStatsMap; aggregated: InGameAggregatedStatistics} {
         this.statistics.resetInGameStatistics();
         const inGameStats = this.statistics.loadInGameStatistics();
         return {inGameStats, aggregated: this.statistics.aggregate(inGameStats)};
@@ -174,7 +174,7 @@ export abstract class GameManager<T extends SubjectRecord> {
                 }
                 return {subject, wrong: record.wrongAttempts};
             })
-            .filter((item): item is { subject: T; wrong: number } => Boolean(item))
+            .filter((item): item is {subject: T; wrong: number} => Boolean(item))
             .sort((a, b) => b.wrong - a.wrong)
             .slice(0, count)
             .map((item) => item.subject);

@@ -5,10 +5,7 @@ import {GameRules, WordCardMode, WordRecord} from '@/lib/types';
 import {WORDS_DICTIONARY} from '@/lib/words';
 
 abstract class BaseWordsGameManager extends GameManager<WordRecord> {
-    protected constructor(
-        subjects: WordRecord[] = WORDS_DICTIONARY,
-        storage?: StorageLike,
-    ) {
+    protected constructor(subjects: WordRecord[] = WORDS_DICTIONARY, storage?: StorageLike) {
         // We pass a placeholder for statistics because we need to access this.getGameRules()
         // to determine the variant, which is required to create the real statistics manager.
         // GameManager constructor does not use statistics, so this is safe.
