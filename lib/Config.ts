@@ -266,6 +266,42 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         type: 'noun',
     },
     {
+        word: 'cold',
+        translation: 'šalta',
+        examples: ['It is cold outside.'],
+        type: 'adjective',
+    },
+    {
+        word: 'happy',
+        translation: 'laimingas',
+        examples: ['I am very happy.'],
+        type: 'adjective',
+    },
+    {
+        word: 'hot',
+        translation: 'karšta',
+        examples: ['The soup is hot.'],
+        type: 'adjective',
+    },
+    {
+        word: 'hungry',
+        translation: 'alkanas',
+        examples: ['I am hungry now.'],
+        type: 'adjective',
+    },
+    {
+        word: 'sad',
+        translation: 'liūdnas',
+        examples: ['Why are you sad?'],
+        type: 'adjective',
+    },
+    {
+        word: 'thirsty',
+        translation: 'ištroškęs',
+        examples: ['I am thirsty.'],
+        type: 'adjective',
+    },
+    {
         word: 'boy',
         translation: 'berniukas',
         examples: ['The boy plays.'],
