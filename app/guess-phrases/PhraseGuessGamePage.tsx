@@ -40,6 +40,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
 
     const hasAnnouncedFinishRef = useRef(false);
     const {activeWord, error, pronounceWord: playPhrase} = usePronunciation();
+    const {pronounceWord: playOptionPhrase} = usePronunciation();
     const congratulationsRecord = useMemo(() => ({word: 'Great job'}), []);
 
     const activeAggregatedStats: InGameAggregatedStatistics = useMemo(() => {
@@ -252,7 +253,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                             showPronunciation={currentRules.optionPronunciation}
                                             onPronounce={() => {
                                                 if (optionPhrase) {
-                                                    playPhrase(optionPhrase, {
+                                                    playOptionPhrase(optionPhrase, {
                                                         suppressPendingError: true,
                                                         suppressNotAllowedError: true,
                                                     });
