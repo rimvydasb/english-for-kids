@@ -1,5 +1,7 @@
 import {useMemo} from 'react';
-import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import Box from '@mui/material/Box';
 import {keyframes} from '@mui/material/styles';
 
 const gradientShift = keyframes`
@@ -37,6 +39,8 @@ interface OptionButtonProps {
     isHidden: boolean;
     isLocked: boolean;
     glowSeed: number;
+    showPronunciation?: boolean;
+    onPronounce?: () => void;
     onGuess: (value: string) => void;
 }
 
@@ -49,6 +53,8 @@ export default function OptionButton({
     isHidden,
     isLocked,
     glowSeed,
+    showPronunciation,
+    onPronounce,
     onGuess,
 }: OptionButtonProps) {
     const minWidth = Math.max(label.length * 14, 140);
@@ -85,18 +91,51 @@ export default function OptionButton({
           }
         : {};
 
+    const handlePronounceClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onPronounce?.();
+    };
+
+    // Determine colors and borders based on state
+    const borderColor = isShaking ? 'error.main' : isGlowing ? 'transparent' : 'rgba(25, 118, 210, 0.5)'; // Default primary-ish border
+
+    const color = isShaking ? 'error.main' : isGlowing ? '#fff' : 'primary.main';
+
+    const bgcolor = isShaking
+        ? 'error.light'
+        : isGlowing
+          ? 'primary.main' // Fallback if no gradient
+          : 'transparent';
+
     return (
-        <Button
-            variant={isGlowing ? 'contained' : 'outlined'}
-            color={isShaking ? 'error' : isGlowing ? 'success' : 'primary'}
-            size="large"
+        <Box
             onClick={() => onGuess(value)}
             sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                boxSizing: 'border-box',
+                borderRadius: '4px', // Standard MUI button radius
+                border: '1px solid',
+                cursor: 'pointer',
+                userSelect: 'none',
+                verticalAlign: 'middle',
+                appearance: 'none',
+                textDecoration: 'none',
+
+                // Dynamic styles
+                borderColor: animatedStyles.borderColor || borderColor,
+                color: animatedStyles.color || color,
+                bgcolor: bgcolor,
+
                 textTransform: 'none',
                 fontWeight: 700,
                 fontSize: 25,
                 minWidth,
-                px: 2.5,
+                pl: showPronunciation ? 1 : 2.5,
+                pr: 2.5,
+                py: '7px', // Approx large button padding
                 pointerEvents: isLocked || isHidden ? 'none' : 'auto',
                 animation: shouldFade
                     ? `${fadeAwayAnimation} 3s forwards`
@@ -105,18 +144,45 @@ export default function OptionButton({
                       : isGlowing
                         ? animatedStyles.animation
                         : 'none',
-                bgcolor: isShaking ? 'error.light' : isGlowing ? 'primary.main' : undefined,
-                borderColor: isShaking ? 'error.main' : undefined,
-                color: isShaking ? 'error.main' : animatedStyles.color,
                 opacity: shouldFade ? 0 : 1,
                 visibility: isHidden ? 'hidden' : 'visible',
                 backgroundImage: animatedStyles.backgroundImage,
                 backgroundSize: animatedStyles.backgroundSize,
                 boxShadow: animatedStyles.boxShadow,
-                '&:hover': isGlowing ? animatedStyles : undefined,
+                transition:
+                    'background-color 250ms, border-color 250ms, color 250ms, box-shadow 250ms, transform 250ms',
+
+                '&:hover': {
+                    bgcolor: isGlowing ? undefined : 'rgba(25, 118, 210, 0.04)', // Hover state for outlined
+                    borderColor: isGlowing ? undefined : 'primary.main',
+                    ...((isGlowing ? animatedStyles : {}) as any),
+                },
+                gap: 1,
             }}
         >
+            {showPronunciation && (
+                <IconButton
+                    size="small"
+                    onClick={handlePronounceClick}
+                    sx={{
+                        color: 'inherit',
+                        borderRadius: 2,
+                        border: '1px solid',
+                        borderColor: isGlowing ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.12)',
+                        backgroundColor: isGlowing ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.05)',
+                        p: 0.8,
+                        mr: 0.5,
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                            backgroundColor: isGlowing ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.1)',
+                            transform: 'scale(1.1)',
+                        },
+                    }}
+                >
+                    <VolumeUpIcon sx={{fontSize: 30}} />
+                </IconButton>
+            )}
             {label}
-        </Button>
+        </Box>
     );
 }

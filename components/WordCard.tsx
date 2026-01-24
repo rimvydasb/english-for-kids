@@ -25,16 +25,16 @@ interface WordCardProps {
 }
 
 export default function WordCard({
-                                     word,
-                                     active,
-                                     onPronounce,
-                                     mode = WordCardMode.Learning,
-                                     globalStats,
-                                     showImage: propShowImage,
-                                     showTranslation: propShowTranslation,
-                                     showWord: propShowWord,
-                                     showWordPronunciation: propShowWordPronunciation,
-                                 }: WordCardProps) {
+    word,
+    active,
+    onPronounce,
+    mode = WordCardMode.Learning,
+    globalStats,
+    showImage: propShowImage,
+    showTranslation: propShowTranslation,
+    showWord: propShowWord,
+    showWordPronunciation: propShowWordPronunciation,
+}: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
     const isNumber = word.type === 'number';
 
@@ -87,7 +87,7 @@ export default function WordCard({
                         onClick={handlePronounce}
                         color={active ? 'secondary' : 'primary'}
                     >
-                        <VolumeUpIcon/>
+                        <VolumeUpIcon />
                     </IconButton>
                 )}
             </Box>

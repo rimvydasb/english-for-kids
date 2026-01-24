@@ -86,7 +86,7 @@ export const COLORS_DATA: WordEntry[] = [
     ['white', 'baltas', 'White snow falls.'],
     ['black', 'juodas', 'Black night falls.'],
     ['brown', 'rudas', 'Brown bear roams.'],
-    ['gray', 'pilkas', 'Gray cloud looms.']
+    ['gray', 'pilkas', 'Gray cloud looms.'],
 ].map(([word, translation, example]) => ({
     word: word as string,
     translation: translation as string,

@@ -266,6 +266,15 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                                             isLocked={isTransitioning}
                                             glowSeed={glowSeed}
                                             onGuess={handleGuess}
+                                            showPronunciation={currentRules.optionPronunciation}
+                                            onPronounce={() => {
+                                                if (optionWord) {
+                                                    playWord(optionWord, {
+                                                        suppressPendingError: true,
+                                                        suppressNotAllowedError: true,
+                                                    });
+                                                }
+                                            }}
                                         />
                                     );
                                 })}
