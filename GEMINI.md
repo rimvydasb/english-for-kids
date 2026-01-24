@@ -16,6 +16,31 @@
 - `npm run lint` — Next.js/ESLint checks; run before shipping changes.
 - `npm run format` — run Prettier to format the codebase.
 
+### Cypress Testing
+
+Running Cypress on existing server:
+
+- Use the helper script `bin/test-cypress.sh` to safely start the server.
+- The most important test is be `health.cy.ts` - if this test fails, there's no reason to continue with other tests.
+  Warn use if health check fails!
+- For failed test cases, search images in `cypress/screenshots` and analyze them to identify UI issues.
+- You can add `datatest-id` attributes to elements to simplify Cypress selector scoping. However, button search and
+  click should happen by text content to mimic user behavior.
+- Tests must manually clear IndexedDB (`edgerules-modeler`) to ensure a clean state, as the app persists
+  data locally.
+
+**Executing all tests or individual ones:**
+
+```bash
+./bin/test-cypress.sh
+```
+
+Or run specific spec:
+
+```bash
+./bin/test-cypress.sh --spec "cypress/e2e/health.cy.ts"
+```
+
 ## Coding Style & Naming Conventions
 
 - TypeScript with strict settings; prefer functional React components and hooks.

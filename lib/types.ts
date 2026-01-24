@@ -20,6 +20,14 @@ export interface GameRules {
     optionPronunciation: boolean;
 }
 
+export const DEFAULT_RULES: Partial<GameRules> = {
+    wordCardMode: WordCardMode.Learning,
+    showImage: true,
+    showTranslation: true,
+    showWord: true,
+    showWordPronunciation: true,
+};
+
 export type GameVariant = 'guessTheWord' | 'listenAndGuess' | 'guessPhrase';
 
 export type WordGameVariant = Extract<GameVariant, 'guessTheWord' | 'listenAndGuess'>;

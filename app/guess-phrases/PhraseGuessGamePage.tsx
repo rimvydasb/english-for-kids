@@ -12,9 +12,8 @@ import PhraseCard from '@/components/PhraseCard';
 import {usePronunciation} from '@/lib/usePronunciation';
 import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
-import {PhraseRecord} from '@/lib/types';
+import {DEFAULT_RULES, GameRules, PhraseRecord} from '@/lib/types';
 import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
-import {InGameStatistics} from '@/lib/types';
 import {GlobalConfig} from '@/lib/Config';
 
 interface PhraseGuessGamePageProps {
@@ -23,7 +22,7 @@ interface PhraseGuessGamePageProps {
 
 export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePageProps) {
     const router = useRouter();
-    const rules = gameManager.getGameRules();
+    const rules = useMemo(() => gameManager.getGameRules(), [gameManager]);
     const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
     const initialStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
     const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>(initialSubjects);
@@ -36,8 +35,9 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
     const [resolvedOption, setResolvedOption] = useState<string | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [pendingCompletion, setPendingCompletion] = useState(false);
-    const [showTranslation, setShowTranslation] = useState(false);
     const [glowSeed, setGlowSeed] = useState(0);
+    const [currentRules, setCurrentRules] = useState<GameRules>(rules);
+
     const hasAnnouncedFinishRef = useRef(false);
     const {activeWord, error, pronounceWord: playPhrase} = usePronunciation();
     const congratulationsRecord = useMemo(() => ({word: 'Great job'}), []);
@@ -64,10 +64,10 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
             setResolvedOption(null);
             setIsTransitioning(false);
             setPendingCompletion(false);
-            setShowTranslation(false);
             setGlowSeed(0);
+            setCurrentRules(rules);
         },
-        [gameManager],
+        [gameManager, rules],
     );
 
     useEffect(() => {
@@ -109,9 +109,9 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                 setGlowingOption(guess);
                 setShakingOption(null);
                 setResolvedOption(guess);
+                setCurrentRules({...rules, ...DEFAULT_RULES});
                 setIsTransitioning(true);
                 setPendingCompletion(result.isComplete);
-                setShowTranslation(true);
                 setGlowSeed(Math.random());
                 return;
             }
@@ -119,7 +119,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
             setShakingOption(guess);
             window.setTimeout(() => setShakingOption(null), 700);
         },
-        [activeSubjects, currentPhrase, gameManager, inGameStats, isTransitioning, playPhrase],
+        [activeSubjects, currentPhrase, gameManager, inGameStats, isTransitioning, playPhrase, rules],
     );
 
     const handleNext = useCallback(() => {
@@ -137,7 +137,6 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
         setResolvedOption(null);
         setIsTransitioning(false);
         setPendingCompletion(false);
-        setShowTranslation(false);
         setGlowSeed(0);
     }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
@@ -153,7 +152,6 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
         setIsFinished(false);
         setResolvedOption(null);
         setPendingCompletion(false);
-        setShowTranslation(false);
         setGlowSeed(0);
     }, [gameManager, setupRound]);
 
@@ -208,9 +206,9 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                     <PhraseCard
                                         phrase={currentPhrase}
                                         active={activeWord === currentPhrase.word}
-                                        showTranslation={rules.showTranslation || showTranslation}
-                                        showPhrase={rules.showWord || showTranslation}
-                                        showPhrasePronunciation={rules.showWordPronunciation || showTranslation}
+                                        showTranslation={currentRules.showTranslation}
+                                        showPhrase={currentRules.showWord}
+                                        showPhrasePronunciation={currentRules.showWordPronunciation}
                                         onPronounce={() =>
                                             playPhrase(currentPhrase, {
                                                 suppressPendingError: true,
