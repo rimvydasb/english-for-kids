@@ -46,7 +46,7 @@ export default function WordCard({
     );
     const numberDisplay = useMemo(() => {
         return word.entry.displayAs ?? word.word;
-    }, [word.word]);
+    }, [word.word, word.entry.displayAs]);
 
     const toggleFlip = () => {
         setFlipped((prev) => !prev);

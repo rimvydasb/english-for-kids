@@ -230,6 +230,42 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         type: 'noun',
     },
     {
+        word: 'jug',
+        translation: 'ąsotis',
+        examples: ['Jug is full of water.'],
+        type: 'noun',
+    },
+    {
+        word: 'juice',
+        translation: 'sultys',
+        examples: ['Fresh orange juice.'],
+        type: 'noun',
+    },
+    {
+        word: 'kangaroo',
+        translation: 'kengūra',
+        examples: ['Kangaroo jumps high.'],
+        type: 'noun',
+    },
+    {
+        word: 'key',
+        translation: 'raktas',
+        examples: ['Small key here.'],
+        type: 'noun',
+    },
+    {
+        word: 'lion',
+        translation: 'liūtas',
+        examples: ['Lion roars loud.'],
+        type: 'noun',
+    },
+    {
+        word: 'lollipop',
+        translation: 'čiulpinukas',
+        examples: ['Sweet lollipop here.'],
+        type: 'noun',
+    },
+    {
         word: 'boy',
         translation: 'berniukas',
         examples: ['The boy plays.'],
