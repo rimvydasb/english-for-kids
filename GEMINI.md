@@ -14,6 +14,7 @@
 - `npm run build` — create the production bundle.
 - `npm start` — run the built app on port 7788.
 - `npm run lint` — Next.js/ESLint checks; run before shipping changes.
+- `npm run format` — run Prettier to format the codebase.
 
 ## Coding Style & Naming Conventions
 

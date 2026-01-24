@@ -33,7 +33,6 @@ export enum WordCardMode {
 
 interface WordCardProps {
     word: WordRecord;
-    showWordPronunciation: boolean;
     active?: boolean;
     onPronounce?: () => void;
     mode?: WordCardMode;
@@ -42,7 +41,6 @@ interface WordCardProps {
 
 export default function WordCard({
     word,
-    showWordPronunciation,
     active,
     onPronounce,
     mode = WordCardMode.Learning,
@@ -50,6 +48,8 @@ export default function WordCard({
 }: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
     const isNumber = word.type === 'number';
+
+    const showWordPronunciation = mode !== WordCardMode.GuessWord;
 
     const colorIndex = useMemo(
         () => word.word.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % PASTEL_BACKGROUNDS.length,
