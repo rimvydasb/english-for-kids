@@ -1,17 +1,17 @@
-import { Divider, Stack, Typography } from '@mui/material';
-import { InGameAggregatedStatistics } from '@/lib/statistics/AStatisticsManager';
+import {Divider, Stack, Typography} from '@mui/material';
+import {InGameAggregatedStatistics} from '@/lib/statistics/AStatisticsManager';
 
 interface VariantStatsBarProps {
     stats: InGameAggregatedStatistics;
 }
 
-export default function VariantStatsBar({ stats }: VariantStatsBarProps) {
+export default function VariantStatsBar({stats}: VariantStatsBarProps) {
     return (
         <Stack
             direction="row"
             spacing={2}
             divider={<Divider flexItem orientation="vertical" />}
-            sx={{ flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}
+            sx={{flexWrap: 'wrap', justifyContent: 'center', width: '100%'}}
         >
             <Typography variant="body2" color="text.secondary">
                 Attempts: {stats.totalAttempts}

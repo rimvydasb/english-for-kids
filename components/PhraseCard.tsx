@@ -10,12 +10,7 @@ interface PhraseCardProps {
     onPronounce?: () => void;
 }
 
-export default function PhraseCard({
-                                       phrase,
-                                       active = false,
-                                       showTranslation = false,
-                                       onPronounce,
-                                   }: PhraseCardProps) {
+export default function PhraseCard({phrase, active = false, showTranslation = false, onPronounce}: PhraseCardProps) {
     const handlePronounce = (event: MouseEvent) => {
         event.stopPropagation();
         onPronounce?.();
@@ -50,7 +45,7 @@ export default function PhraseCard({
                         onClick={handlePronounce}
                         color={active ? 'secondary' : 'primary'}
                     >
-                        <VolumeUpIcon/>
+                        <VolumeUpIcon />
                     </IconButton>
                 </Typography>
             </CardContent>

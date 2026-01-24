@@ -1,11 +1,11 @@
-import { WordStatisticsManager } from '@/lib/statistics/WordStatisticsManager';
-import { WordRecord } from '@/lib/words';
-import { MemoryStorage } from './helpers/mockStorage';
+import {WordStatisticsManager} from '@/lib/statistics/WordStatisticsManager';
+import {WordRecord} from '@/lib/words';
+import {MemoryStorage} from './helpers/mockStorage';
 
 describe('WordStatisticsManager', () => {
     const words: WordRecord[] = [
-        new WordRecord({ word: 'apple', translation: 'obuolys', type: 'noun' }),
-        new WordRecord({ word: 'dog', translation: 'šuo', type: 'noun' }),
+        new WordRecord({word: 'apple', translation: 'obuolys', type: 'noun'}),
+        new WordRecord({word: 'dog', translation: 'šuo', type: 'noun'}),
     ];
 
     it('tracks attempts, aggregates, and updates global stats on finish', () => {

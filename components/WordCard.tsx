@@ -1,13 +1,13 @@
-import { MouseEvent, useMemo, useState } from 'react';
+import {MouseEvent, useMemo, useState} from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import { WordRecord } from '@/lib/words';
-import { GlobalStatistics } from '@/lib/types';
-import { CardHeader } from '@mui/material';
+import {WordRecord} from '@/lib/words';
+import {GlobalStatistics} from '@/lib/types';
+import {CardHeader} from '@mui/material';
 
 const PASTEL_BACKGROUNDS = ['#FFF897', '#E8F9FD', '#FDE2FF', '#E6FFF7', '#FFEAD2'];
 const PASTEL_TEXTS = ['#A68DAD', '#6FA8DC', '#F4978E', '#7FB685', '#C26DBC'];
@@ -33,6 +33,7 @@ export enum WordCardMode {
 
 interface WordCardProps {
     word: WordRecord;
+    showWordPronunciation: boolean;
     active?: boolean;
     onPronounce?: () => void;
     mode?: WordCardMode;
@@ -40,12 +41,13 @@ interface WordCardProps {
 }
 
 export default function WordCard({
-                                     word,
-                                     active,
-                                     onPronounce,
-                                     mode = WordCardMode.Learning,
-                                     globalStats,
-                                 }: WordCardProps) {
+    word,
+    showWordPronunciation,
+    active,
+    onPronounce,
+    mode = WordCardMode.Learning,
+    globalStats,
+}: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
     const isNumber = word.type === 'number';
 
@@ -68,10 +70,7 @@ export default function WordCard({
 
     const showImage = mode !== WordCardMode.ListenAndGuess;
     const showTranslation = mode !== WordCardMode.ListenAndGuess;
-    const displayedWord = useMemo(
-        () => (mode === WordCardMode.Learning ? word.word : '???'),
-        [mode, word.word],
-    );
+    const displayedWord = useMemo(() => (mode === WordCardMode.Learning ? word.word : '???'), [mode, word.word]);
     const stats: GlobalStatistics = globalStats ?? {
         key: word.word,
         correctAttempts: 0,
@@ -97,7 +96,7 @@ export default function WordCard({
                     onClick={handlePronounce}
                     color={active ? 'secondary' : 'primary'}
                 >
-                    <VolumeUpIcon/>
+                    <VolumeUpIcon />
                 </IconButton>
             </Box>
         </CardContent>
@@ -157,7 +156,7 @@ export default function WordCard({
                                     <Typography
                                         component="div"
                                         sx={{
-                                            fontSize: { xs: 110, sm: 150 },
+                                            fontSize: {xs: 110, sm: 150},
                                             fontWeight: 800,
                                             color: PASTEL_TEXTS[colorIndex % PASTEL_TEXTS.length],
                                             textShadow: '0 1px 0 rgba(0,0,0,0.08)',
@@ -214,11 +213,11 @@ export default function WordCard({
                     >
                         <CardHeader
                             subheader={
-                                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-                                    <Typography variant="body2" color="success.main" sx={{ fontWeight: 600 }}>
+                                <Box sx={{display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center'}}>
+                                    <Typography variant="body2" color="success.main" sx={{fontWeight: 600}}>
                                         Correct: {stats.correctAttempts}
                                     </Typography>
-                                    <Typography variant="body2" color="error.main" sx={{ fontWeight: 600 }}>
+                                    <Typography variant="body2" color="error.main" sx={{fontWeight: 600}}>
                                         Wrong: {stats.wrongAttempts}
                                     </Typography>
                                 </Box>

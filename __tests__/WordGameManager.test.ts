@@ -1,21 +1,20 @@
-import { GlobalConfig } from '@/lib/Config';
-import { GuessTheWordGameManager, ListenAndGuessGameManager } from '@/lib/game/WordGameManager';
-import { WordRecord } from '@/lib/words';
-import { MemoryStorage } from './helpers/mockStorage';
+import {GlobalConfig} from '@/lib/Config';
+import {GuessTheWordGameManager, ListenAndGuessGameManager} from '@/lib/game/WordGameManager';
+import {WordRecord} from '@/lib/words';
+import {MemoryStorage} from './helpers/mockStorage';
 
-const getType = (records: WordRecord[], word: string) =>
-    records.find((item) => item.word === word)?.type;
+const getType = (records: WordRecord[], word: string) => records.find((item) => item.word === word)?.type;
 
 describe('Word game managers', () => {
     const words: WordRecord[] = [
-        new WordRecord({ word: 'red', translation: 'raudonas', type: 'color' }),
-        new WordRecord({ word: 'green', translation: 'žalias', type: 'color' }),
-        new WordRecord({ word: 'yellow', translation: 'geltonas', type: 'color' }),
-        new WordRecord({ word: 'black', translation: 'juodas', type: 'color' }),
-        new WordRecord({ word: 'white', translation: 'baltas', type: 'color' }),
-        new WordRecord({ word: 'cat', translation: 'katė', type: 'noun' }),
-        new WordRecord({ word: 'dog', translation: 'šuo', type: 'noun' }),
-        new WordRecord({ word: 'desk', translation: 'rašomasis stalas', type: 'noun' }),
+        new WordRecord({word: 'red', translation: 'raudonas', type: 'color'}),
+        new WordRecord({word: 'green', translation: 'žalias', type: 'color'}),
+        new WordRecord({word: 'yellow', translation: 'geltonas', type: 'color'}),
+        new WordRecord({word: 'black', translation: 'juodas', type: 'color'}),
+        new WordRecord({word: 'white', translation: 'baltas', type: 'color'}),
+        new WordRecord({word: 'cat', translation: 'katė', type: 'noun'}),
+        new WordRecord({word: 'dog', translation: 'šuo', type: 'noun'}),
+        new WordRecord({word: 'desk', translation: 'rašomasis stalas', type: 'noun'}),
     ];
 
     it('builds options using grouped decoys when available', () => {
@@ -34,12 +33,7 @@ describe('Word game managers', () => {
         const activeSubjects = manager.startTheGame();
         let inGameStats = manager.loadInGameStatistics();
 
-        const correct = manager.recordAttempt(
-            inGameStats,
-            activeSubjects[0],
-            activeSubjects[0].word,
-            activeSubjects,
-        );
+        const correct = manager.recordAttempt(inGameStats, activeSubjects[0], activeSubjects[0].word, activeSubjects);
         inGameStats = correct.inGameStats;
         expect(correct.isCorrect).toBe(true);
         expect(inGameStats[activeSubjects[0].word].correctAttempts).toBe(1);

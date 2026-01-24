@@ -1,6 +1,6 @@
-import { WordCardMode } from '@/components/WordCard';
-import { getGameSettings } from '@/lib/Config';
-import { GameVariant, OptionMode, WordGameVariant } from '@/lib/types';
+import {WordCardMode} from '@/components/WordCard';
+import {getGameSettings} from '@/lib/Config';
+import {GameVariant, OptionMode, WordGameVariant} from '@/lib/types';
 
 export interface GuessVariantConfig {
     label: string;
@@ -27,4 +27,4 @@ export const VARIANT_CONFIG: Record<WordGameVariant, GuessVariantConfig> = {
     },
 };
 
-export type { GameVariant, OptionMode, WordGameVariant };
+export type {GameVariant, OptionMode, WordGameVariant};

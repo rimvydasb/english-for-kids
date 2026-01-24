@@ -1,4 +1,4 @@
-import { GameVariant, PhraseEntry, PhraseRecord, WordEntry, WordRecord } from '@/lib/types';
+import {GameVariant, PhraseEntry, PhraseRecord, WordEntry, WordRecord} from '@/lib/types';
 
 export interface GameSettings {
     variant: GameVariant;
@@ -7,7 +7,6 @@ export interface GameSettings {
 }
 
 export const GlobalConfig = {
-
     // Start the game only with X subjects to guess and circle through them
     // Worst learned words and phrases will be used to draw the variants
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: 100,
@@ -34,8 +33,8 @@ export const GlobalConfig = {
             variant: 'guessPhrase' as GameVariant,
             globalStorageKey: 'GLOBAL_PHRASE_STATS',
             storageKey: 'GUESS_THE_PHRASE_GAME_STATS',
-        }
-    ]
+        },
+    ],
 } satisfies {
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: number;
     DEFAULT_DECOYS: number;
@@ -52,26 +51,26 @@ export const getGameSettings = (variant: GameVariant): GameSettings => {
 };
 
 export const PHRASES_DICTIONARY_DATA: PhraseEntry[] = [
-    { phrase: 'The Hello Song', translation: 'Pasisveikinimo daina' },
-    { phrase: 'Hello', translation: 'Labas' },
-    { phrase: 'Hello, hello', translation: 'Labas, labas' },
-    { phrase: 'How are you today?', translation: 'Kaip šiandien sekasi?' },
-    { phrase: 'How are you?', translation: 'Kaip tu laikaisi?' },
-    { phrase: 'And how about you?', translation: 'O kaip tau?' },
-    { phrase: 'How about you?', translation: 'O kaip tu? / O tavo?' },
-    { phrase: "I'm fine, thank you", translation: 'Man viskas gerai, ačiū' },
-    { phrase: "I'm fine, thank you.", translation: 'Puikiai, ačiū.' },
-    { phrase: "What's your name?", translation: 'Koks tavo vardas?' },
-    { phrase: 'My name is Ariele', translation: 'Mano vardas yra Arielė' },
-    { phrase: 'Goodbye!', translation: 'Viso gero!' },
-    { phrase: "What's your favourite colour?", translation: 'Kokia yra tavo mėgstamiausia spalva?' },
-    { phrase: 'My favourite colour is red.', translation: 'Mano mėgstamiausia spalva yra raudona.' },
-    { phrase: 'My favourite colour is green.', translation: 'Mano mėgstamiausia spalva yra žalia.' },
-    { phrase: "What's this?", translation: 'Kas tai?' },
-    { phrase: "It's a desk.", translation: 'Tai yra rašomasis stalas.' },
-    { phrase: 'Is it a plane?', translation: 'Ar tai lėktuvas?' },
-    { phrase: 'Yes, it is.', translation: 'Taip, tai yra.' },
-    { phrase: "No, it isn't.", translation: 'Ne, tai nėra.' },
+    {phrase: 'The Hello Song', translation: 'Pasisveikinimo daina'},
+    {phrase: 'Hello', translation: 'Labas'},
+    {phrase: 'Hello, hello', translation: 'Labas, labas'},
+    {phrase: 'How are you today?', translation: 'Kaip šiandien sekasi?'},
+    {phrase: 'How are you?', translation: 'Kaip tu laikaisi?'},
+    {phrase: 'And how about you?', translation: 'O kaip tau?'},
+    {phrase: 'How about you?', translation: 'O kaip tu? / O tavo?'},
+    {phrase: "I'm fine, thank you", translation: 'Man viskas gerai, ačiū'},
+    {phrase: "I'm fine, thank you.", translation: 'Puikiai, ačiū.'},
+    {phrase: "What's your name?", translation: 'Koks tavo vardas?'},
+    {phrase: 'My name is Ariele', translation: 'Mano vardas yra Arielė'},
+    {phrase: 'Goodbye!', translation: 'Viso gero!'},
+    {phrase: "What's your favourite colour?", translation: 'Kokia yra tavo mėgstamiausia spalva?'},
+    {phrase: 'My favourite colour is red.', translation: 'Mano mėgstamiausia spalva yra raudona.'},
+    {phrase: 'My favourite colour is green.', translation: 'Mano mėgstamiausia spalva yra žalia.'},
+    {phrase: "What's this?", translation: 'Kas tai?'},
+    {phrase: "It's a desk.", translation: 'Tai yra rašomasis stalas.'},
+    {phrase: 'Is it a plane?', translation: 'Ar tai lėktuvas?'},
+    {phrase: 'Yes, it is.', translation: 'Taip, tai yra.'},
+    {phrase: "No, it isn't.", translation: 'Ne, tai nėra.'},
 ];
 
 export const WORDS_DICTIONARY_DATA: WordEntry[] = [
@@ -326,35 +325,31 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         translation: 'berniukas',
         examples: ['The boy plays.'],
         type: 'noun',
-        imageFile: 'boy,brother.png'
+        imageFile: 'boy,brother.png',
     },
     {
         word: 'brother',
         translation: 'brolis',
         examples: ['This is my brother.'],
         type: 'noun',
-        imageFile: 'boy,brother.png'
+        imageFile: 'boy,brother.png',
     },
     {
         word: 'girl',
         translation: 'mergaitė',
         examples: ['The girl sings.'],
         type: 'noun',
-        imageFile: 'girl,sister.png'
+        imageFile: 'girl,sister.png',
     },
     {
         word: 'sister',
         translation: 'sesė',
         examples: ['This is my sister.'],
         type: 'noun',
-        imageFile: 'girl,sister.png'
+        imageFile: 'girl,sister.png',
     },
 ];
 
-export const PHRASES_DICTIONARY: PhraseRecord[] = PHRASES_DICTIONARY_DATA.map(
-    (entry) => new PhraseRecord(entry),
-);
+export const PHRASES_DICTIONARY: PhraseRecord[] = PHRASES_DICTIONARY_DATA.map((entry) => new PhraseRecord(entry));
 
-export const WORDS_DICTIONARY: WordRecord[] = WORDS_DICTIONARY_DATA.map(
-    (entry) => new WordRecord(entry),
-);
+export const WORDS_DICTIONARY: WordRecord[] = WORDS_DICTIONARY_DATA.map((entry) => new WordRecord(entry));

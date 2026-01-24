@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 import Button from '@mui/material/Button';
-import { keyframes } from '@mui/material/styles';
+import {keyframes} from '@mui/material/styles';
 
 const gradientShift = keyframes`
   0% { background-position: 0% 50%; }
@@ -76,13 +76,13 @@ export default function OptionButton({
         borderColor?: string;
     } = isGlowing
         ? {
-            backgroundImage: animatedGradient ?? undefined,
-            backgroundSize: '220% 220%',
-            color: '#fff',
-            animation: `${gradientShift} 1.3s ease-in-out infinite, ${quickPop} 0.6s ease-out`,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
-            borderColor: 'transparent',
-        }
+              backgroundImage: animatedGradient ?? undefined,
+              backgroundSize: '220% 220%',
+              color: '#fff',
+              animation: `${gradientShift} 1.3s ease-in-out infinite, ${quickPop} 0.6s ease-out`,
+              boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
+              borderColor: 'transparent',
+          }
         : {};
 
     return (
@@ -101,10 +101,10 @@ export default function OptionButton({
                 animation: shouldFade
                     ? `${fadeAwayAnimation} 3s forwards`
                     : isShaking
-                        ? `${shakeAnimation} 0.5s ease`
-                        : isGlowing
-                            ? animatedStyles.animation
-                            : 'none',
+                      ? `${shakeAnimation} 0.5s ease`
+                      : isGlowing
+                        ? animatedStyles.animation
+                        : 'none',
                 bgcolor: isShaking ? 'error.light' : isGlowing ? 'primary.main' : undefined,
                 borderColor: isShaking ? 'error.main' : undefined,
                 color: isShaking ? 'error.main' : animatedStyles.color,
@@ -113,9 +113,7 @@ export default function OptionButton({
                 backgroundImage: animatedStyles.backgroundImage,
                 backgroundSize: animatedStyles.backgroundSize,
                 boxShadow: animatedStyles.boxShadow,
-                '&:hover': isGlowing
-                    ? animatedStyles
-                    : undefined,
+                '&:hover': isGlowing ? animatedStyles : undefined,
             }}
         >
             {label}

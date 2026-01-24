@@ -1,27 +1,27 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Alert, Box, Button, Container, Stack } from '@mui/material';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {Alert, Box, Button, Container, Stack} from '@mui/material';
 import TranslateIcon from '@mui/icons-material/Translate';
 import OptionButton from '../guess/OptionButton';
 import FinishedSummary from '../guess/FinishedSummary';
 import VariantStatsBar from '@/components/VariantStatsBar';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import PhraseCard from '@/components/PhraseCard';
-import { usePronunciation } from '@/lib/usePronunciation';
-import { PhasesGameManager } from '@/lib/game/PhasesGameManager';
-import { ensureStatsForSubjects } from '@/lib/game/ensureStats';
-import { PhraseRecord } from '@/lib/types';
-import { InGameAggregatedStatistics, InGameStatsMap } from '@/lib/statistics/AStatisticsManager';
-import { InGameStatistics } from '@/lib/types';
-import { GlobalConfig } from '@/lib/Config';
+import {usePronunciation} from '@/lib/usePronunciation';
+import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
+import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
+import {PhraseRecord} from '@/lib/types';
+import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
+import {InGameStatistics} from '@/lib/types';
+import {GlobalConfig} from '@/lib/Config';
 
 interface PhraseGuessGamePageProps {
     gameManager: PhasesGameManager;
 }
 
-export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePageProps) {
+export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePageProps) {
     const router = useRouter();
     const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
     const initialStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
@@ -38,8 +38,8 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
     const [showTranslation, setShowTranslation] = useState(false);
     const [glowSeed, setGlowSeed] = useState(0);
     const hasAnnouncedFinishRef = useRef(false);
-    const { activeWord, error, pronounceWord: playPhrase } = usePronunciation();
-    const congratulationsRecord = useMemo(() => ({ word: 'Great job' }), []);
+    const {activeWord, error, pronounceWord: playPhrase} = usePronunciation();
+    const congratulationsRecord = useMemo(() => ({word: 'Great job'}), []);
 
     const activeAggregatedStats: InGameAggregatedStatistics = useMemo(() => {
         return gameManager.aggregate(ensureStatsForSubjects(activeSubjects, inGameStats));
@@ -141,7 +141,7 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
     }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
-        const { inGameStats: resetStats } = gameManager.resetInGameStatistics();
+        const {inGameStats: resetStats} = gameManager.resetInGameStatistics();
         const refreshedSubjects = gameManager.startTheGame();
         setActiveSubjects(refreshedSubjects);
         setInGameStats(resetStats);
@@ -163,17 +163,17 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
 
     return (
         <Container maxWidth="md">
-            <Box sx={{ minHeight: '100vh', py: 4, position: 'relative' }}>
+            <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
                     totalCount={totalCount}
                     showScore={!isFinished}
-                    icon={<TranslateIcon color="secondary" sx={{ fontSize: 32 }} />}
+                    icon={<TranslateIcon color="secondary" sx={{fontSize: 32}} />}
                     onExit={() => router.push('/')}
                 />
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <Alert severity="error" sx={{mb: 2}}>
                         {error}
                     </Alert>
                 )}
@@ -199,8 +199,8 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
                     />
                 ) : (
                     <Stack spacing={3}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                            <Box sx={{ width: { xs: '100%', sm: 420 }, maxWidth: 540 }}>
+                        <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2}}>
+                            <Box sx={{width: {xs: '100%', sm: 420}, maxWidth: 540}}>
                                 {currentPhrase && (
                                     <PhraseCard
                                         phrase={currentPhrase}
@@ -252,13 +252,8 @@ export default function PhraseGuessGamePage({ gameManager }: PhraseGuessGamePage
                             </Box>
 
                             {resolvedOption && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <Button
-                                        variant="contained"
-                                        color="secondary"
-                                        size="large"
-                                        onClick={handleNext}
-                                    >
+                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
+                                    <Button variant="contained" color="secondary" size="large" onClick={handleNext}>
                                         {pendingCompletion ? 'Finish!' : 'Next'}
                                     </Button>
                                 </Box>

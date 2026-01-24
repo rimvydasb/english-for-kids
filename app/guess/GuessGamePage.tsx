@@ -1,21 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Alert, Box, Button, Container, Stack } from '@mui/material';
-import WordCard, { WordCardMode } from '@/components/WordCard';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {Alert, Box, Button, Container, Stack} from '@mui/material';
+import WordCard, {WordCardMode} from '@/components/WordCard';
 import OptionButton from './OptionButton';
 import FinishedSummary from './FinishedSummary';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import VariantStatsBar from '@/components/VariantStatsBar';
-import { VARIANT_CONFIG } from '@/lib/guessConfig';
-import { GuessTheWordGameManager, ListenAndGuessGameManager } from '@/lib/game/WordGameManager';
-import { ensureStatsForSubjects } from '@/lib/game/ensureStats';
-import { usePronunciation } from '@/lib/usePronunciation';
-import { WordRecord } from '@/lib/words';
-import { InGameAggregatedStatistics, InGameStatsMap } from '@/lib/statistics/AStatisticsManager';
-import { InGameStatistics } from '@/lib/types';
-import { GlobalConfig } from '@/lib/Config';
+import {VARIANT_CONFIG} from '@/lib/guessConfig';
+import {GuessTheWordGameManager, ListenAndGuessGameManager} from '@/lib/game/WordGameManager';
+import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
+import {usePronunciation} from '@/lib/usePronunciation';
+import {WordRecord} from '@/lib/words';
+import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
+import {InGameStatistics} from '@/lib/types';
+import {GlobalConfig} from '@/lib/Config';
 
 type WordGameManager = GuessTheWordGameManager | ListenAndGuessGameManager;
 
@@ -23,11 +23,11 @@ interface GuessGamePageProps {
     gameManager: WordGameManager;
 }
 
-export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
+export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const router = useRouter();
     const variant = gameManager.getVariant();
-    const { optionMode, cardMode } = VARIANT_CONFIG[variant];
-    const { activeWord, error, pronounceWord: playWord, voicesReady } = usePronunciation();
+    const {optionMode, cardMode} = VARIANT_CONFIG[variant];
+    const {activeWord, error, pronounceWord: playWord, voicesReady} = usePronunciation();
 
     const initialInGameStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
     const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
@@ -45,7 +45,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
     const [glowSeed, setGlowSeed] = useState(0);
     const hasAnnouncedFinishRef = useRef(false);
     const playedOnOpenRef = useRef(false);
-    const congratulationsRecord = useMemo(() => new WordRecord({ type: 'verb', word: 'Great job' }), []);
+    const congratulationsRecord = useMemo(() => new WordRecord({type: 'verb', word: 'Great job'}), []);
 
     const activeAggregatedStats: InGameAggregatedStatistics = useMemo(() => {
         return gameManager.aggregate(ensureStatsForSubjects(activeSubjects, inGameStats));
@@ -81,11 +81,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
     }, [initialInGameStats, initialSubjects, setupRound]);
 
     useEffect(() => {
-        if (
-            currentWord &&
-            cardMode === WordCardMode.ListenAndGuess &&
-            !playedOnOpenRef.current
-        ) {
+        if (currentWord && cardMode === WordCardMode.ListenAndGuess && !playedOnOpenRef.current) {
             playWord(currentWord, {
                 allowExamples: false,
                 suppressPendingError: true,
@@ -165,7 +161,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
     }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
-        const { inGameStats: resetStats } = gameManager.resetInGameStatistics();
+        const {inGameStats: resetStats} = gameManager.resetInGameStatistics();
         const refreshedSubjects = gameManager.startTheGame();
         setActiveSubjects(refreshedSubjects);
         setInGameStats(resetStats);
@@ -185,7 +181,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
 
     return (
         <Container maxWidth="md">
-            <Box sx={{ minHeight: '100vh', py: 4, position: 'relative' }}>
+            <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
                     totalCount={totalCount}
@@ -195,7 +191,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
                 />
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <Alert severity="error" sx={{mb: 2}}>
                         {error}
                     </Alert>
                 )}
@@ -224,7 +220,7 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
                                 gap: 2,
                             }}
                         >
-                            <Box sx={{ width: { xs: '100%', sm: 360 }, maxWidth: 420 }}>
+                            <Box sx={{width: {xs: '100%', sm: 360}, maxWidth: 420}}>
                                 {currentWord && (
                                     <WordCard
                                         word={currentWord}
@@ -274,13 +270,8 @@ export default function GuessGamePage({ gameManager }: GuessGamePageProps) {
                             </Box>
 
                             {resolvedOption && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <Button
-                                        variant="contained"
-                                        color="secondary"
-                                        size="large"
-                                        onClick={handleNextWord}
-                                    >
+                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
+                                    <Button variant="contained" color="secondary" size="large" onClick={handleNextWord}>
                                         {pendingCompletion ? 'Finish!' : 'Next'}
                                     </Button>
                                 </Box>

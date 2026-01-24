@@ -1,7 +1,7 @@
-import { GameManager, GameManagerOptions } from '@/lib/game/GameManager';
-import { StorageLike } from '@/lib/statistics/AStatisticsManager';
-import { WordStatisticsManager } from '@/lib/statistics/WordStatisticsManager';
-import { WordGameVariant, WordRecord } from '@/lib/types';
+import {GameManager, GameManagerOptions} from '@/lib/game/GameManager';
+import {StorageLike} from '@/lib/statistics/AStatisticsManager';
+import {WordStatisticsManager} from '@/lib/statistics/WordStatisticsManager';
+import {WordGameVariant, WordRecord} from '@/lib/types';
 
 abstract class BaseWordsGameManager extends GameManager<WordRecord> {
     private readonly variant: WordGameVariant;
@@ -13,7 +13,7 @@ abstract class BaseWordsGameManager extends GameManager<WordRecord> {
         storage?: StorageLike,
     ) {
         const statistics = new WordStatisticsManager(subjects, variant, storage);
-        super(subjects, statistics, { groupBy: (record) => record.type, ...options });
+        super(subjects, statistics, {groupBy: (record) => record.type, ...options});
         this.variant = variant;
     }
 

@@ -1,16 +1,16 @@
-import { GlobalConfig } from '@/lib/Config';
-import { PhasesGameManager } from '@/lib/game/PhasesGameManager';
-import { PhraseRecord } from '@/lib/types';
-import { MemoryStorage } from './helpers/mockStorage';
+import {GlobalConfig} from '@/lib/Config';
+import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
+import {PhraseRecord} from '@/lib/types';
+import {MemoryStorage} from './helpers/mockStorage';
 
 describe('PhasesGameManager', () => {
     const phrases: PhraseRecord[] = [
-        new PhraseRecord({ phrase: 'Hello', translation: 'Labas' }),
-        new PhraseRecord({ phrase: 'Goodbye', translation: 'Viso gero' }),
-        new PhraseRecord({ phrase: 'Yes', translation: 'Taip' }),
-        new PhraseRecord({ phrase: 'No', translation: 'Ne' }),
-        new PhraseRecord({ phrase: 'Thanks', translation: 'Ačiū' }),
-        new PhraseRecord({ phrase: 'Please', translation: 'Prašau' }),
+        new PhraseRecord({phrase: 'Hello', translation: 'Labas'}),
+        new PhraseRecord({phrase: 'Goodbye', translation: 'Viso gero'}),
+        new PhraseRecord({phrase: 'Yes', translation: 'Taip'}),
+        new PhraseRecord({phrase: 'No', translation: 'Ne'}),
+        new PhraseRecord({phrase: 'Thanks', translation: 'Ačiū'}),
+        new PhraseRecord({phrase: 'Please', translation: 'Prašau'}),
     ];
 
     it('builds options and tracks completion across rounds', () => {
@@ -35,12 +35,7 @@ describe('PhasesGameManager', () => {
         );
         inGameStats = latest.inGameStats;
         activeSubjects.slice(1).forEach((subject) => {
-            latest = manager.recordAttempt(
-                latest.inGameStats,
-                subject,
-                subject.getSubject(),
-                activeSubjects,
-            );
+            latest = manager.recordAttempt(latest.inGameStats, subject, subject.getSubject(), activeSubjects);
         });
 
         expect(latest.isComplete).toBe(true);

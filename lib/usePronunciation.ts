@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 interface PronounceOptions {
     allowExamples?: boolean;
@@ -22,7 +22,7 @@ export function usePronunciation() {
     const [activeWord, setActiveWord] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const synthRef = useRef<SpeechSynthesis | null>(null);
-    const lastPronouncedRef = useRef<{ word: string; timestamp: number } | null>(null);
+    const lastPronouncedRef = useRef<{word: string; timestamp: number} | null>(null);
     const pendingRef = useRef<PendingPronunciation | null>(null);
     const [voicesReady, setVoicesReady] = useState(false);
 
@@ -48,7 +48,7 @@ export function usePronunciation() {
             ? wordData.examples![Math.floor(Math.random() * wordData.examples!.length)]
             : wordData.word;
 
-        lastPronouncedRef.current = { word: wordData.word, timestamp: now };
+        lastPronouncedRef.current = {word: wordData.word, timestamp: now};
 
         setActiveWord(wordData.word);
         setError(null);
@@ -56,10 +56,11 @@ export function usePronunciation() {
 
         const utterance = new SpeechSynthesisUtterance(utteranceText);
         const voices = synth.getVoices();
-        const preferredVoice = voices.find((v) =>
-            v.name.includes('Google US English') ||
-            v.name.includes('Samantha') ||
-            v.name.toLowerCase().includes('female')
+        const preferredVoice = voices.find(
+            (v) =>
+                v.name.includes('Google US English') ||
+                v.name.includes('Samantha') ||
+                v.name.toLowerCase().includes('female'),
         );
         if (preferredVoice) {
             utterance.voice = preferredVoice;
@@ -148,7 +149,7 @@ export function usePronunciation() {
             const voices = synth.getVoices();
             if (!voicesReady || voices.length === 0) {
                 const alreadyPending = pendingRef.current?.word.word === wordData.word;
-                pendingRef.current = { word: wordData, options };
+                pendingRef.current = {word: wordData, options};
                 if (!alreadyPending) {
                     if (!options?.suppressPendingError) {
                         setError('Speech voices are still loading. Please click again in a moment.');
@@ -169,5 +170,5 @@ export function usePronunciation() {
 
     const clearError = useCallback(() => setError(null), []);
 
-    return { activeWord, error, pronounceWord, clearError, voicesReady };
+    return {activeWord, error, pronounceWord, clearError, voicesReady};
 }

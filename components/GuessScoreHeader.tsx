@@ -1,10 +1,10 @@
-import { ReactNode } from 'react';
-import { Box, IconButton } from '@mui/material';
+import {ReactNode} from 'react';
+import {Box, IconButton} from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
-import { keyframes } from '@mui/material/styles';
-import { VARIANT_CONFIG, WordGameVariant } from '@/lib/guessConfig';
+import {keyframes} from '@mui/material/styles';
+import {VARIANT_CONFIG, WordGameVariant} from '@/lib/guessConfig';
 
 export interface ScoreHeaderProps {
     learnedCount: number;
@@ -30,12 +30,12 @@ export default function GuessScoreHeader({
     `;
     const defaultIcon =
         variant === 'listenAndGuess' ? (
-            <HearingIcon color="primary" sx={{ fontSize: 32 }} />
+            <HearingIcon color="primary" sx={{fontSize: 32}} />
         ) : (
-            <SportsEsportsIcon color="secondary" sx={{ fontSize: 32 }} />
+            <SportsEsportsIcon color="secondary" sx={{fontSize: 32}} />
         );
     const chosenIcon = icon ?? defaultIcon;
-    const boxes = Array.from({ length: totalCount }, (_, index) => index < learnedCount);
+    const boxes = Array.from({length: totalCount}, (_, index) => index < learnedCount);
 
     return (
         <Box
@@ -96,7 +96,7 @@ export default function GuessScoreHeader({
                     ))}
                 </Box>
             ) : (
-                <Box sx={{ flex: 1 }} />
+                <Box sx={{flex: 1}} />
             )}
             <IconButton aria-label="Return to main menu" onClick={onExit}>
                 <HighlightOffIcon fontSize="large" />
