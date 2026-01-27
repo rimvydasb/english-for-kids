@@ -9,7 +9,7 @@ export const GlobalConfig = {
     DEFAULT_DECOYS: 4,
 
     // How many weakest subjects to surface at the end of a game
-    WORST_GUESSES_COUNT: 6,
+    WORST_GUESSES_COUNT: 99,
 } satisfies {
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: number;
     DEFAULT_DECOYS: number;

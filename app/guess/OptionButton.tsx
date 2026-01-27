@@ -116,8 +116,8 @@ export default function OptionButton({
                 justifyContent: 'center',
                 position: 'relative',
                 boxSizing: 'border-box',
-                borderRadius: '4px', // Standard MUI button radius
-                border: '1px solid',
+                borderRadius: '8px',
+                border: '2px solid',
                 cursor: 'pointer',
                 userSelect: 'none',
                 verticalAlign: 'middle',
@@ -171,7 +171,7 @@ export default function OptionButton({
                         borderColor: isGlowing ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.12)',
                         backgroundColor: isGlowing ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.05)',
                         p: 0.8,
-                        mr: 0.5,
+                        mr: 2,
                         transition: 'all 0.2s',
                         '&:hover': {
                             backgroundColor: isGlowing ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.1)',
@@ -179,7 +179,7 @@ export default function OptionButton({
                         },
                     }}
                 >
-                    <VolumeUpIcon sx={{fontSize: 30}} />
+                    <VolumeUpIcon sx={{fontSize: 40}} />
                 </IconButton>
             )}
             {label}
