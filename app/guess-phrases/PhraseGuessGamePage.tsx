@@ -15,6 +15,7 @@ import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
 import {GlobalConfig, DEFAULT_RULES} from '@/lib/Config';
 import {GameRules, PhraseRecord, WordEntryType} from '@/lib/types';
+import {InGameAggregatedStatistics, InGameStatsMap} from "@/lib/statistics/AStatisticsManager";
 
 interface PhraseGuessGamePageProps {
     gameManager: PhasesGameManager;
@@ -22,7 +23,8 @@ interface PhraseGuessGamePageProps {
 
 export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePageProps) {
     const router = useRouter();
-    const [isConfiguring, setIsConfiguring] = useState(() => !gameManager.hasActiveGame());
+    const [isConfiguring, setIsConfiguring] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false);
     const rules = useMemo(() => gameManager.getGameRules(), [gameManager, isConfiguring]);
     
     const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>([]);
@@ -89,6 +91,21 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
         },
         [gameManager, setupRound],
     );
+
+    useEffect(() => {
+        if (!isInitialized) {
+            const hasActive = gameManager.hasActiveGame();
+            if (hasActive) {
+                setIsConfiguring(false);
+                const subjects = gameManager.startTheGame();
+                const stats = gameManager.loadInGameStatistics();
+                setActiveSubjects(subjects);
+                setInGameStats(stats);
+                setupRound(subjects, stats);
+            }
+            setIsInitialized(true);
+        }
+    }, [gameManager, isInitialized, setupRound]);
 
     useEffect(() => {
         if (!isFinished) {
@@ -171,6 +188,10 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
         setGlowSeed(0);
     }, [gameManager, setupRound]);
 
+    if (!isInitialized) {
+        return null;
+    }
+
     const learnedCount = activeAggregatedStats.learnedItemsCount;
     const totalCount = activeSubjects.length;
     const score = Math.round((learnedCount / (totalCount || 1)) * 100);
@@ -250,6 +271,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                             >
                                 {options.map((option) => {
                                     const optionPhrase = gameManager.findBySubject(option);
+                                    const isCorrect = currentPhrase?.word === option;
                                     const label = optionPhrase?.translation || option;
                                     const isGlowing = glowingOption === option;
                                     const isShaking = shakingOption === option;
@@ -269,6 +291,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                             glowSeed={glowSeed}
                                             onGuess={handleGuess}
                                             showPronunciation={currentRules.optionPronunciation}
+                                            isCorrect={isCorrect}
                                             onPronounce={() => {
                                                 if (optionPhrase) {
                                                     playOptionPhrase(optionPhrase, {

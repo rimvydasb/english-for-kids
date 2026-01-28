@@ -25,7 +25,8 @@ interface GuessGamePageProps {
 
 export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const router = useRouter();
-    const [isConfiguring, setIsConfiguring] = useState(() => !gameManager.hasActiveGame());
+    const [isConfiguring, setIsConfiguring] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false);
     
     // Re-fetch rules when configuration changes
     const rules = useMemo(() => gameManager.getGameRules(), [gameManager, isConfiguring]);
@@ -97,6 +98,21 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
         },
         [gameManager, setupRound],
     );
+
+    useEffect(() => {
+        if (!isInitialized) {
+            const hasActive = gameManager.hasActiveGame();
+            if (hasActive) {
+                setIsConfiguring(false);
+                const subjects = gameManager.startTheGame();
+                const stats = gameManager.loadInGameStatistics();
+                setActiveSubjects(subjects);
+                setInGameStats(stats);
+                setupRound(subjects, stats);
+            }
+            setIsInitialized(true);
+        }
+    }, [gameManager, isInitialized, setupRound]);
 
     useEffect(() => {
         if (currentWord && currentRules.wordCardMode === WordCardMode.ListenAndGuess && !playedOnOpenRef.current) {
@@ -190,6 +206,10 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
         setupRound(refreshedSubjects, resetStats);
     }, [gameManager, setupRound]);
 
+    if (!isInitialized) {
+        return null;
+    }
+
     const learnedCount = activeAggregatedStats.learnedItemsCount;
     const totalCount = activeSubjects.length;
     const score = Math.round((learnedCount / (totalCount || 1)) * 100);
@@ -267,6 +287,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                             >
                                 {options.map((option) => {
                                     const optionWord = gameManager.findBySubject(option);
+                                    const isCorrect = currentWord?.word === option;
                                     const label =
                                         currentRules.options === 'translation'
                                             ? optionWord?.translation || option
@@ -289,6 +310,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                                             glowSeed={glowSeed}
                                             onGuess={handleGuess}
                                             showPronunciation={currentRules.optionPronunciation}
+                                            isCorrect={isCorrect}
                                             onPronounce={() => {
                                                 if (optionWord) {
                                                     playOptionWord(optionWord, {
