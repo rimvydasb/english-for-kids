@@ -129,5 +129,19 @@ describe('Full Game Flow - Guess the Word (Numbers)', () => {
                  cy.contains('.MuiTypography-root', wrongGuessedWord, { matchCase: false }).should('be.visible');
             }
         });
+
+        // Test the Restart/Reset functionality
+        cy.get('button[aria-label="restart"]').click();
+        
+        // Verify Game Setup modal appears
+        cy.contains('h2', 'Game Setup').should('be.visible');
+
+        // Select new rules: 5 Words, Colors
+        cy.contains('button', '5 Words').click();
+        cy.contains('button', 'Colors').click();
+
+        // Verify game starts with Colors
+        cy.get('div[class*="MuiContainer-root"]', { timeout: 10000 }).should('exist');
+        cy.get('[data-testid="option-button"]').should('have.attr', 'data-option-type', 'color');
     });
 });

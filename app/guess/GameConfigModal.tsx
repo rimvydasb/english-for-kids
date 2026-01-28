@@ -24,11 +24,11 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
     const [types, setTypes] = useState<WordEntryType[] | null>(null);
 
     useEffect(() => {
-        // If types are hidden, we treat them as selected (empty array) immediately or default to []
-        if (!showTypes && types === null) {
-            setTypes([]);
+        if (open) {
+            setCount(null);
+            setTypes(showTypes ? null : []);
         }
-    }, [showTypes, types]);
+    }, [open, showTypes]);
 
     useEffect(() => {
         if (count !== null && types !== null) {

@@ -174,19 +174,14 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
     }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
-        const {inGameStats: resetStats} = gameManager.resetInGameStatistics();
-        const refreshedSubjects = gameManager.startTheGame();
-        setActiveSubjects(refreshedSubjects);
-        setInGameStats(resetStats);
-        setupRound(refreshedSubjects, resetStats);
-        setGlowingOption(null);
-        setShakingOption(null);
-        setIsTransitioning(false);
+        gameManager.resetInGameStatistics();
         setIsFinished(false);
         setResolvedOption(null);
         setPendingCompletion(false);
+        setIsTransitioning(false);
         setGlowSeed(0);
-    }, [gameManager, setupRound]);
+        setIsConfiguring(true);
+    }, [gameManager]);
 
     if (!isInitialized) {
         return null;

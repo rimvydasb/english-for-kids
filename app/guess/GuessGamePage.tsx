@@ -194,17 +194,14 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
-        const {inGameStats: resetStats} = gameManager.resetInGameStatistics();
-        const refreshedSubjects = gameManager.startTheGame();
-        setActiveSubjects(refreshedSubjects);
-        setInGameStats(resetStats);
+        gameManager.resetInGameStatistics();
         setIsFinished(false);
         setResolvedOption(null);
         setPendingCompletion(false);
         setIsTransitioning(false);
         setGlowSeed(0);
-        setupRound(refreshedSubjects, resetStats);
-    }, [gameManager, setupRound]);
+        setIsConfiguring(true);
+    }, [gameManager]);
 
     if (!isInitialized) {
         return null;
