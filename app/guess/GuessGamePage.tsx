@@ -197,7 +197,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
 
     return (
         <Container maxWidth="md">
-            <GameConfigModal open={isConfiguring} onStart={handleConfigStart} />
+            <GameConfigModal open={isConfiguring} onStart={handleConfigStart} onClose={() => router.push('/')} />
             
             {!isConfiguring && (
                 <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>

@@ -41,6 +41,7 @@ export default function GuessScoreHeader({
 
     return (
         <Box
+            data-testid="score-header"
             sx={{
                 display: 'flex',
                 alignItems: 'center',

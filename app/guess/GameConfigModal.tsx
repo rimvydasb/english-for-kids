@@ -1,7 +1,8 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {Box, Button, Modal, Stack, Typography, keyframes} from '@mui/material';
+import {Box, Button, IconButton, Modal, Stack, Typography, keyframes} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import {WordEntryType} from '@/lib/types';
 import {GlobalConfig} from '@/lib/Config';
 
@@ -14,10 +15,11 @@ const pulse = keyframes`
 interface GameConfigModalProps {
     open: boolean;
     onStart: (count: number, types: WordEntryType[]) => void;
+    onClose: () => void;
     showTypes?: boolean;
 }
 
-export default function GameConfigModal({open, onStart, showTypes = true}: GameConfigModalProps) {
+export default function GameConfigModal({open, onStart, onClose, showTypes = true}: GameConfigModalProps) {
     const [count, setCount] = useState<number | null>(null);
     const [types, setTypes] = useState<WordEntryType[] | null>(null);
 
@@ -61,7 +63,7 @@ export default function GameConfigModal({open, onStart, showTypes = true}: GameC
     return (
         <Modal
             open={open}
-            onClose={() => {}}
+            onClose={onClose}
             disableEscapeKeyDown
             slotProps={{
                 backdrop: {
@@ -87,6 +89,19 @@ export default function GameConfigModal({open, onStart, showTypes = true}: GameC
                     outline: 'none',
                 }}
             >
+                <IconButton
+                    aria-label="Close"
+                    onClick={onClose}
+                    sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        color: (theme) => theme.palette.grey[500],
+                    }}
+                >
+                    <CloseIcon />
+                </IconButton>
+
                 <Typography variant="h4" component="h2" gutterBottom align="center" sx={{mb: 4}}>
                     Game Setup
                 </Typography>

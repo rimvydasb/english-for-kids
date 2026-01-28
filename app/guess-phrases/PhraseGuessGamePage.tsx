@@ -178,7 +178,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
 
     return (
         <Container maxWidth="md">
-            <GameConfigModal open={isConfiguring} onStart={handleConfigStart} showTypes={false} />
+            <GameConfigModal open={isConfiguring} onStart={handleConfigStart} onClose={() => router.push('/')} showTypes={false} />
 
             {!isConfiguring && (
                 <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
