@@ -42,13 +42,15 @@ export default function GameConfigModal({open, onStart, showTypes = true}: GameC
 
     const getButtonStyle = (isSelected: boolean) => ({
         flex: 1,
-        py: 2,
+        py: 1.5,
         borderRadius: 2,
         border: '2px solid',
         borderColor: isSelected ? 'primary.main' : 'divider',
         bgcolor: isSelected ? 'primary.light' : 'background.paper',
         color: isSelected ? 'primary.contrastText' : 'text.primary',
-        fontWeight: isSelected ? 'bold' : 'normal',
+        fontWeight: 700,
+        textTransform: 'none' as const,
+        fontSize: '1.1rem',
         animation: isSelected ? `${pulse} 1.5s infinite` : 'none',
         '&:hover': {
             borderColor: 'primary.main',
@@ -57,7 +59,19 @@ export default function GameConfigModal({open, onStart, showTypes = true}: GameC
     });
 
     return (
-        <Modal open={open} onClose={() => {}} disableEscapeKeyDown>
+        <Modal
+            open={open}
+            onClose={() => {}}
+            disableEscapeKeyDown
+            slotProps={{
+                backdrop: {
+                    sx: {
+                        backdropFilter: 'blur(8px)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.2)', // Lighter overlay to show off the blur
+                    },
+                },
+            }}
+        >
             <Box
                 sx={{
                     position: 'absolute',
