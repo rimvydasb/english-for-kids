@@ -141,7 +141,15 @@ export abstract class GameManager<T extends SubjectRecord> {
      */
     recordAttempt(current: InGameStatsMap, subject: T, guess: string, activeSubjects: T[]): GameRoundResult {
         const isCorrect = subject.getSubject() === guess;
-        const inGameStats = this.statistics.recordAttempt(current, subject.getSubject(), isCorrect);
+        let inGameStats = this.statistics.recordAttempt(current, subject.getSubject(), isCorrect);
+
+        if (!isCorrect) {
+            const guessedSubject = this.findBySubject(guess);
+            if (guessedSubject) {
+                inGameStats = this.statistics.recordAttempt(inGameStats, guess, false);
+            }
+        }
+
         const aggregated = this.statistics.aggregate(inGameStats);
         const isComplete = this.hasCompletedAll(activeSubjects, inGameStats);
 

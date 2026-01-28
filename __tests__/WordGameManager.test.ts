@@ -160,4 +160,78 @@ describe('Word game managers', () => {
         const resetGlobal = manager.loadGlobalStatistics();
         expect(resetGlobal[activeSubjects[0].word].correctAttempts).toBe(0);
     });
+
+    it('records wrong attempts for both the subject and the incorrect guess if it is a valid subject', () => {
+        const manager = new ListenAndGuessGameManager(words, new MemoryStorage());
+        const activeSubjects = manager.startTheGame();
+        let inGameStats = manager.loadInGameStatistics();
+
+        const targetSubject = activeSubjects[0];
+        // Ensure we pick a wrong guess that is actually in the subjects list
+        const wrongGuessSubject = activeSubjects.find((s) => s.word !== targetSubject.word)!;
+        const wrongGuess = wrongGuessSubject.word;
+
+        const result = manager.recordAttempt(inGameStats, targetSubject, wrongGuess, activeSubjects);
+        inGameStats = result.inGameStats;
+
+        expect(result.isCorrect).toBe(false);
+
+        // Target subject should have a wrong attempt
+        expect(inGameStats[targetSubject.word].wrongAttempts).toBe(1);
+        expect(inGameStats[targetSubject.word].learned).toBe(false);
+
+        // The wrongly guessed word should ALSO have a wrong attempt
+        expect(inGameStats[wrongGuess].wrongAttempts).toBe(1);
+        expect(inGameStats[wrongGuess].learned).toBe(false);
+    });
+
+    it('unlearns a previously learned word if it is used as a wrong guess, forcing it to be repeated', () => {
+        const manager = new GuessTheWordGameManager(words.slice(0, 2), new MemoryStorage());
+        const activeSubjects = manager.startTheGame();
+        // We have 2 words. Let's call them TargetA and TargetB.
+        const targetA = activeSubjects[0];
+        const targetB = activeSubjects[1];
+
+        let inGameStats = manager.loadInGameStatistics();
+
+        // 1. Learn TargetA correctly
+        const resultA = manager.recordAttempt(inGameStats, targetA, targetA.word, activeSubjects);
+        inGameStats = resultA.inGameStats;
+        expect(resultA.isCorrect).toBe(true);
+        expect(inGameStats[targetA.word].learned).toBe(true);
+
+        // 2. Encounter TargetB, but guess TargetA (wrongly)
+        // This simulates confusing B with A. A should be considered "not fully known" again.
+        const resultB_wrong = manager.recordAttempt(inGameStats, targetB, targetA.word, activeSubjects);
+        inGameStats = resultB_wrong.inGameStats;
+        expect(resultB_wrong.isCorrect).toBe(false);
+        expect(resultB_wrong.isComplete).toBe(false);
+
+        // TargetA should now be unlearned
+        expect(inGameStats[targetA.word].learned).toBe(false);
+        // TargetB is obviously not learned yet
+        expect(inGameStats[targetB.word].learned).toBe(false);
+
+        // 3. Verify TargetA is back in the candidate pool
+        // We check this by asking for candidates from a list containing only TargetA.
+        // If it were learned, it would return null.
+        const candidateA = manager.drawNextCandidate([targetA], inGameStats);
+        expect(candidateA).not.toBeNull();
+        expect(candidateA?.word).toBe(targetA.word);
+
+        // 4. Learn TargetB correctly
+        const resultB_correct = manager.recordAttempt(inGameStats, targetB, targetB.word, activeSubjects);
+        inGameStats = resultB_correct.inGameStats;
+        // Game should NOT be complete, because TargetA is still unlearned
+        expect(resultB_correct.isComplete).toBe(false);
+
+        // 5. Re-learn TargetA
+        const resultA_relearn = manager.recordAttempt(inGameStats, targetA, targetA.word, activeSubjects);
+        inGameStats = resultA_relearn.inGameStats;
+
+        // NOW the game should be complete
+        expect(resultA_relearn.isComplete).toBe(true);
+        expect(inGameStats[targetA.word].learned).toBe(true);
+        expect(inGameStats[targetB.word].learned).toBe(true);
+    });
 });
