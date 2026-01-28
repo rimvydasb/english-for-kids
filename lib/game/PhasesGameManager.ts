@@ -3,6 +3,7 @@ import {PhrasesStatisticsManager} from '@/lib/statistics/PhrasesStatisticsManage
 import {StorageLike} from '@/lib/statistics/AStatisticsManager';
 import {GameRules, PhraseRecord} from '@/lib/types';
 import {PHRASES_DICTIONARY} from '@/lib/phrases';
+import {GlobalConfig} from '@/lib/Config';
 
 export class PhasesGameManager extends GameManager<PhraseRecord> {
     constructor(subjects: PhraseRecord[] = PHRASES_DICTIONARY, storage?: StorageLike) {
@@ -25,6 +26,9 @@ export class PhasesGameManager extends GameManager<PhraseRecord> {
             showWordPronunciation: true,
             options: 'translation',
             optionPronunciation: false,
+            totalInGameSubjectsToLearn: GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN,
+            selectedWordEntryTypes: [],
+            ...this.activeConfig,
         };
     }
 }

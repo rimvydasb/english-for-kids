@@ -8,13 +8,14 @@ import OptionButton from './OptionButton';
 import FinishedSummary from './FinishedSummary';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import VariantStatsBar from '@/components/VariantStatsBar';
+import GameConfigModal from './GameConfigModal';
 import {GuessTheWordGameManager, ListenAndGuessGameManager} from '@/lib/game/WordGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
 import {usePronunciation} from '@/lib/usePronunciation';
 import {WordRecord} from '@/lib/words';
 import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
-import {DEFAULT_RULES, GameRules, WordCardMode} from '@/lib/types';
-import {GlobalConfig} from '@/lib/Config';
+import {DEFAULT_RULES, GlobalConfig} from '@/lib/Config';
+import {GameRules, WordCardMode, WordEntryType} from '@/lib/types';
 
 type WordGameManager = GuessTheWordGameManager | ListenAndGuessGameManager;
 
@@ -24,14 +25,16 @@ interface GuessGamePageProps {
 
 export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const router = useRouter();
-    const rules = useMemo(() => gameManager.getGameRules(), [gameManager]);
+    const [isConfiguring, setIsConfiguring] = useState(true);
+    
+    // Re-fetch rules when configuration changes
+    const rules = useMemo(() => gameManager.getGameRules(), [gameManager, isConfiguring]);
+    
     const {activeWord, error, pronounceWord: playWord, voicesReady} = usePronunciation();
     const {pronounceWord: playOptionWord} = usePronunciation();
 
-    const initialInGameStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
-    const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
-    const [activeSubjects, setActiveSubjects] = useState<WordRecord[]>(initialSubjects);
-    const [inGameStats, setInGameStats] = useState<InGameStatsMap>(initialInGameStats);
+    const [activeSubjects, setActiveSubjects] = useState<WordRecord[]>([]);
+    const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
     const [isFinished, setIsFinished] = useState(false);
@@ -76,9 +79,24 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
         [gameManager, rules],
     );
 
-    useEffect(() => {
-        setupRound(initialSubjects, initialInGameStats);
-    }, [initialInGameStats, initialSubjects, setupRound]);
+    const handleConfigStart = useCallback(
+        (count: number, types: WordEntryType[]) => {
+            gameManager.setConfig({
+                totalInGameSubjectsToLearn: count,
+                selectedWordEntryTypes: types,
+            });
+
+            // Start logic
+            const subjects = gameManager.startTheGame();
+            const stats = gameManager.loadInGameStatistics();
+
+            setActiveSubjects(subjects);
+            setInGameStats(stats);
+            setIsConfiguring(false);
+            setupRound(subjects, stats);
+        },
+        [gameManager, setupRound],
+    );
 
     useEffect(() => {
         if (currentWord && currentRules.wordCardMode === WordCardMode.ListenAndGuess && !playedOnOpenRef.current) {
@@ -179,7 +197,10 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
 
     return (
         <Container maxWidth="md">
-            <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
+            <GameConfigModal open={isConfiguring} onStart={handleConfigStart} />
+            
+            {!isConfiguring && (
+                <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
                     totalCount={totalCount}
@@ -304,6 +325,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                     </Stack>
                 )}
             </Box>
+            )}
         </Container>
     );
 }

@@ -35,6 +35,8 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     protected statistics: BaseStatisticsManager;
 
+    protected activeConfig: Partial<GameRules> = {};
+
     protected constructor(subjects: T[], statistics: BaseStatisticsManager, options?: GameManagerOptions<T>) {
         this.subjects = subjects;
         this.statistics = statistics;
@@ -44,30 +46,51 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     abstract getGameRules(): GameRules;
 
+    setConfig(config: Partial<GameRules>) {
+        this.activeConfig = config;
+    }
+
     /**
      * Start a new game or resume existing one.
      * Returns the list of all subjects user needs to learn in this game.
      */
     startTheGame(): T[] {
-        const existingSelection = this.statistics
+        const rules = this.getGameRules();
+        const limit = rules.totalInGameSubjectsToLearn ?? GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN;
+        const types = rules.selectedWordEntryTypes ?? [];
+
+        // Helper to check if subject matches selected types
+        const matchesType = (subject: T) => {
+            if (types.length === 0) return true;
+            // Check if subject has 'type' property and it matches
+            const type = (subject as any).type;
+            if (type && !types.includes(type)) return false;
+            return true;
+        };
+
+        let activeSelection = this.statistics
             .loadActiveSubjects()
             .map((key) => this.findBySubject(key))
-            .filter((item): item is T => Boolean(item));
+            .filter((item): item is T => Boolean(item))
+            .filter(matchesType);
 
-        if (existingSelection.length > 0) {
-            if (existingSelection.length > GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN) {
-                const truncated = existingSelection.slice(0, GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN);
-                this.statistics.saveActiveSubjects(truncated.map((item) => item.getSubject()));
-                return truncated;
-            }
-            return existingSelection;
+        if (activeSelection.length < limit) {
+            const needed = limit - activeSelection.length;
+            const existingKeys = new Set(activeSelection.map((s) => s.getSubject()));
+
+            const pool = this.subjects.filter((s) => !existingKeys.has(s.getSubject()) && matchesType(s));
+            
+            const globalStats = this.statistics.loadGlobalStatistics();
+            const prioritized = GameManager.sortByDifficulty(pool, globalStats);
+            const nextBatch = prioritized.slice(0, needed);
+            
+            activeSelection = [...activeSelection, ...nextBatch];
+        } else if (activeSelection.length > limit) {
+            activeSelection = activeSelection.slice(0, limit);
         }
 
-        const globalStats = this.statistics.loadGlobalStatistics();
-        const prioritized = GameManager.sortByDifficulty(this.subjects, globalStats);
-        const chosen = prioritized.slice(0, GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN);
-        this.statistics.saveActiveSubjects(chosen.map((item) => item.getSubject()));
-        return chosen;
+        this.statistics.saveActiveSubjects(activeSelection.map((item) => item.getSubject()));
+        return activeSelection;
     }
 
     loadInGameStatistics(): InGameStatsMap {

@@ -25,7 +25,12 @@ describe('Word game managers', () => {
 
         expect(options).toHaveLength(Math.min(words.length, GlobalConfig.DEFAULT_DECOYS + 1));
         expect(new Set(options).size).toBe(options.length);
-        expect(decoys.every((word) => getType(words, word) === answer.type)).toBe(true);
+        
+        // We expect it to prioritize same-type words. 
+        // We have 4 other colors available (total 5 colors, 1 is answer).
+        // Since we need 7 decoys, and have 4 colors, we expect all 4 colors to be present.
+        const sameTypeDecoys = decoys.filter((word) => getType(words, word) === answer.type);
+        expect(sameTypeDecoys.length).toBe(4);
     });
 
     it('records attempts, reports completion, and updates global stats on finish', () => {
@@ -233,5 +238,36 @@ describe('Word game managers', () => {
         expect(resultA_relearn.isComplete).toBe(true);
         expect(inGameStats[targetA.word].learned).toBe(true);
         expect(inGameStats[targetB.word].learned).toBe(true);
+    });
+
+    it('respects configuration for subject count and types', () => {
+        const manager = new GuessTheWordGameManager(words, new MemoryStorage());
+
+        // 1. Limit count
+        manager.setConfig({
+            totalInGameSubjectsToLearn: 2,
+            selectedWordEntryTypes: [],
+        });
+        const selection1 = manager.startTheGame();
+        expect(selection1.length).toBe(2);
+
+        // 2. Filter by type (nouns only)
+        // We have 3 nouns in test data
+        manager.setConfig({
+            totalInGameSubjectsToLearn: 5,
+            selectedWordEntryTypes: ['noun'],
+        });
+        const selection2 = manager.startTheGame();
+        expect(selection2.every((w) => w.type === 'noun')).toBe(true);
+        expect(selection2.length).toBe(3);
+
+        // 3. Filter by type (colors only) with limit
+        manager.setConfig({
+            totalInGameSubjectsToLearn: 2,
+            selectedWordEntryTypes: ['color'],
+        });
+        const selection3 = manager.startTheGame();
+        expect(selection3.every((w) => w.type === 'color')).toBe(true);
+        expect(selection3.length).toBe(2);
     });
 });

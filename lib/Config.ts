@@ -1,4 +1,4 @@
-import {PhraseEntry, PhraseRecord, WordEntry, WordRecord} from '@/lib/types';
+import {GameRules, PhraseEntry, PhraseRecord, WordCardMode, WordEntry, WordRecord} from '@/lib/types';
 
 export const GlobalConfig = {
     // Start the game only with X subjects to guess and circle through them
@@ -14,6 +14,16 @@ export const GlobalConfig = {
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: number;
     DEFAULT_DECOYS: number;
     WORST_GUESSES_COUNT: number;
+};
+
+export const DEFAULT_RULES: Partial<GameRules> = {
+    wordCardMode: WordCardMode.Learning,
+    showImage: true,
+    showTranslation: true,
+    showWord: true,
+    showWordPronunciation: true,
+    totalInGameSubjectsToLearn: GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN,
+    selectedWordEntryTypes: [],
 };
 
 export const KNOWN_GAME_STORAGE_KEYS = [
