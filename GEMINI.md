@@ -2,79 +2,89 @@
 
 ## Project Structure & Modules
 
-- `app/page.tsx` is the main menu linking to `app/words/page.tsx` (all word cards) and `app/guess/page.tsx` (guessing
-  game); `app/layout.tsx` wraps the MUI theme from `app/ThemeRegistry.tsx` / `theme.ts`.
-- `lib/words.ts` holds `WORDS_DICTIONARY` (JSON-style word list) and `WordRecord` with `getImageUrl()`. Keep entries
-  aligned with PNGs in `public/images/`.
-- Static assets live under `public/images/` with lowercase filenames that match each word (e.g., `crayon.png`). Avoid
-  adding assets outside `public/`.
-- No Gemini or other external AI integrations should be added; the app relies solely on local assets and browser speech
-  synthesis.
+### Core Pages
+- `app/page.tsx`: Main menu linking to sub-games and learning pages.
+- `app/words/page.tsx`: "All Words" page. Displays all words with flip cards for translation/pronunciation. **Includes "Restart All Games" functionality** at the bottom to reset in-game progress.
+- `app/guess/page.tsx`: Entry point for guessing games.
+- `app/layout.tsx`: Root layout, wraps the MUI theme (`app/ThemeRegistry.tsx`).
+
+### Game Logic & Statistics (`lib/`)
+- **Configuration**: `lib/Config.ts` contains global game constants (e.g., `TOTAL_IN_GAME_SUBJECTS_TO_LEARN`), storage keys, and the source data for `WORDS_DICTIONARY` and `PHRASES_DICTIONARY`.
+- **Game Managers** (`lib/game/`):
+  - `GameManager.ts`: Base class for game logic (selection, progression).
+  - `WordGameManager.ts` & `PhasesGameManager.ts`: Specialized managers for word and phrase-based games.
+- **Statistics** (`lib/statistics/`):
+  - `AStatisticsManager.ts`: Base class for handling statistics. Implements the core logic for **Global** (long-term) vs **In-Game** (session) stats.
+  - `WordStatisticsManager.ts` & `PhrasesStatisticsManager.ts`: Concrete implementations.
+  - **Storage**: Stats are persisted in `localStorage`. Keys are defined in `lib/Config.ts`.
+
+### Assets & Data
+- `lib/words.ts` & `lib/phrases.ts`: Expose the dictionary objects (`WordRecord`, `PhraseRecord`) used throughout the app.
+- `public/images/`: Static assets. Filenames must match the word (lowercase, e.g., `crayon.png`).
+
+## Statistics Architecture
+
+The application maintains two types of statistics (persisted in `localStorage`):
+1.  **Global Statistics**: Long-term tracking of correct/wrong answers for every word/phrase across all game modes. Used to determine difficulty and sort items.
+2.  **In-Game Statistics**: Tracks progress for the current "run" or game session. Can be reset via "Restart All Games".
 
 ## Build, Test, and Development Commands
 
-- `npm install` — install dependencies (Node 25+ recommended; scripts target port 7788).
-- `npm run dev` — start the Next.js dev server at http://localhost:7788.
-- `npm run build` — create the production bundle.
-- `npm start` — run the built app on port 7788.
-- `npm run lint` — Next.js/ESLint checks; run before shipping changes.
-- `npm run format` — run Prettier to format the codebase.
+- `npm install` — install dependencies (Node 25+ recommended).
+- `npm run dev` — start Next.js dev server at `http://localhost:7788`.
+- `npm run build` — create production bundle.
+- `npm start` — run built app.
+- `npm run lint` — Next.js/ESLint checks.
+- `npm run format` — run Prettier.
 
 ### Image Optimization
-
-If newly added PNG images have excessive file sizes, use ImageMagick to resize them to 1024x1024 and optimize
-compression:
-
+Resize/optimize new PNGs:
 ```bash
 magick mogrify -resize '1024x1024>' -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 public/images/*.png
 ```
 
 ### Cypress Testing
 
-Running Cypress on existing server:
-
-- Use the helper script `bin/test-cypress.sh` to safely start the server.
-- The most important test is be `health.cy.ts` - if this test fails, there's no reason to continue with other tests.
-  Warn use if health check fails!
-- For failed test cases, search images in `cypress/screenshots` and analyze them to identify UI issues.
-- You can add `datatest-id` attributes to elements to simplify Cypress selector scoping. However, button search and
-  click should happen by text content to mimic user behavior.
-
-**Executing all tests or individual ones:**
+**Helper Script:**
+Use `bin/test-cypress.sh` to safely start the server and run tests.
 
 ```bash
+# Run all tests
 ./bin/test-cypress.sh
+
+# Run specific spec
+./bin/test-cypress.sh --spec "cypress/e2e/restart_games.cy.ts"
 ```
 
-Or run specific spec:
-
-```bash
-./bin/test-cypress.sh --spec "cypress/e2e/health.cy.ts"
-```
+- **Health Check**: `cypress/e2e/health.cy.ts` is the critical smoke test.
+- **State Manipulation**: Tests like `restart_games.cy.ts` demonstrate how to inject `localStorage` state to verify game logic.
+- **Debugging**: Check `cypress/screenshots` for failures.
 
 ## Coding Style & Naming Conventions
 
-- TypeScript with strict settings; prefer functional React components and hooks.
-- Use 4-space indentation and aim for 120-character lines.
-- Apply the `@/*` alias for shared modules. Default to server components unless interactivity demands `'use client'` (
-  navigation, speech, game state).
-- Component and file names should be descriptive (`GuessWordGame`, `WordsPage`). Keep static filenames lowercase with
-  safe characters.
+- **TypeScript**: Strict mode. Prefer functional React components/hooks.
+- **Formatting**: 4-space indentation, 120-char line limit.
+- **Imports**: Use `@/*` alias.
+- **Client vs Server**: Default to Server Components. Use `'use client'` only when necessary (interactivity, hooks).
 
 ## Testing Guidelines
 
-- Automated: `npm run lint` is the baseline.
-- Manual checks: main menu navigation, `X` shortcut on subpages, All Words page shows all images and plays audio on
-  click, Guess Word Game presents 5 options, speaks the word, updates the learned/total scoreboard, and persists score
-  in the browser.
+- **Automated**: `npm run lint` + Cypress tests.
+- **Manual Checks**:
+  - **All Words Page**: Check images, audio, and the "Restart All Games" button (ensure it resets game progress but keeps global stats).
+  - **Games**: Verify game loops, score updates, and persistence.
 
 ## Commit & Pull Request Guidelines
 
-- Use clear, conventional commits (e.g., `feat: add guess word game`, `fix: guard speech synthesis errors`).
-- Pull requests should outline the change, link issues, and include screenshots or GIFs for UI updates; mention any
-  manual test steps run.
+- **Commits**: Conventional commits (e.g., `feat: add reset button`, `fix: stats calculation`).
+- **PRs**: Description, issue links, screenshots for UI changes.
 
 ## Security & Configuration Notes
 
-- No third-party API keys are required; if environment variables are added later, keep `.env*` out of version control.
-- Static assets are served as-is from `public/`; ensure newly added images are safe, licensed, and optimized.
+- No external AI/API integrations.
+- Local assets only.
+- No sensitive keys required.
+
+# Banned Actions
+
+- **Git**: Do NOT commit/push automatically. Only perform git operations if explicitly requested.
