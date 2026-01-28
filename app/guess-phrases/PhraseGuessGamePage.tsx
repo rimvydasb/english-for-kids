@@ -281,6 +281,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                     return (
                                         <OptionButton
                                             key={option}
+                                            subject={optionPhrase!}
                                             value={option}
                                             label={label}
                                             isGlowing={isGlowing}
@@ -292,13 +293,11 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                             onGuess={handleGuess}
                                             showPronunciation={currentRules.optionPronunciation}
                                             isCorrect={isCorrect}
-                                            onPronounce={() => {
-                                                if (optionPhrase) {
-                                                    playOptionPhrase(optionPhrase, {
-                                                        suppressPendingError: true,
-                                                        suppressNotAllowedError: true,
-                                                    });
-                                                }
+                                            onPronounce={(subject) => {
+                                                playOptionPhrase(subject, {
+                                                    suppressPendingError: true,
+                                                    suppressNotAllowedError: true,
+                                                });
                                             }}
                                         />
                                     );

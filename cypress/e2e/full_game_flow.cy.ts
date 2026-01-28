@@ -9,6 +9,22 @@ describe('Full Game Flow - Guess the Word (Numbers)', () => {
 
     beforeEach(() => {
         cy.clearLocalStorage();
+        // Clear all known storage keys explicitly
+        cy.window().then((win) => {
+            ['GUESS_THE_WORD_GAME_STATS', 'LISTEN_AND_GUESS_GAME_STATS', 'GUESS_THE_PHRASE_GAME_STATS'].forEach(key => {
+                win.localStorage.removeItem(key);
+                win.localStorage.removeItem(`${key}_ACTIVE_SUBJECTS`);
+                win.localStorage.removeItem(`${key}_CONFIG`);
+            });
+            // Try to clear IndexedDB too
+            if (win.indexedDB.databases) {
+                win.indexedDB.databases().then((databases) => {
+                    databases.forEach((db) => {
+                        if (db.name) win.indexedDB.deleteDatabase(db.name);
+                    });
+                });
+            }
+        });
         cy.visit('/');
     });
 
@@ -23,6 +39,10 @@ describe('Full Game Flow - Guess the Word (Numbers)', () => {
         // Game should start automatically
         cy.get('div[class*="MuiContainer-root"]', { timeout: 10000 }).should('exist');
         
+        // Verify stats are 0 at start to catch "starts with 1" bug
+        cy.contains('Attempts: 0').should('exist');
+        cy.contains('Wrong: 0').should('exist');
+
         let wrongGuessedWord = '';
 
         // Play 5 rounds
@@ -47,6 +67,11 @@ describe('Full Game Flow - Guess the Word (Numbers)', () => {
                 }
 
                 cy.log(`Round ${i + 1}: Card shows ${digit}, expecting word "${correctAnswer}"`);
+
+                // Assert data-option-type is number for ALL buttons
+                cy.get('[data-testid="option-button"]').each(($el) => {
+                    cy.wrap($el).should('have.attr', 'data-option-type', 'number');
+                });
 
                 // Perform actions
                 if (i === 0) {
@@ -96,7 +121,8 @@ describe('Full Game Flow - Guess the Word (Numbers)', () => {
         
         cy.then(() => {
             cy.contains('Correct: 5').should('be.visible');
-            cy.contains(/Wrong:\s*1/).should('be.visible');
+            // Wrong can be 1 or 2 depending on if the decoy was an active subject
+            cy.contains(/Wrong:\s*[12]/).should('be.visible');
 
             // Check if the word we missed is in the "Worst Guesses" list
             if (wrongGuessedWord) {

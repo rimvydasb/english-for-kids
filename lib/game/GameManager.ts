@@ -127,41 +127,42 @@ export abstract class GameManager<T extends SubjectRecord> {
     }
 
     buildOptions(answer: T, activeSubjects: T[]): string[] {
-        const basePool = activeSubjects.filter((item) => item.getSubject() !== answer.getSubject());
         const groupKey = this.groupBy?.(answer);
-        const primaryPool =
-            groupKey !== undefined ? basePool.filter((candidate) => this.groupBy?.(candidate) === groupKey) : basePool;
 
-        let decoys = GameManager.shuffle(primaryPool).slice(0, this.decoysNeeded);
+        // Pool of all possible decoys (excluding the answer)
+        const globalBasePool = this.subjects.filter((item) => item.getSubject() !== answer.getSubject());
+        // Pool of active decoys (excluding the answer)
+        const activeBasePool = activeSubjects.filter((item) => item.getSubject() !== answer.getSubject());
 
-        if (decoys.length < this.decoysNeeded) {
-            const used = new Set(decoys.map((item) => item.getSubject()));
-            const secondaryPool = basePool.filter((candidate) => !used.has(candidate.getSubject()));
-            const remaining = this.decoysNeeded - decoys.length;
-            decoys = [...decoys, ...GameManager.shuffle(secondaryPool).slice(0, remaining)];
+        let decoys: T[] = [];
+
+        if (groupKey !== undefined) {
+            // STICK TO TYPE: only same type from active pool first
+            const activeSameType = activeBasePool.filter((item) => this.groupBy?.(item) === groupKey);
+            decoys = GameManager.shuffle(activeSameType);
+
+            if (decoys.length < this.decoysNeeded) {
+                const used = new Set(decoys.map((d) => d.getSubject()));
+                // Fill from global pool with SAME type
+                const globalSameType = globalBasePool.filter(
+                    (item) => this.groupBy?.(item) === groupKey && !used.has(item.getSubject()),
+                );
+                const remaining = this.decoysNeeded - decoys.length;
+                decoys = [...decoys, ...GameManager.shuffle(globalSameType).slice(0, remaining)];
+            }
+        } else {
+            // NO GROUPING: use active then global pool
+            decoys = GameManager.shuffle(activeBasePool).slice(0, this.decoysNeeded);
+            if (decoys.length < this.decoysNeeded) {
+                const used = new Set(decoys.map((d) => d.getSubject()));
+                const globalRemaining = globalBasePool.filter((item) => !used.has(item.getSubject()));
+                const remaining = this.decoysNeeded - decoys.length;
+                decoys = [...decoys, ...GameManager.shuffle(globalRemaining).slice(0, remaining)];
+            }
         }
 
-        const usedSubjects = new Set<string>();
-        const uniqueOptions: T[] = [];
-        const addUnique = (item: T) => {
-            const key = item.getSubject();
-            if (usedSubjects.has(key)) return;
-            usedSubjects.add(key);
-            uniqueOptions.push(item);
-        };
-
-        addUnique(answer);
-        decoys.forEach(addUnique);
-
-        if (uniqueOptions.length < this.decoysNeeded + 1) {
-            const fallbackPool = this.subjects.filter((item) => !usedSubjects.has(item.getSubject()));
-            GameManager.shuffle(fallbackPool).forEach((candidate) => {
-                if (uniqueOptions.length >= this.decoysNeeded + 1) return;
-                addUnique(candidate);
-            });
-        }
-
-        return GameManager.shuffle(uniqueOptions).map((item) => item.getSubject());
+        const options = GameManager.shuffle([answer, ...decoys]);
+        return options.map((item) => item.getSubject());
     }
 
     /**

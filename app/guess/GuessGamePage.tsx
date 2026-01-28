@@ -300,6 +300,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                                     return (
                                         <OptionButton
                                             key={option}
+                                            subject={optionWord!}
                                             value={option}
                                             label={label}
                                             isGlowing={isGlowing}
@@ -311,13 +312,11 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                                             onGuess={handleGuess}
                                             showPronunciation={currentRules.optionPronunciation}
                                             isCorrect={isCorrect}
-                                            onPronounce={() => {
-                                                if (optionWord) {
-                                                    playOptionWord(optionWord, {
-                                                        suppressPendingError: true,
-                                                        suppressNotAllowedError: true,
-                                                    });
-                                                }
+                                            onPronounce={(subject) => {
+                                                playOptionWord(subject, {
+                                                    suppressPendingError: true,
+                                                    suppressNotAllowedError: true,
+                                                });
                                             }}
                                         />
                                     );

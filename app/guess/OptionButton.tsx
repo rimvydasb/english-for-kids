@@ -3,6 +3,7 @@ import IconButton from '@mui/material/IconButton';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Box from '@mui/material/Box';
 import {keyframes} from '@mui/material/styles';
+import {PhraseRecord, WordRecord} from '@/lib/types';
 
 const gradientShift = keyframes`
     0% {
@@ -61,6 +62,7 @@ const fadeAwayAnimation = keyframes`
 `;
 
 interface OptionButtonProps {
+    subject: WordRecord | PhraseRecord;
     label: string;
     value: string;
     isGlowing: boolean;
@@ -70,12 +72,13 @@ interface OptionButtonProps {
     isLocked: boolean;
     glowSeed: number;
     showPronunciation?: boolean;
-    onPronounce?: () => void;
+    onPronounce?: (subject: WordRecord | PhraseRecord) => void;
     onGuess: (value: string) => void;
     isCorrect: boolean;
 }
 
 export default function OptionButton({
+                                         subject,
                                          label,
                                          value,
                                          isGlowing,
@@ -125,7 +128,7 @@ export default function OptionButton({
 
     const handlePronounceClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        onPronounce?.();
+        onPronounce?.(subject);
     };
 
     // Determine colors and borders based on state
@@ -139,12 +142,15 @@ export default function OptionButton({
             ? 'primary.main' // Fallback if no gradient
             : 'transparent';
 
+    const optionType = subject instanceof WordRecord ? subject.type : subject.getSubjectType();
+
     return (
         <Box
             onClick={() => onGuess(value)}
             data-testid="option-button"
             data-option-value={value}
             data-is-correct={isCorrect}
+            data-option-type={optionType}
             sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
