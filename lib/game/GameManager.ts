@@ -48,6 +48,7 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     setConfig(config: Partial<GameRules>) {
         this.activeConfig = config;
+        this.statistics.saveConfig(config);
     }
 
     /**
@@ -55,6 +56,7 @@ export abstract class GameManager<T extends SubjectRecord> {
      * Returns the list of all subjects user needs to learn in this game.
      */
     startTheGame(): T[] {
+        this.restoreSession();
         const rules = this.getGameRules();
         const limit = rules.totalInGameSubjectsToLearn ?? GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN;
         const types = rules.selectedWordEntryTypes ?? [];
@@ -91,6 +93,14 @@ export abstract class GameManager<T extends SubjectRecord> {
 
         this.statistics.saveActiveSubjects(activeSelection.map((item) => item.getSubject()));
         return activeSelection;
+    }
+
+    hasActiveGame(): boolean {
+        return this.statistics.loadActiveSubjects().length > 0;
+    }
+
+    protected restoreSession() {
+        this.activeConfig = this.statistics.loadConfig(this.activeConfig);
     }
 
     loadInGameStatistics(): InGameStatsMap {
@@ -194,6 +204,7 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     resetInGameStatistics(): {inGameStats: InGameStatsMap; aggregated: InGameAggregatedStatistics} {
         this.statistics.resetInGameStatistics();
+        this.activeConfig = {};
         const inGameStats = this.statistics.loadInGameStatistics();
         return {inGameStats, aggregated: this.statistics.aggregate(inGameStats)};
     }

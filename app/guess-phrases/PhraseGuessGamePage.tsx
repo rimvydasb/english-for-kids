@@ -22,7 +22,7 @@ interface PhraseGuessGamePageProps {
 
 export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePageProps) {
     const router = useRouter();
-    const [isConfiguring, setIsConfiguring] = useState(true);
+    const [isConfiguring, setIsConfiguring] = useState(() => !gameManager.hasActiveGame());
     const rules = useMemo(() => gameManager.getGameRules(), [gameManager, isConfiguring]);
     
     const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>([]);

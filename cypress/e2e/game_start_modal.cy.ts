@@ -36,7 +36,7 @@ describe('Game Start Modal', () => {
       cy.url().should('eq', Cypress.config().baseUrl + '/');
   });
     
-  it('shows modal when returning to game', () => {
+  it('resumes game without modal if already started', () => {
       // 1. Start game and select options
       cy.contains('Guess The Word').click();
       cy.contains('button', '5 Words').click();
@@ -49,8 +49,9 @@ describe('Game Start Modal', () => {
       cy.get('button[aria-label="Return to main menu"]').click(); 
       cy.url().should('eq', Cypress.config().baseUrl + '/');
 
-      // 3. Return to game - modal SHOULD appear (fixing the "bug")
+      // 3. Return to game - modal should NOT appear (resume behavior)
       cy.contains('Guess The Word').click();
-      cy.contains('Game Setup').should('be.visible');
+      cy.contains('Game Setup').should('not.exist');
+      cy.get('[data-testid="score-header"]').should('exist');
   });
 });

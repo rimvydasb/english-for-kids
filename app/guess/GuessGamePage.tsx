@@ -25,7 +25,7 @@ interface GuessGamePageProps {
 
 export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const router = useRouter();
-    const [isConfiguring, setIsConfiguring] = useState(true);
+    const [isConfiguring, setIsConfiguring] = useState(() => !gameManager.hasActiveGame());
     
     // Re-fetch rules when configuration changes
     const rules = useMemo(() => gameManager.getGameRules(), [gameManager, isConfiguring]);

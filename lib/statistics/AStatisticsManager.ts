@@ -197,6 +197,8 @@ export class BaseStatisticsManager extends AStatisticsManager {
 
     private readonly activeSubjectsKey: string;
 
+    private readonly configKey: string;
+
     private readonly subjects: SubjectRecord[];
 
     constructor(subjects: SubjectRecord[], storageKey: string, globalStorageKey: string, storage?: StorageLike) {
@@ -205,6 +207,7 @@ export class BaseStatisticsManager extends AStatisticsManager {
         this.storageKey = storageKey;
         this.globalStorageKey = globalStorageKey;
         this.activeSubjectsKey = `${storageKey}_ACTIVE_SUBJECTS`;
+        this.configKey = `${storageKey}_CONFIG`;
     }
 
     loadInGameStatistics(): InGameStatsMap {
@@ -258,6 +261,7 @@ export class BaseStatisticsManager extends AStatisticsManager {
     resetInGameStatistics(): void {
         this.saveToStorage(this.storageKey, this.createEmptyInGameStats(this.subjects));
         this.clearActiveSubjects();
+        this.clearConfig();
     }
 
     private mergeIntoGlobal(global: GlobalStatsMap, current: InGameStatsMap): GlobalStatsMap {
@@ -292,5 +296,23 @@ export class BaseStatisticsManager extends AStatisticsManager {
 
     clearActiveSubjects(): void {
         this.storage.removeItem?.(this.activeSubjectsKey);
+    }
+
+    loadConfig<T>(fallback: T): T {
+        const stored = this.storage.getItem(this.configKey);
+        if (!stored) return fallback;
+        try {
+            return JSON.parse(stored) as T;
+        } catch {
+            return fallback;
+        }
+    }
+
+    saveConfig<T>(config: T): void {
+        this.storage.setItem(this.configKey, JSON.stringify(config));
+    }
+
+    clearConfig(): void {
+        this.storage.removeItem?.(this.configKey);
     }
 }
