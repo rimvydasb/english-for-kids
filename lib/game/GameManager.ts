@@ -44,6 +44,10 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     abstract getGameRules(): GameRules;
 
+    /**
+     * Start a new game or resume existing one.
+     * Returns the list of all subjects user needs to learn in this game.
+     */
     startTheGame(): T[] {
         const existingSelection = this.statistics
             .loadActiveSubjects()
@@ -127,6 +131,14 @@ export abstract class GameManager<T extends SubjectRecord> {
         return GameManager.shuffle(uniqueOptions).map((item) => item.getSubject());
     }
 
+    /**
+     * User selects an answer - record that attempt
+     *
+     * @param current - current in-game statistics
+     * @param subject - the actual subject user tries to guess
+     * @param guess - user's guess
+     * @param activeSubjects - list of all subjects user needs to learn in this game
+     */
     recordAttempt(current: InGameStatsMap, subject: T, guess: string, activeSubjects: T[]): GameRoundResult {
         const isCorrect = subject.getSubject() === guess;
         const inGameStats = this.statistics.recordAttempt(current, subject.getSubject(), isCorrect);
