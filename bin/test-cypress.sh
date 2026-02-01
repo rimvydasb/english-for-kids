@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PORT=3005
+PORT=7788
 SCREENSHOTS_DIR="./cypress/screenshots"
 LOCK_FILE="./.next/dev/lock"
 

@@ -4,7 +4,7 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import {keyframes} from '@mui/material/styles';
 import {GlobalStatsMap, InGameAggregatedStatistics} from '@/lib/statistics/AStatisticsManager';
 import WordCard from '@/components/WordCard';
-import {WordRecord} from '@/lib/words';
+import {WordRecord} from '@/lib/types';
 import {PhraseRecord, WordCardMode} from '@/lib/types';
 
 interface FinishedSummaryProps {

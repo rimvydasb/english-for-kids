@@ -2,7 +2,8 @@ import {GameManager} from '@/lib/game/GameManager';
 import {StorageLike} from '@/lib/statistics/AStatisticsManager';
 import {WordStatisticsManager} from '@/lib/statistics/WordStatisticsManager';
 import {GameRules, WordCardMode, WordRecord} from '@/lib/types';
-import {WORDS_DICTIONARY} from '@/lib/words';
+import {WORDS_DICTIONARY} from '@/lib/config';
+import {GlobalConfig} from '@/lib/config';
 
 abstract class BaseWordsGameManager extends GameManager<WordRecord> {
     protected constructor(subjects: WordRecord[] = WORDS_DICTIONARY, storage?: StorageLike) {
@@ -36,6 +37,9 @@ export class GuessTheWordGameManager extends BaseWordsGameManager {
             showWordPronunciation: false,
             options: 'word',
             optionPronunciation: true,
+            totalInGameSubjectsToLearn: GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN,
+            selectedWordEntryTypes: [],
+            ...this.activeConfig,
         };
     }
 }
@@ -58,6 +62,9 @@ export class ListenAndGuessGameManager extends BaseWordsGameManager {
             showWordPronunciation: true,
             options: 'translation',
             optionPronunciation: false,
+            totalInGameSubjectsToLearn: GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN,
+            selectedWordEntryTypes: [],
+            ...this.activeConfig,
         };
     }
 }

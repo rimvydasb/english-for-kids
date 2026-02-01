@@ -9,12 +9,13 @@ import FinishedSummary from '../guess/FinishedSummary';
 import VariantStatsBar from '@/components/VariantStatsBar';
 import GuessScoreHeader from '@/components/GuessScoreHeader';
 import PhraseCard from '@/components/PhraseCard';
+import GameConfigModal from '../guess/GameConfigModal';
 import {usePronunciation} from '@/lib/usePronunciation';
 import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
-import {DEFAULT_RULES, GameRules, PhraseRecord} from '@/lib/types';
-import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
-import {GlobalConfig} from '@/lib/Config';
+import {GlobalConfig, DEFAULT_RULES} from '@/lib/config';
+import {GameRules, PhraseRecord, WordEntryType} from '@/lib/types';
+import {InGameAggregatedStatistics, InGameStatsMap} from "@/lib/statistics/AStatisticsManager";
 
 interface PhraseGuessGamePageProps {
     gameManager: PhasesGameManager;
@@ -22,11 +23,16 @@ interface PhraseGuessGamePageProps {
 
 export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePageProps) {
     const router = useRouter();
-    const rules = useMemo(() => gameManager.getGameRules(), [gameManager]);
-    const initialSubjects = useMemo(() => gameManager.startTheGame(), [gameManager]);
-    const initialStats = useMemo(() => gameManager.loadInGameStatistics(), [gameManager]);
-    const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>(initialSubjects);
-    const [inGameStats, setInGameStats] = useState<InGameStatsMap>(initialStats);
+    const [isConfiguring, setIsConfiguring] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false);
+    const rules = useMemo(() => {
+        // Ensure we depend on isConfiguring so rules are re-fetched when it changes
+        return isConfiguring ? gameManager.getGameRules() : gameManager.getGameRules();
+    }, [gameManager, isConfiguring]);
+    
+    const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>([]);
+    const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
+    
     const [currentPhrase, setCurrentPhrase] = useState<PhraseRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
     const [isFinished, setIsFinished] = useState(false);
@@ -71,9 +77,38 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
         [gameManager, rules],
     );
 
+    const handleConfigStart = useCallback(
+        (count: number, types: WordEntryType[]) => {
+            gameManager.setConfig({
+                totalInGameSubjectsToLearn: count,
+                selectedWordEntryTypes: types, // Passed but likely ignored by PhraseManager
+            });
+
+            const subjects = gameManager.startTheGame();
+            const stats = gameManager.loadInGameStatistics();
+
+            setActiveSubjects(subjects);
+            setInGameStats(stats);
+            setIsConfiguring(false);
+            setupRound(subjects, stats);
+        },
+        [gameManager, setupRound],
+    );
+
     useEffect(() => {
-        setupRound(initialSubjects, initialStats);
-    }, [initialStats, initialSubjects, setupRound]);
+        if (!isInitialized) {
+            const hasActive = gameManager.hasActiveGame();
+            if (hasActive) {
+                setIsConfiguring(false);
+                const subjects = gameManager.startTheGame();
+                const stats = gameManager.loadInGameStatistics();
+                setActiveSubjects(subjects);
+                setInGameStats(stats);
+                setupRound(subjects, stats);
+            }
+            setIsInitialized(true);
+        }
+    }, [gameManager, isInitialized, setupRound]);
 
     useEffect(() => {
         if (!isFinished) {
@@ -142,19 +177,18 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
     }, [activeSubjects, gameManager, inGameStats, pendingCompletion, setupRound]);
 
     const handleRestart = useCallback(() => {
-        const {inGameStats: resetStats} = gameManager.resetInGameStatistics();
-        const refreshedSubjects = gameManager.startTheGame();
-        setActiveSubjects(refreshedSubjects);
-        setInGameStats(resetStats);
-        setupRound(refreshedSubjects, resetStats);
-        setGlowingOption(null);
-        setShakingOption(null);
-        setIsTransitioning(false);
+        gameManager.resetInGameStatistics();
         setIsFinished(false);
         setResolvedOption(null);
         setPendingCompletion(false);
+        setIsTransitioning(false);
         setGlowSeed(0);
-    }, [gameManager, setupRound]);
+        setIsConfiguring(true);
+    }, [gameManager]);
+
+    if (!isInitialized) {
+        return null;
+    }
 
     const learnedCount = activeAggregatedStats.learnedItemsCount;
     const totalCount = activeSubjects.length;
@@ -163,7 +197,10 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
 
     return (
         <Container maxWidth="md">
-            <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
+            <GameConfigModal open={isConfiguring} onStart={handleConfigStart} onClose={() => router.push('/')} showTypes={false} />
+
+            {!isConfiguring && (
+                <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
                 <GuessScoreHeader
                     learnedCount={learnedCount}
                     totalCount={totalCount}
@@ -232,6 +269,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                             >
                                 {options.map((option) => {
                                     const optionPhrase = gameManager.findBySubject(option);
+                                    const isCorrect = currentPhrase?.word === option;
                                     const label = optionPhrase?.translation || option;
                                     const isGlowing = glowingOption === option;
                                     const isShaking = shakingOption === option;
@@ -241,6 +279,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                     return (
                                         <OptionButton
                                             key={option}
+                                            subject={optionPhrase!}
                                             value={option}
                                             label={label}
                                             isGlowing={isGlowing}
@@ -251,13 +290,12 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                             glowSeed={glowSeed}
                                             onGuess={handleGuess}
                                             showPronunciation={currentRules.optionPronunciation}
-                                            onPronounce={() => {
-                                                if (optionPhrase) {
-                                                    playOptionPhrase(optionPhrase, {
-                                                        suppressPendingError: true,
-                                                        suppressNotAllowedError: true,
-                                                    });
-                                                }
+                                            isCorrect={isCorrect}
+                                            onPronounce={(subject) => {
+                                                playOptionPhrase(subject, {
+                                                    suppressPendingError: true,
+                                                    suppressNotAllowedError: true,
+                                                });
                                             }}
                                         />
                                     );
@@ -287,6 +325,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                     </Stack>
                 )}
             </Box>
+            )}
         </Container>
     );
 }

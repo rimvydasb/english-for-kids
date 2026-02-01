@@ -5,7 +5,7 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import {WordRecord} from '@/lib/words';
+import {WordRecord} from '@/lib/types';
 import {GlobalStatistics, WordCardMode} from '@/lib/types';
 import {CardHeader} from '@mui/material';
 

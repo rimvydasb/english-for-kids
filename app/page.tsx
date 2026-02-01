@@ -8,7 +8,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HearingIcon from '@mui/icons-material/Hearing';
 import TranslateIcon from '@mui/icons-material/Translate';
-import {KNOWN_GAME_STORAGE_KEYS} from '@/lib/Config';
+import {KNOWN_GAME_STORAGE_KEYS} from '@/lib/config';
 import {GameManager} from '@/lib/game/GameManager';
 
 const gradientShift = keyframes`

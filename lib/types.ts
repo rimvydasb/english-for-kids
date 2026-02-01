@@ -18,15 +18,9 @@ export interface GameRules {
     showWordPronunciation: boolean;
     options: OptionMode;
     optionPronunciation: boolean;
+    totalInGameSubjectsToLearn: number;
+    selectedWordEntryTypes: WordEntryType[];
 }
-
-export const DEFAULT_RULES: Partial<GameRules> = {
-    wordCardMode: WordCardMode.Learning,
-    showImage: true,
-    showTranslation: true,
-    showWord: true,
-    showWordPronunciation: true,
-};
 
 export type GameVariant = 'guessTheWord' | 'listenAndGuess' | 'guessPhrase';
 
@@ -43,11 +37,13 @@ export interface InGameStatistics extends GlobalStatistics {
     learned: boolean;
 }
 
+export type WordEntryType = 'noun' | 'verb' | 'adjective' | 'color' | 'number';
+
 export interface WordEntry {
     word: string;
     translation?: string;
     examples?: string[];
-    type: 'noun' | 'verb' | 'adjective' | 'color' | 'number';
+    type: WordEntryType;
     imageFile?: string;
 
     // Optional display override

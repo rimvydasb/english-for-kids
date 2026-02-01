@@ -1,4 +1,4 @@
-import {PhraseEntry, PhraseRecord, WordEntry, WordRecord} from '@/lib/types';
+import {GameRules, PhraseEntry, PhraseRecord, WordCardMode, WordEntry, WordRecord} from '@/lib/types';
 
 export const GlobalConfig = {
     // Start the game only with X subjects to guess and circle through them
@@ -6,7 +6,7 @@ export const GlobalConfig = {
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: 100,
 
     // How many decoys to show alongside the correct answer
-    DEFAULT_DECOYS: 4,
+    DEFAULT_DECOYS: 7,
 
     // How many weakest subjects to surface at the end of a game
     WORST_GUESSES_COUNT: 99,
@@ -14,6 +14,16 @@ export const GlobalConfig = {
     TOTAL_IN_GAME_SUBJECTS_TO_LEARN: number;
     DEFAULT_DECOYS: number;
     WORST_GUESSES_COUNT: number;
+};
+
+export const DEFAULT_RULES: Partial<GameRules> = {
+    wordCardMode: WordCardMode.Learning,
+    showImage: true,
+    showTranslation: true,
+    showWord: true,
+    showWordPronunciation: true,
+    totalInGameSubjectsToLearn: GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN,
+    selectedWordEntryTypes: [],
 };
 
 export const KNOWN_GAME_STORAGE_KEYS = [
@@ -192,12 +202,28 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         translation: 'tėtis',
         examples: ['This is my dad.'],
         type: 'noun',
+        imageFile: 'dad,man.png',
     },
     {
         word: 'mum',
         translation: 'mama',
         examples: ['This is my mum.'],
         type: 'noun',
+        imageFile: 'mum,woman.png',
+    },
+    {
+        word: 'man',
+        translation: 'vyras',
+        examples: ['This is a man.'],
+        type: 'noun',
+        imageFile: 'dad,man.png',
+    },
+    {
+        word: 'woman',
+        translation: 'moteris',
+        examples: ['This is a woman.'],
+        type: 'noun',
+        imageFile: 'mum,woman.png',
     },
     {
         word: 'grandma',
@@ -209,6 +235,30 @@ export const WORDS_DICTIONARY_DATA: WordEntry[] = [
         word: 'grandpa',
         translation: 'senelis',
         examples: ['This is my grandpa.'],
+        type: 'noun',
+    },
+    {
+        word: 'mango',
+        translation: 'mangas',
+        examples: ['Mango is sweet.'],
+        type: 'noun',
+    },
+    {
+        word: 'neck',
+        translation: 'kaklas',
+        examples: ['My neck hurts.'],
+        type: 'noun',
+    },
+    {
+        word: 'nose',
+        translation: 'nosis',
+        examples: ['Touch your nose.'],
+        type: 'noun',
+    },
+    {
+        word: 'octopus',
+        translation: 'aštuonkojis',
+        examples: ['Octopus has eight legs.'],
         type: 'noun',
     },
     {

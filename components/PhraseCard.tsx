@@ -1,7 +1,7 @@
 import {MouseEvent} from 'react';
 import {Card, CardContent, IconButton, Typography} from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import {PhraseRecord} from '@/lib/phrases';
+import {PhraseRecord} from '@/lib/types';
 
 interface PhraseCardProps {
     phrase: PhraseRecord;

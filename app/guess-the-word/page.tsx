@@ -3,7 +3,7 @@
 import {useMemo} from 'react';
 import GuessGamePage from '../guess/GuessGamePage';
 import {GuessTheWordGameManager} from '@/lib/game/WordGameManager';
-import {WORDS_DICTIONARY} from '@/lib/words';
+import {WORDS_DICTIONARY} from '@/lib/config';
 
 export default function GuessTheWordPage() {
     const gameManager = useMemo(() => new GuessTheWordGameManager(WORDS_DICTIONARY), []);

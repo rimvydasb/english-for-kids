@@ -1,4 +1,4 @@
-import {GlobalConfig, KNOWN_GAME_STORAGE_KEYS} from '@/lib/Config';
+import {GlobalConfig, KNOWN_GAME_STORAGE_KEYS} from '@/lib/config';
 import {
     AStatisticsManager,
     BaseStatisticsManager,
@@ -35,6 +35,8 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     protected statistics: BaseStatisticsManager;
 
+    protected activeConfig: Partial<GameRules> = {};
+
     protected constructor(subjects: T[], statistics: BaseStatisticsManager, options?: GameManagerOptions<T>) {
         this.subjects = subjects;
         this.statistics = statistics;
@@ -44,26 +46,61 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     abstract getGameRules(): GameRules;
 
+    setConfig(config: Partial<GameRules>) {
+        this.activeConfig = config;
+        this.statistics.saveConfig(config);
+    }
+
+    /**
+     * Start a new game or resume existing one.
+     * Returns the list of all subjects user needs to learn in this game.
+     */
     startTheGame(): T[] {
-        const existingSelection = this.statistics
+        this.restoreSession();
+        const rules = this.getGameRules();
+        const limit = rules.totalInGameSubjectsToLearn ?? GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN;
+        const types = rules.selectedWordEntryTypes ?? [];
+
+        // Helper to check if subject matches selected types
+        const matchesType = (subject: T) => {
+            if (types.length === 0) return true;
+            // Check if subject has 'type' property and it matches
+            const type = (subject as any).type;
+            if (type && !types.includes(type)) return false;
+            return true;
+        };
+
+        let activeSelection = this.statistics
             .loadActiveSubjects()
             .map((key) => this.findBySubject(key))
-            .filter((item): item is T => Boolean(item));
+            .filter((item): item is T => Boolean(item))
+            .filter(matchesType);
 
-        if (existingSelection.length > 0) {
-            if (existingSelection.length > GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN) {
-                const truncated = existingSelection.slice(0, GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN);
-                this.statistics.saveActiveSubjects(truncated.map((item) => item.getSubject()));
-                return truncated;
-            }
-            return existingSelection;
+        if (activeSelection.length < limit) {
+            const needed = limit - activeSelection.length;
+            const existingKeys = new Set(activeSelection.map((s) => s.getSubject()));
+
+            const pool = this.subjects.filter((s) => !existingKeys.has(s.getSubject()) && matchesType(s));
+            
+            const globalStats = this.statistics.loadGlobalStatistics();
+            const prioritized = GameManager.sortByDifficulty(pool, globalStats);
+            const nextBatch = prioritized.slice(0, needed);
+            
+            activeSelection = [...activeSelection, ...nextBatch];
+        } else if (activeSelection.length > limit) {
+            activeSelection = activeSelection.slice(0, limit);
         }
 
-        const globalStats = this.statistics.loadGlobalStatistics();
-        const prioritized = GameManager.sortByDifficulty(this.subjects, globalStats);
-        const chosen = prioritized.slice(0, GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN);
-        this.statistics.saveActiveSubjects(chosen.map((item) => item.getSubject()));
-        return chosen;
+        this.statistics.saveActiveSubjects(activeSelection.map((item) => item.getSubject()));
+        return activeSelection;
+    }
+
+    hasActiveGame(): boolean {
+        return this.statistics.loadActiveSubjects().length > 0;
+    }
+
+    protected restoreSession() {
+        this.activeConfig = this.statistics.loadConfig(this.activeConfig);
     }
 
     loadInGameStatistics(): InGameStatsMap {
@@ -90,46 +127,75 @@ export abstract class GameManager<T extends SubjectRecord> {
     }
 
     buildOptions(answer: T, activeSubjects: T[]): string[] {
-        const basePool = activeSubjects.filter((item) => item.getSubject() !== answer.getSubject());
         const groupKey = this.groupBy?.(answer);
-        const primaryPool =
-            groupKey !== undefined ? basePool.filter((candidate) => this.groupBy?.(candidate) === groupKey) : basePool;
 
-        let decoys = GameManager.shuffle(primaryPool).slice(0, this.decoysNeeded);
+        // Pool of all possible decoys (excluding the answer)
+        const globalBasePool = this.subjects.filter((item) => item.getSubject() !== answer.getSubject());
+        // Pool of active decoys (excluding the answer)
+        const activeBasePool = activeSubjects.filter((item) => item.getSubject() !== answer.getSubject());
 
+        let decoys: T[] = [];
+
+        // 1. Try to find decoys of the same group first
+        if (groupKey !== undefined) {
+            // Active same type
+            const activeSameType = activeBasePool.filter((item) => this.groupBy?.(item) === groupKey);
+            decoys = GameManager.shuffle(activeSameType);
+
+            // Global same type
+            if (decoys.length < this.decoysNeeded) {
+                const used = new Set(decoys.map((d) => d.getSubject()));
+                const globalSameType = globalBasePool.filter(
+                    (item) => this.groupBy?.(item) === groupKey && !used.has(item.getSubject()),
+                );
+                const remaining = this.decoysNeeded - decoys.length;
+                decoys = [...decoys, ...GameManager.shuffle(globalSameType).slice(0, remaining)];
+            }
+        }
+
+        // 2. Fill remaining spots with any available subjects if needed
         if (decoys.length < this.decoysNeeded) {
-            const used = new Set(decoys.map((item) => item.getSubject()));
-            const secondaryPool = basePool.filter((candidate) => !used.has(candidate.getSubject()));
-            const remaining = this.decoysNeeded - decoys.length;
-            decoys = [...decoys, ...GameManager.shuffle(secondaryPool).slice(0, remaining)];
+            const used = new Set(decoys.map((d) => d.getSubject()));
+
+            // Active any type
+            const activeRemaining = activeBasePool.filter((item) => !used.has(item.getSubject()));
+            const remainingAfterActive = this.decoysNeeded - decoys.length;
+            const addedFromActive = GameManager.shuffle(activeRemaining).slice(0, remainingAfterActive);
+            decoys = [...decoys, ...addedFromActive];
+
+            // Global any type
+            if (decoys.length < this.decoysNeeded) {
+                const usedNow = new Set(decoys.map((d) => d.getSubject()));
+                const globalRemaining = globalBasePool.filter((item) => !usedNow.has(item.getSubject()));
+                const remainingFinal = this.decoysNeeded - decoys.length;
+                const addedFromGlobal = GameManager.shuffle(globalRemaining).slice(0, remainingFinal);
+                decoys = [...decoys, ...addedFromGlobal];
+            }
         }
 
-        const usedSubjects = new Set<string>();
-        const uniqueOptions: T[] = [];
-        const addUnique = (item: T) => {
-            const key = item.getSubject();
-            if (usedSubjects.has(key)) return;
-            usedSubjects.add(key);
-            uniqueOptions.push(item);
-        };
-
-        addUnique(answer);
-        decoys.forEach(addUnique);
-
-        if (uniqueOptions.length < this.decoysNeeded + 1) {
-            const fallbackPool = this.subjects.filter((item) => !usedSubjects.has(item.getSubject()));
-            GameManager.shuffle(fallbackPool).forEach((candidate) => {
-                if (uniqueOptions.length >= this.decoysNeeded + 1) return;
-                addUnique(candidate);
-            });
-        }
-
-        return GameManager.shuffle(uniqueOptions).map((item) => item.getSubject());
+        const options = GameManager.shuffle([answer, ...decoys]);
+        return options.map((item) => item.getSubject());
     }
 
+    /**
+     * User selects an answer - record that attempt
+     *
+     * @param current - current in-game statistics
+     * @param subject - the actual subject user tries to guess
+     * @param guess - user's guess
+     * @param activeSubjects - list of all subjects user needs to learn in this game
+     */
     recordAttempt(current: InGameStatsMap, subject: T, guess: string, activeSubjects: T[]): GameRoundResult {
         const isCorrect = subject.getSubject() === guess;
-        const inGameStats = this.statistics.recordAttempt(current, subject.getSubject(), isCorrect);
+        let inGameStats = this.statistics.recordAttempt(current, subject.getSubject(), isCorrect);
+
+        if (!isCorrect) {
+            const guessedSubject = this.findBySubject(guess);
+            if (guessedSubject) {
+                inGameStats = this.statistics.recordAttempt(inGameStats, guess, false);
+            }
+        }
+
         const aggregated = this.statistics.aggregate(inGameStats);
         const isComplete = this.hasCompletedAll(activeSubjects, inGameStats);
 
@@ -151,6 +217,7 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     resetInGameStatistics(): {inGameStats: InGameStatsMap; aggregated: InGameAggregatedStatistics} {
         this.statistics.resetInGameStatistics();
+        this.activeConfig = {};
         const inGameStats = this.statistics.loadInGameStatistics();
         return {inGameStats, aggregated: this.statistics.aggregate(inGameStats)};
     }

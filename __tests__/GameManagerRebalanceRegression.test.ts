@@ -1,7 +1,7 @@
 import {GuessTheWordGameManager} from '@/lib/game/WordGameManager';
-import {WordRecord} from '@/lib/words';
+import {WordRecord} from '@/lib/types';
 import {MemoryStorage} from './helpers/mockStorage';
-import {GlobalConfig} from '@/lib/Config';
+import {GlobalConfig} from '@/lib/config';
 
 describe('GameManager Rebalancing', () => {
     const limit = GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN;
