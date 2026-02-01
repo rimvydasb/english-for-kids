@@ -59,7 +59,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     }, [activeSubjects, gameManager, inGameStats]);
 
     const setupRound = useCallback(
-        (subjects: WordRecord[], stats: InGameStatsMap) => {
+        (subjects: WordRecord[], stats: InGameStatsMap, rulesOverride?: GameRules) => {
             const next = gameManager.drawNextCandidate(subjects, stats);
             if (!next) {
                 setIsFinished(true);
@@ -67,6 +67,8 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                 setOptions([]);
                 return;
             }
+
+            const effectiveRules = rulesOverride || rules;
 
             setIsFinished(false);
             setCurrentWord(next);
@@ -77,7 +79,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
             setIsTransitioning(false);
             setPendingCompletion(false);
             setGlowSeed(0);
-            setCurrentRules(rules);
+            setCurrentRules(effectiveRules);
             playedOnOpenRef.current = false;
         },
         [gameManager, rules],
@@ -93,11 +95,12 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
             // Start logic
             const subjects = gameManager.startTheGame();
             const stats = gameManager.loadInGameStatistics();
+            const freshRules = gameManager.getGameRules();
 
             setActiveSubjects(subjects);
             setInGameStats(stats);
             setIsConfiguring(false);
-            setupRound(subjects, stats);
+            setupRound(subjects, stats, freshRules);
         },
         [gameManager, setupRound],
     );

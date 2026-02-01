@@ -1,15 +1,21 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {Box, Button, IconButton, Modal, Stack, Typography, keyframes} from '@mui/material';
+import {Box, Button, IconButton, keyframes, Modal, Stack, Typography} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import {WordEntryType} from '@/lib/types';
 import {GlobalConfig} from '@/lib/config';
 
 const pulse = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(108, 92, 231, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(108, 92, 231, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(108, 92, 231, 0);
+    }
 `;
 
 interface GameConfigModalProps {
@@ -33,11 +39,13 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
     useEffect(() => {
         if (count !== null && types !== null) {
             const timer = setTimeout(() => {
-                onStart(count, types);
+                if (open) {
+                    onStart(count, types);
+                }
             }, 1000);
             return () => clearTimeout(timer);
         }
-    }, [count, types, onStart]);
+    }, [count, types, onStart, open]);
 
     const handleCountSelect = (val: number) => setCount(val);
     const handleTypeSelect = (val: WordEntryType[]) => setTypes(val);
@@ -108,7 +116,7 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
                         color: (theme) => theme.palette.grey[500],
                     }}
                 >
-                    <CloseIcon />
+                    <CloseIcon/>
                 </IconButton>
 
                 <Typography variant="h4" component="h2" gutterBottom align="center" sx={{mb: 4}}>
@@ -117,10 +125,13 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
 
                 <Stack spacing={4}>
                     <Box>
-                        <Typography variant="h6" gutterBottom>
-                            How many words?
-                        </Typography>
                         <Stack direction={{xs: 'column', sm: 'row'}} spacing={2}>
+                            <Button
+                                onClick={() => handleCountSelect(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN)}
+                                sx={getButtonStyle(count === GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN)}
+                            >
+                                All Words
+                            </Button>
                             <Button
                                 onClick={() => handleCountSelect(5)}
                                 sx={getButtonStyle(count === 5)}
@@ -133,58 +144,47 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
                             >
                                 20 Words
                             </Button>
-                            <Button
-                                onClick={() => handleCountSelect(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN)}
-                                sx={getButtonStyle(count === GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN)}
-                            >
-                                All Words
-                            </Button>
                         </Stack>
                     </Box>
 
                     {showTypes && (
-                        <Box>
-                            <Typography variant="h6" gutterBottom>
-                                What topic?
-                            </Typography>
-                            <Box
-                                sx={{
-                                    display: 'grid',
-                                    gridTemplateColumns: {xs: '1fr', sm: 'repeat(3, 1fr)'},
-                                    gap: 2,
-                                }}
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: {xs: '1fr', sm: 'repeat(3, 1fr)'},
+                                gap: 2,
+                            }}
+                        >
+                            <Button
+                                onClick={() => handleTypeSelect([])}
+                                sx={{...getButtonStyle(types !== null && types.length === 0)}}
                             >
-                                <Button
-                                    onClick={() => handleTypeSelect([])}
-                                    sx={{...getButtonStyle(types !== null && types.length === 0), gridColumn: {sm: 'span 3'}}}
-                                >
-                                    Any Topic
-                                </Button>
-                                <Button
-                                    onClick={() => handleTypeSelect(['number'])}
-                                    sx={getButtonStyle(types?.includes('number') || false)}
-                                >
-                                    Numbers
-                                </Button>
-                                <Button
-                                    onClick={() => handleTypeSelect(['color'])}
-                                    sx={getButtonStyle(types?.includes('color') || false)}
-                                >
-                                    Colors
-                                </Button>
-                                <Button
-                                    onClick={() => handleTypeSelect(['noun'])}
-                                    sx={getButtonStyle(types?.includes('noun') || false)}
-                                >
-                                    Nouns
-                                </Button>
-                                <Button
-                                    onClick={() => handleTypeSelect(['adjective'])}
-                                    sx={getButtonStyle(types?.includes('adjective') || false)}
-                                >
-                                    Adjectives
-                                </Button>
-                            </Box>
+                                Any
+                            </Button>
+                            <Button
+                                onClick={() => handleTypeSelect(['number'])}
+                                sx={getButtonStyle(types?.includes('number') || false)}
+                            >
+                                1,2,3...
+                            </Button>
+                            <Button
+                                onClick={() => handleTypeSelect(['color'])}
+                                sx={getButtonStyle(types?.includes('color') || false)}
+                            >
+                                Black, White...
+                            </Button>
+                            <Button
+                                onClick={() => handleTypeSelect(['noun'])}
+                                sx={getButtonStyle(types?.includes('noun') || false)}
+                            >
+                                Cat, Dog...
+                            </Button>
+                            <Button
+                                onClick={() => handleTypeSelect(['adjective'])}
+                                sx={getButtonStyle(types?.includes('adjective') || false)}
+                            >
+                                Happy, Sad...
+                            </Button>
                         </Box>
                     )}
                 </Stack>
