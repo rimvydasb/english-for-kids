@@ -140,7 +140,7 @@ export abstract class GameManager<T extends SubjectRecord> {
         if (groupKey !== undefined) {
             // Active same type
             const activeSameType = activeBasePool.filter((item) => this.groupBy?.(item) === groupKey);
-            decoys = GameManager.shuffle(activeSameType);
+            decoys = GameManager.shuffle(activeSameType).slice(0, this.decoysNeeded);
 
             // Global same type
             if (decoys.length < this.decoysNeeded) {
