@@ -1,35 +1,50 @@
 describe('Game Start Modal', () => {
   beforeEach(() => {
-    // Clear local storage to ensure fresh start for each test
     cy.clearLocalStorage();
     cy.visit('/');
   });
 
-  it('opens modal when starting Guess The Word game', () => {
-    cy.contains('Guess The Word').click();
-    cy.contains('Game Setup').should('be.visible');
-    cy.contains('How many words?').should('be.visible');
-    cy.contains('What topic?').should('be.visible');
+  const games = [
+      { name: 'Guess The Word', hasTopic: true, urlPart: '/guess-the-word' },
+      { name: 'Listen & Guess', hasTopic: true, urlPart: '/listen-and-guess' },
+      { name: 'Guess Phrases', hasTopic: false, urlPart: '/guess-phrases' }
+  ];
+
+  games.forEach(game => {
+      it(`opens modal when starting ${game.name}`, () => {
+        cy.contains(game.name).click();
+        cy.contains('Game Setup').should('be.visible');
+        cy.contains('How many words?').should('be.visible');
+        if (game.hasTopic) {
+            cy.contains('What topic?').should('be.visible');
+        } else {
+            cy.contains('What topic?').should('not.exist');
+        }
+      });
   });
 
-  it('selects options and starts the game', () => {
+  it('selects options and starts Guess The Word', () => {
     cy.contains('Guess The Word').click();
-
-    // Select 5 words
     cy.contains('button', '5 Words').click();
-    // Select Nouns
     cy.contains('button', 'Nouns').click();
 
-    // Modal should close and game should start (check for specific game element)
     cy.contains('Game Setup').should('not.exist');
     cy.url().should('include', '/guess-the-word');
-    // Check if score header is visible, indicating game start
     cy.get('[data-testid="score-header"]').should('exist'); 
   });
 
+  it('selects options and starts Guess Phrases', () => {
+      cy.contains('Guess Phrases').click();
+      // Only count selection is available
+      cy.contains('button', '5 Words').click();
+      
+      // Should start immediately after count selection since no topic needed
+      cy.contains('Game Setup').should('not.exist');
+      cy.url().should('include', '/guess-phrases');
+      cy.get('[data-testid="score-header"]').should('exist');
+  });
+
   it('closes modal and returns to home page', () => {
-      // This test expects a close button on the modal, which needs to be implemented.
-      // Assuming a close button with specific aria-label or text will be added.
       cy.contains('Guess The Word').click();
       cy.get('button[aria-label="Close"]').click();
       cy.contains('Game Setup').should('not.exist');
@@ -45,7 +60,7 @@ describe('Game Start Modal', () => {
       // Wait for game to start
       cy.get('[data-testid="score-header"]').should('exist');
       
-      // 2. Navigate away (e.g., to home)
+      // 2. Navigate away
       cy.get('button[aria-label="Return to main menu"]').click(); 
       cy.url().should('eq', Cypress.config().baseUrl + '/');
 

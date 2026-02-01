@@ -44,19 +44,28 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
 
     const getButtonStyle = (isSelected: boolean) => ({
         flex: 1,
-        py: 1.5,
-        borderRadius: 2,
-        border: '2px solid',
+        py: 3,
+        px: 2,
+        borderRadius: 0,
+        border: '3px solid',
         borderColor: isSelected ? 'primary.main' : 'divider',
-        bgcolor: isSelected ? 'primary.light' : 'background.paper',
+        bgcolor: isSelected ? 'primary.main' : 'background.paper',
         color: isSelected ? 'primary.contrastText' : 'text.primary',
-        fontWeight: 700,
-        textTransform: 'none' as const,
-        fontSize: '1.1rem',
-        animation: isSelected ? `${pulse} 1.5s infinite` : 'none',
+        fontWeight: 900,
+        textTransform: 'uppercase' as const,
+        fontSize: '1.25rem',
+        boxShadow: isSelected ? 8 : 2,
+        animation: isSelected ? `${pulse} 2s infinite` : 'none',
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
             borderColor: 'primary.main',
-            bgcolor: isSelected ? 'primary.light' : 'action.hover',
+            bgcolor: isSelected ? 'primary.dark' : 'action.hover',
+            boxShadow: 6,
+            transform: 'translateY(-2px)',
+        },
+        '&:active': {
+            transform: 'translateY(0)',
+            boxShadow: 2,
         },
     });
 
