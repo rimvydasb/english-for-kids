@@ -1,5 +1,7 @@
 import {GameRules, PhraseEntry, PhraseRecord, WordCardMode, WordEntry, WordRecord} from '@/lib/types';
 
+// File renamed to config.ts from Config.ts
+
 export const GlobalConfig = {
     // Start the game only with X subjects to guess and circle through them
     // Worst learned words and phrases will be used to draw the variants
