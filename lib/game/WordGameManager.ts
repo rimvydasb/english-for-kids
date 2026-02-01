@@ -2,7 +2,7 @@ import {GameManager} from '@/lib/game/GameManager';
 import {StorageLike} from '@/lib/statistics/AStatisticsManager';
 import {WordStatisticsManager} from '@/lib/statistics/WordStatisticsManager';
 import {GameRules, WordCardMode, WordRecord} from '@/lib/types';
-import {WORDS_DICTIONARY} from '@/lib/words';
+import {WORDS_DICTIONARY} from '@/lib/config';
 import {GlobalConfig} from '@/lib/config';
 
 abstract class BaseWordsGameManager extends GameManager<WordRecord> {

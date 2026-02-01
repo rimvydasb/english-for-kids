@@ -12,7 +12,7 @@ import GameConfigModal from './GameConfigModal';
 import {GuessTheWordGameManager, ListenAndGuessGameManager} from '@/lib/game/WordGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
 import {usePronunciation} from '@/lib/usePronunciation';
-import {WordRecord} from '@/lib/words';
+import {WordRecord} from '@/lib/types';
 import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
 import {DEFAULT_RULES, GlobalConfig} from '@/lib/config';
 import {GameRules, WordCardMode, WordEntryType} from '@/lib/types';

@@ -1,5 +1,5 @@
 import {WordStatisticsManager} from '@/lib/statistics/WordStatisticsManager';
-import {WordRecord} from '@/lib/words';
+import {WordRecord} from '@/lib/types';
 import {MemoryStorage} from './helpers/mockStorage';
 
 describe('WordStatisticsManager', () => {

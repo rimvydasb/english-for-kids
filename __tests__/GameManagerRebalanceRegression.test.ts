@@ -1,5 +1,5 @@
 import {GuessTheWordGameManager} from '@/lib/game/WordGameManager';
-import {WordRecord} from '@/lib/words';
+import {WordRecord} from '@/lib/types';
 import {MemoryStorage} from './helpers/mockStorage';
 import {GlobalConfig} from '@/lib/config';
 

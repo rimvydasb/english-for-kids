@@ -1,6 +1,6 @@
 import {GlobalConfig} from '@/lib/config';
 import {GuessTheWordGameManager, ListenAndGuessGameManager} from '@/lib/game/WordGameManager';
-import {WordRecord} from '@/lib/words';
+import {WordRecord} from '@/lib/types';
 import {MemoryStorage} from './helpers/mockStorage';
 
 const getType = (records: WordRecord[], word: string) => records.find((item) => item.word === word)?.type;

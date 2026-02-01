@@ -4,14 +4,15 @@ import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Alert, Box, Button, Container, IconButton, Typography} from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import {WORDS_DICTIONARY, WordRecord} from '@/lib/words';
+import {WORDS_DICTIONARY} from '@/lib/config';
+import {WordRecord} from '@/lib/types';
 import WordCard from '@/components/WordCard';
 import {WordCardMode} from '@/lib/types';
 import {usePronunciation} from '@/lib/usePronunciation';
 import {GlobalStatsMap} from '@/lib/statistics/AStatisticsManager';
 import {WordStatisticsManager} from '@/lib/statistics/WordStatisticsManager';
 import {PhrasesStatisticsManager} from '@/lib/statistics/PhrasesStatisticsManager';
-import {PHRASES_DICTIONARY} from '@/lib/phrases';
+import {PHRASES_DICTIONARY} from '@/lib/config';
 import {GameManager} from '@/lib/game/GameManager';
 
 export default function WordsPage() {
