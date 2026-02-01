@@ -1,4 +1,4 @@
-import {GlobalConfig, KNOWN_GAME_STORAGE_KEYS} from '@/lib/Config';
+import {GlobalConfig, KNOWN_GAME_STORAGE_KEYS} from '@/lib/config';
 import {
     AStatisticsManager,
     BaseStatisticsManager,
@@ -136,28 +136,40 @@ export abstract class GameManager<T extends SubjectRecord> {
 
         let decoys: T[] = [];
 
+        // 1. Try to find decoys of the same group first
         if (groupKey !== undefined) {
-            // STICK TO TYPE: only same type from active pool first
+            // Active same type
             const activeSameType = activeBasePool.filter((item) => this.groupBy?.(item) === groupKey);
             decoys = GameManager.shuffle(activeSameType);
 
+            // Global same type
             if (decoys.length < this.decoysNeeded) {
                 const used = new Set(decoys.map((d) => d.getSubject()));
-                // Fill from global pool with SAME type
                 const globalSameType = globalBasePool.filter(
                     (item) => this.groupBy?.(item) === groupKey && !used.has(item.getSubject()),
                 );
                 const remaining = this.decoysNeeded - decoys.length;
                 decoys = [...decoys, ...GameManager.shuffle(globalSameType).slice(0, remaining)];
             }
-        } else {
-            // NO GROUPING: use active then global pool
-            decoys = GameManager.shuffle(activeBasePool).slice(0, this.decoysNeeded);
+        }
+
+        // 2. Fill remaining spots with any available subjects if needed
+        if (decoys.length < this.decoysNeeded) {
+            const used = new Set(decoys.map((d) => d.getSubject()));
+
+            // Active any type
+            const activeRemaining = activeBasePool.filter((item) => !used.has(item.getSubject()));
+            const remainingAfterActive = this.decoysNeeded - decoys.length;
+            const addedFromActive = GameManager.shuffle(activeRemaining).slice(0, remainingAfterActive);
+            decoys = [...decoys, ...addedFromActive];
+
+            // Global any type
             if (decoys.length < this.decoysNeeded) {
-                const used = new Set(decoys.map((d) => d.getSubject()));
-                const globalRemaining = globalBasePool.filter((item) => !used.has(item.getSubject()));
-                const remaining = this.decoysNeeded - decoys.length;
-                decoys = [...decoys, ...GameManager.shuffle(globalRemaining).slice(0, remaining)];
+                const usedNow = new Set(decoys.map((d) => d.getSubject()));
+                const globalRemaining = globalBasePool.filter((item) => !usedNow.has(item.getSubject()));
+                const remainingFinal = this.decoysNeeded - decoys.length;
+                const addedFromGlobal = GameManager.shuffle(globalRemaining).slice(0, remainingFinal);
+                decoys = [...decoys, ...addedFromGlobal];
             }
         }
 

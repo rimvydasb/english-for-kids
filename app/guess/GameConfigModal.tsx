@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {Box, Button, IconButton, Modal, Stack, Typography, keyframes} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import {WordEntryType} from '@/lib/types';
-import {GlobalConfig} from '@/lib/Config';
+import {GlobalConfig} from '@/lib/config';
 
 const pulse = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.7); }

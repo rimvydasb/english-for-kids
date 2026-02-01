@@ -1,4 +1,4 @@
-import {GlobalConfig} from '@/lib/Config';
+import {GlobalConfig} from '@/lib/config';
 import {GuessTheWordGameManager} from '@/lib/game/WordGameManager';
 import {WordRecord} from '@/lib/words';
 import {MemoryStorage} from './helpers/mockStorage';

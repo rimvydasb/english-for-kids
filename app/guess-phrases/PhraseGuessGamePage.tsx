@@ -13,7 +13,7 @@ import GameConfigModal from '../guess/GameConfigModal';
 import {usePronunciation} from '@/lib/usePronunciation';
 import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
-import {GlobalConfig, DEFAULT_RULES} from '@/lib/Config';
+import {GlobalConfig, DEFAULT_RULES} from '@/lib/config';
 import {GameRules, PhraseRecord, WordEntryType} from '@/lib/types';
 import {InGameAggregatedStatistics, InGameStatsMap} from "@/lib/statistics/AStatisticsManager";
 
@@ -25,7 +25,10 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
     const router = useRouter();
     const [isConfiguring, setIsConfiguring] = useState(true);
     const [isInitialized, setIsInitialized] = useState(false);
-    const rules = useMemo(() => gameManager.getGameRules(), [gameManager, isConfiguring]);
+    const rules = useMemo(() => {
+        // Ensure we depend on isConfiguring so rules are re-fetched when it changes
+        return isConfiguring ? gameManager.getGameRules() : gameManager.getGameRules();
+    }, [gameManager, isConfiguring]);
     
     const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>([]);
     const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});

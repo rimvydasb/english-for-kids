@@ -1,6 +1,6 @@
 import {GameManager} from '@/lib/game/GameManager';
 import {MemoryStorage} from './helpers/mockStorage';
-import {KNOWN_GAME_STORAGE_KEYS} from '@/lib/Config';
+import {KNOWN_GAME_STORAGE_KEYS} from '@/lib/config';
 
 describe('Global Game Management', () => {
     it('resetAllOngoingGames clears in-game stats but preserves global stats', () => {

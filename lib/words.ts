@@ -1,4 +1,4 @@
-import {WORDS_DICTIONARY_DATA} from '@/lib/Config';
+import {WORDS_DICTIONARY_DATA} from '@/lib/config';
 import {WordRecord} from '@/lib/types';
 
 export type {WordEntry} from '@/lib/types';

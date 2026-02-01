@@ -14,7 +14,7 @@ import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
 import {usePronunciation} from '@/lib/usePronunciation';
 import {WordRecord} from '@/lib/words';
 import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
-import {DEFAULT_RULES, GlobalConfig} from '@/lib/Config';
+import {DEFAULT_RULES, GlobalConfig} from '@/lib/config';
 import {GameRules, WordCardMode, WordEntryType} from '@/lib/types';
 
 type WordGameManager = GuessTheWordGameManager | ListenAndGuessGameManager;
@@ -29,7 +29,10 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const [isInitialized, setIsInitialized] = useState(false);
     
     // Re-fetch rules when configuration changes
-    const rules = useMemo(() => gameManager.getGameRules(), [gameManager, isConfiguring]);
+    const rules = useMemo(() => {
+        // Ensure we depend on isConfiguring so rules are re-fetched when it changes
+        return isConfiguring ? gameManager.getGameRules() : gameManager.getGameRules();
+    }, [gameManager, isConfiguring]);
     
     const {activeWord, error, pronounceWord: playWord, voicesReady} = usePronunciation();
     const {pronounceWord: playOptionWord} = usePronunciation();

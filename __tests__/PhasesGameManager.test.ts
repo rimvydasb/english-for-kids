@@ -1,4 +1,4 @@
-import {GlobalConfig} from '@/lib/Config';
+import {GlobalConfig} from '@/lib/config';
 import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
 import {PhraseRecord} from '@/lib/types';
 import {MemoryStorage} from './helpers/mockStorage';

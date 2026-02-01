@@ -3,7 +3,7 @@ import {PhrasesStatisticsManager} from '@/lib/statistics/PhrasesStatisticsManage
 import {StorageLike} from '@/lib/statistics/AStatisticsManager';
 import {GameRules, PhraseRecord} from '@/lib/types';
 import {PHRASES_DICTIONARY} from '@/lib/phrases';
-import {GlobalConfig} from '@/lib/Config';
+import {GlobalConfig} from '@/lib/config';
 
 export class PhasesGameManager extends GameManager<PhraseRecord> {
     constructor(subjects: PhraseRecord[] = PHRASES_DICTIONARY, storage?: StorageLike) {

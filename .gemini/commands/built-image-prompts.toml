@@ -1,0 +1,27 @@
+name = "built-image-prompts"
+description = "Builds prompts for all images."
+prompt = """
+You are an expert developer.
+Your task is to implement the the story defined in Markdown file: {{1}}
+
+Assume all tests passed befoere starting the implementation.
+
+### Workflow
+1. Review the tasks in {{1}}. Identify the first uncompleted task. In markdown all tasks are in the format:
+   - [ ] Task description (for uncompleted tasks)
+   - [x] Task description (for completed tasks)
+2. When tasks is done, check it as completed in {{1}} file.
+
+### Implementation Instructions
+- Write clean, production-ready code.
+- Follow existing project patterns found in the provided context.
+- **Do not** commit to git.
+- Provide the implementation in clear code blocks with the relative file path as a header.
+- Do not modify any completed task definitions or story definition in {{1}}. Add question below if you need clarification.
+- Prioritize WASM size, second priority is performance, third priority is code maintainability
+
+### End Conditions
+- All tasks in {{1}} are marked as completed.
+- All Rust tests pass successfully.
+- All JavaScript ('just test-node') tests pass successfully.
+"""

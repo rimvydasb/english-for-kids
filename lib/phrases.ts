@@ -1,4 +1,4 @@
-import {PHRASES_DICTIONARY_DATA} from '@/lib/Config';
+import {PHRASES_DICTIONARY_DATA} from '@/lib/config';
 import {PhraseRecord} from '@/lib/types';
 
 export type {PhraseEntry} from '@/lib/types';
