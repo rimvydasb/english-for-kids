@@ -129,18 +129,21 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
                             <Button
                                 onClick={() => handleCountSelect(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN)}
                                 sx={getButtonStyle(count === GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN)}
+                                data-testid="word-count-all"
                             >
                                 All Words
                             </Button>
                             <Button
                                 onClick={() => handleCountSelect(5)}
                                 sx={getButtonStyle(count === 5)}
+                                data-testid="word-count-5"
                             >
                                 5 Words
                             </Button>
                             <Button
                                 onClick={() => handleCountSelect(20)}
                                 sx={getButtonStyle(count === 20)}
+                                data-testid="word-count-20"
                             >
                                 20 Words
                             </Button>
@@ -158,30 +161,35 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
                             <Button
                                 onClick={() => handleTypeSelect([])}
                                 sx={{...getButtonStyle(types !== null && types.length === 0)}}
+                                data-testid="topic-any"
                             >
                                 Any
                             </Button>
                             <Button
                                 onClick={() => handleTypeSelect(['number'])}
                                 sx={getButtonStyle(types?.includes('number') || false)}
+                                data-testid="topic-numbers"
                             >
                                 1,2,3...
                             </Button>
                             <Button
                                 onClick={() => handleTypeSelect(['color'])}
                                 sx={getButtonStyle(types?.includes('color') || false)}
+                                data-testid="topic-colors"
                             >
                                 Black, White...
                             </Button>
                             <Button
                                 onClick={() => handleTypeSelect(['noun'])}
                                 sx={getButtonStyle(types?.includes('noun') || false)}
+                                data-testid="topic-nouns"
                             >
                                 Cat, Dog...
                             </Button>
                             <Button
                                 onClick={() => handleTypeSelect(['adjective'])}
                                 sx={getButtonStyle(types?.includes('adjective') || false)}
+                                data-testid="topic-adjectives"
                             >
                                 Happy, Sad...
                             </Button>

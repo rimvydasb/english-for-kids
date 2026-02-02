@@ -41,8 +41,8 @@ describe('Full Game Flow Tests', () => {
         cy.contains('Guess The Word').click();
 
         // Configure Game: 5 Words, Numbers
-        cy.contains('button', '5 Words').click();
-        cy.contains('button', 'Numbers').click();
+        cy.get('[data-testid="word-count-5"]').click();
+        cy.get('[data-testid="topic-numbers"]').click();
 
         // Game should start automatically
         cy.get('div[class*="MuiContainer-root"]', { timeout: 10000 }).should('exist');
@@ -143,8 +143,8 @@ describe('Full Game Flow Tests', () => {
         cy.contains('h2', 'Game Setup').should('be.visible');
 
         // Select new rules: 5 Words, Colors
-        cy.contains('button', '5 Words').click();
-        cy.contains('button', 'Colors').click();
+        cy.get('[data-testid="word-count-5"]').click();
+        cy.get('[data-testid="topic-colors"]').click();
 
         // Verify game starts with Colors
         cy.get('div[class*="MuiContainer-root"]', { timeout: 10000 }).should('exist');
@@ -156,8 +156,8 @@ describe('Full Game Flow Tests', () => {
         cy.contains('Listen & Guess').click();
 
         // Configure Game: 5 Words, Numbers
-        cy.contains('button', '5 Words').click();
-        cy.contains('button', 'Numbers').click();
+        cy.get('[data-testid="word-count-5"]').click();
+        cy.get('[data-testid="topic-numbers"]').click();
 
         // Game should start
         cy.get('div[class*="MuiContainer-root"]', { timeout: 10000 }).should('exist');

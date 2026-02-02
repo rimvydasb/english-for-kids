@@ -13,8 +13,8 @@ describe('Game Option Type Consistency', () => {
 
     it('should always show options of the same type as the answer (Any Topic)', () => {
         cy.contains('Guess The Word').click();
-        cy.contains('button', 'All Words').click();
-        cy.contains('button', 'Any Topic').click();
+        cy.get('[data-testid="word-count-all"]').click();
+        cy.get('[data-testid="topic-any"]').click();
 
         cy.get('div[class*="MuiContainer-root"]', { timeout: 10000 }).should('exist');
 
