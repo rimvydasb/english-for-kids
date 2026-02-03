@@ -48,6 +48,9 @@ export interface WordEntry {
 
     // Optional display override
     displayAs?: string;
+
+    // when the word was added to the learning list
+    addedAt?: number;
 }
 
 export abstract class SubjectRecord {
