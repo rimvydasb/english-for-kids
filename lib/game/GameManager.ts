@@ -123,7 +123,8 @@ export abstract class GameManager<T extends SubjectRecord> {
         if (candidates.length === 0) {
             return null;
         }
-        return GameManager.shuffle(candidates)[0];
+        // Strict order (no shuffle) to respect 'addedAt' priority in activeSubjects
+        return candidates[0];
     }
 
     buildOptions(answer: T, activeSubjects: T[]): string[] {
@@ -255,8 +256,27 @@ export abstract class GameManager<T extends SubjectRecord> {
     }
 
     public static sortByDifficulty<U extends SubjectRecord>(subjects: U[], globalStats: GlobalStatsMap): U[] {
+        // Initial shuffle provides random tie-breaking for items with identical sort criteria
         const shuffled = GameManager.shuffle(subjects);
         return shuffled.sort((a, b) => {
+            // 0. Prioritize by addedAt (descending)
+            const aEntry = (a as any).entry;
+            const bEntry = (b as any).entry;
+            const aAdded = aEntry?.addedAt ?? (a as any).addedAt;
+            const bAdded = bEntry?.addedAt ?? (b as any).addedAt;
+
+            if (aAdded !== undefined || bAdded !== undefined) {
+                if (aAdded !== undefined && bAdded !== undefined) {
+                    if (aAdded !== bAdded) {
+                        return bAdded - aAdded; // Newer first
+                    }
+                } else if (aAdded !== undefined) {
+                    return -1; // a has date, comes first
+                } else {
+                    return 1; // b has date, comes first
+                }
+            }
+
             const aStats = globalStats[a.getSubject()] ?? {
                 key: a.getSubject(),
                 correctAttempts: 0,
@@ -288,7 +308,7 @@ export abstract class GameManager<T extends SubjectRecord> {
                 return bAttempts - aAttempts;
             }
 
-            return a.getSubject().localeCompare(b.getSubject());
+            return 0; // Maintain shuffled order for ties
         });
     }
 

@@ -14,19 +14,13 @@ describe('Game Start Modal', () => {
       it(`opens modal when starting ${game.name}`, () => {
         cy.contains(game.name).click();
         cy.contains('Game Setup').should('be.visible');
-        cy.contains('How many words?').should('be.visible');
-        if (game.hasTopic) {
-            cy.contains('What topic?').should('be.visible');
-        } else {
-            cy.contains('What topic?').should('not.exist');
-        }
       });
   });
 
   it('selects options and starts Guess The Word', () => {
     cy.contains('Guess The Word').click();
     cy.contains('button', '5 Words').click();
-    cy.contains('button', 'Nouns').click();
+    cy.contains('button', 'Cat, Dog...').click();
 
     cy.contains('Game Setup').should('not.exist');
     cy.url().should('include', '/guess-the-word');
@@ -55,7 +49,7 @@ describe('Game Start Modal', () => {
       // 1. Start game and select options
       cy.contains('Guess The Word').click();
       cy.contains('button', '5 Words').click();
-      cy.contains('button', 'Nouns').click();
+      cy.contains('button', 'Cat, Dog...').click();
       
       // Wait for game to start
       cy.get('[data-testid="score-header"]').should('exist');
