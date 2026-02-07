@@ -20,17 +20,31 @@ describe('Game Option Type Consistency', () => {
 
         cy.get('div[class*="MuiContainer-root"]', {timeout: 10000}).should('exist');
 
-        // Play 10 rounds to increase chance of seeing different types if bug exists
-        for (let i = 0; i < 10; i++) {
-            cy.get('[data-testid="option-button"]')
-                .first()
-                .invoke('attr', 'data-option-type')
-                .then((expectedType) => {
-                    cy.log(`Expecting all options to be of type: ${expectedType}`);
-                    cy.get('[data-testid="option-button"]').each(($el) => {
-                        cy.wrap($el).should('have.attr', 'data-option-type', expectedType);
+                        // Play 10 rounds to increase chance of seeing different types if bug exists
+
+                        for (let i = 0; i < 10; i++) {
+
+                            cy.get('[data-is-correct="true"]').invoke('attr', 'data-option-type').then((expectedType) => {
+
+                                cy.log(`Expecting all non-extra options to be of type: ${expectedType}`);
+
+                                cy.get('[data-testid="option-button"]').each(($el) => {
+
+                            // Only check consistency if it's NOT an extra decoy
+
+                            if ($el.attr('data-option-extra') !== 'true') {
+
+                                cy.wrap($el).should('have.attr', 'data-option-type', expectedType);
+
+                            } else {
+
+                                cy.log(`Skipping consistency check for extra decoy: ${$el.attr('data-option-value')}`);
+
+                            }
+
+                        });
+
                     });
-                });
 
             // Click correct answer to proceed
             cy.get(`[data-is-correct="true"]`).first().click();

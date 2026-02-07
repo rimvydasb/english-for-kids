@@ -53,4 +53,41 @@ describe('Selected Words Functionality', () => {
         cy.visit('/guess-the-word');
         cy.contains('button', 'Selected Words').should('be.disabled');
     });
+
+    it('preserves statistics when closing and reopening a finished game with selected words', () => {
+        // 1. Select words
+        cy.visit('/words');
+        cy.contains('Select Words to Learn').click();
+        const wordsToSelect = ['apple', 'cat'];
+        wordsToSelect.forEach((word) => {
+            cy.contains(word).parents('.MuiCard-root').click();
+        });
+        cy.contains('Done Selecting').click();
+
+        // 2. Start game with selected words
+        cy.visit('/guess-the-word');
+        cy.contains('button', 'Selected Words').click();
+
+        // 3. Play the game until finished
+        // We have 2 words to learn.
+        for (let i = 0; i < 2; i++) {
+            cy.get('[data-is-correct="true"]').click();
+            cy.contains('button', /Next|Finish!/).click();
+        }
+
+        // 4. Verify we are on the finish screen and see "2 / 2"
+        cy.contains('Great job!').should('be.visible');
+        cy.contains('2 / 2').should('exist');
+
+        // 5. Close the game (go back to home)
+        cy.get('button[aria-label="Return to main menu"]').click();
+        cy.url().should('eq', Cypress.config().baseUrl + '/');
+
+        // 6. Re-enter the same game
+        cy.contains('Guess The Word').click();
+
+        // 7. Verify statistics are preserved (should show finish screen with "2 / 2")
+        cy.contains('Great job!').should('be.visible');
+        cy.contains('2 / 2').should('exist');
+    });
 });

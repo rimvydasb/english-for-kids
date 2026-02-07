@@ -64,7 +64,7 @@ export abstract class SubjectRecord {
 
 export class OptionRecord extends SubjectRecord {
 
-    private copy: SubjectRecord;
+    public readonly copy: SubjectRecord;
 
     public readonly isExtra: boolean;
 

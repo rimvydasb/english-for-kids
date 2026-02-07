@@ -40,7 +40,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const [activeSubjects, setActiveSubjects] = useState<WordRecord[]>([]);
     const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
-    const [options, setOptions] = useState<string[]>([]);
+    const [options, setOptions] = useState<Array<{subject: string; isExtra: boolean}>>([]);
     const [isFinished, setIsFinished] = useState(false);
     const [glowingOption, setGlowingOption] = useState<string | null>(null);
     const [shakingOption, setShakingOption] = useState<string | null>(null);
@@ -287,43 +287,40 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    {options.map((option) => {
-                                        const optionWord = gameManager.findBySubject(option);
-                                        const isCorrect = currentWord?.word === option;
-                                        const label =
-                                            currentRules.options === 'translation'
-                                                ? optionWord?.translation || option
-                                                : optionWord?.word || option;
-                                        const isGlowing = glowingOption === option;
-                                        const isShaking = shakingOption === option;
-                                        const shouldHide = Boolean(resolvedOption && option !== resolvedOption);
-                                        const shouldFade = Boolean(resolvedOption && option !== resolvedOption);
-
-                                        return (
-                                            <OptionButton
-                                                key={option}
-                                                subject={optionWord!}
-                                                value={option}
-                                                label={label}
-                                                isGlowing={isGlowing}
-                                                isShaking={isShaking}
-                                                shouldFade={shouldFade}
-                                                isHidden={shouldHide}
-                                                isLocked={isTransitioning}
-                                                glowSeed={glowSeed}
-                                                onGuess={handleGuess}
-                                                showPronunciation={currentRules.optionPronunciation}
-                                                isCorrect={isCorrect}
-                                                onPronounce={(subject) => {
-                                                    playOptionWord(subject, {
-                                                        suppressPendingError: true,
-                                                        suppressNotAllowedError: true,
-                                                    });
-                                                }}
-                                            />
-                                        );
-                                    })}
-                                </Box>
+                                                                                                    {options.map((option) => {
+                                                                                                        const value = option.getSubject();
+                                                                                                        const optionWord = option.copy as WordRecord;
+                                                                                                        const label =
+                                                                                                            currentRules.options === 'translation'
+                                                                                                                ? optionWord.translation || value
+                                                                                                                : optionWord.word || value;
+                                                                                                        const isGlowing = glowingOption === value;
+                                                                                                        const isShaking = shakingOption === value;
+                                                                                                        const shouldHide = Boolean(resolvedOption && value !== resolvedOption);
+                                                                                                        const shouldFade = Boolean(resolvedOption && value !== resolvedOption);
+                                                                    
+                                                                                                        return (
+                                                                                                            <OptionButton
+                                                                                                                key={option.key}
+                                                                                                                option={option}
+                                                                                                                label={label}
+                                                                                                                isGlowing={isGlowing}
+                                                                                                                isShaking={isShaking}
+                                                                                                                shouldFade={shouldFade}
+                                                                                                                isHidden={shouldHide}
+                                                                                                                isLocked={isTransitioning}
+                                                                                                                glowSeed={glowSeed}
+                                                                                                                onGuess={handleGuess}
+                                                                                                                showPronunciation={currentRules.optionPronunciation}
+                                                                                                                onPronounce={(opt) => {
+                                                                                                                    playOptionWord(opt.copy as WordRecord, {
+                                                                                                                        suppressPendingError: true,
+                                                                                                                        suppressNotAllowedError: true,
+                                                                                                                    });
+                                                                                                                }}
+                                                                                                            />
+                                                                                                        );
+                                                                                                    })}                                </Box>
 
                                 {resolvedOption && (
                                     <Box sx={{display: 'flex', justifyContent: 'center'}}>

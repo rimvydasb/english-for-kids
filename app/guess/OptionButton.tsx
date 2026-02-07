@@ -62,9 +62,8 @@ const fadeAwayAnimation = keyframes`
 `;
 
 interface OptionButtonProps {
-    subject: WordRecord | PhraseRecord;
+    option: OptionRecord;
     label: string;
-    value: string;
     isGlowing: boolean;
     isShaking: boolean;
     shouldFade: boolean;
@@ -72,15 +71,13 @@ interface OptionButtonProps {
     isLocked: boolean;
     glowSeed: number;
     showPronunciation?: boolean;
-    onPronounce?: (subject: WordRecord | PhraseRecord) => void;
+    onPronounce?: (subject: OptionRecord) => void;
     onGuess: (value: string) => void;
-    isCorrect: boolean;
 }
 
 export default function OptionButton({
-    subject,
+    option,
     label,
-    value,
     isGlowing,
     isShaking,
     shouldFade,
@@ -90,8 +87,11 @@ export default function OptionButton({
     showPronunciation,
     onPronounce,
     onGuess,
-    isCorrect,
 }: OptionButtonProps) {
+    const value = option.getSubject();
+    const isCorrect = option.isAnswer;
+    const isExtra = option.isExtra;
+
     const minWidth = Math.max(label.length * 14, 140);
     const animatedGradient = useMemo(() => {
         if (!isGlowing) {
@@ -128,7 +128,7 @@ export default function OptionButton({
 
     const handlePronounceClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        onPronounce?.(subject);
+        onPronounce?.(option);
     };
 
     // Determine colors and borders based on state
@@ -142,7 +142,7 @@ export default function OptionButton({
           ? 'primary.main' // Fallback if no gradient
           : 'transparent';
 
-    const optionType = subject instanceof WordRecord ? subject.type : subject.getSubjectType();
+    const optionType = option.copy instanceof WordRecord ? option.copy.type : option.getSubjectType();
 
     return (
         <Box
@@ -151,6 +151,7 @@ export default function OptionButton({
             data-option-value={value}
             data-is-correct={isCorrect}
             data-option-type={optionType}
+            data-option-extra={isExtra}
             sx={{
                 display: 'inline-flex',
                 alignItems: 'center',

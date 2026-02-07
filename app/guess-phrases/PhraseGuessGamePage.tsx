@@ -30,53 +30,52 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
         return isConfiguring ? gameManager.getGameRules() : gameManager.getGameRules();
     }, [gameManager, isConfiguring]);
 
-    const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>([]);
-    const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
-
-    const [currentPhrase, setCurrentPhrase] = useState<PhraseRecord | null>(null);
-    const [options, setOptions] = useState<string[]>([]);
-    const [isFinished, setIsFinished] = useState(false);
-    const [glowingOption, setGlowingOption] = useState<string | null>(null);
-    const [shakingOption, setShakingOption] = useState<string | null>(null);
-    const [resolvedOption, setResolvedOption] = useState<string | null>(null);
-    const [isTransitioning, setIsTransitioning] = useState(false);
-    const [pendingCompletion, setPendingCompletion] = useState(false);
-    const [glowSeed, setGlowSeed] = useState(0);
-    const [currentRules, setCurrentRules] = useState<GameRules>(rules);
-
-    const hasAnnouncedFinishRef = useRef(false);
-    const {activeWord, error, pronounceWord: playPhrase} = usePronunciation();
-    const {pronounceWord: playOptionPhrase} = usePronunciation();
-    const congratulationsRecord = useMemo(() => ({word: 'Great job'}), []);
-
-    const activeAggregatedStats: InGameAggregatedStatistics = useMemo(() => {
-        return gameManager.aggregate(ensureStatsForSubjects(activeSubjects, inGameStats));
-    }, [activeSubjects, gameManager, inGameStats]);
-
-    const setupRound = useCallback(
-        (subjects: PhraseRecord[], stats: InGameStatsMap) => {
-            const next = gameManager.drawNextCandidate(subjects, stats);
-            if (!next) {
-                setIsFinished(true);
-                setCurrentPhrase(null);
-                setOptions([]);
-                return;
-            }
-
-            setCurrentPhrase(next);
-            setOptions(gameManager.buildOptions(next, subjects));
-            setIsFinished(false);
-            setGlowingOption(null);
-            setShakingOption(null);
-            setResolvedOption(null);
-            setIsTransitioning(false);
-            setPendingCompletion(false);
-            setGlowSeed(0);
-            setCurrentRules(rules);
-        },
-        [gameManager, rules],
-    );
-
+        const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>([]);
+        const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
+        
+        const [currentPhrase, setCurrentPhrase] = useState<PhraseRecord | null>(null);
+        const [options, setOptions] = useState<Array<{subject: string; isExtra: boolean}>>([]);
+        const [isFinished, setIsFinished] = useState(false);
+        const [glowingOption, setGlowingOption] = useState<string | null>(null);
+        const [shakingOption, setShakingOption] = useState<string | null>(null);
+        const [resolvedOption, setResolvedOption] = useState<string | null>(null);
+        const [isTransitioning, setIsTransitioning] = useState(false);
+        const [pendingCompletion, setPendingCompletion] = useState(false);
+        const [glowSeed, setGlowSeed] = useState(0);
+        const [currentRules, setCurrentRules] = useState<GameRules>(rules);
+    
+        const hasAnnouncedFinishRef = useRef(false);
+        const {activeWord, error, pronounceWord: playPhrase} = usePronunciation();
+        const {pronounceWord: playOptionPhrase} = usePronunciation();
+        const congratulationsRecord = useMemo(() => ({word: 'Great job'}), []);
+    
+        const activeAggregatedStats: InGameAggregatedStatistics = useMemo(() => {
+            return gameManager.aggregate(ensureStatsForSubjects(activeSubjects, inGameStats));
+        }, [activeSubjects, gameManager, inGameStats]);
+    
+        const setupRound = useCallback(
+            (subjects: PhraseRecord[], stats: InGameStatsMap) => {
+                const next = gameManager.drawNextCandidate(subjects, stats);
+                if (!next) {
+                    setIsFinished(true);
+                    setCurrentPhrase(null);
+                    setOptions([]);
+                    return;
+                }
+    
+                setCurrentPhrase(next);
+                setOptions(gameManager.buildOptions(next, subjects));
+                setIsFinished(false);
+                setGlowingOption(null);
+                setShakingOption(null);
+                setResolvedOption(null);
+                setIsTransitioning(false);
+                setPendingCompletion(false);
+                setGlowSeed(0);
+                setCurrentRules(rules);
+            },
+            [gameManager, rules],
+        );
     const handleConfigStart = useCallback(
         (count: number, types: WordEntryType[]) => {
             const subjects = gameManager.startTheGame({
@@ -272,40 +271,37 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    {options.map((option) => {
-                                        const optionPhrase = gameManager.findBySubject(option);
-                                        const isCorrect = currentPhrase?.word === option;
-                                        const label = optionPhrase?.translation || option;
-                                        const isGlowing = glowingOption === option;
-                                        const isShaking = shakingOption === option;
-                                        const shouldHide = Boolean(resolvedOption && option !== resolvedOption);
-                                        const shouldFade = Boolean(resolvedOption && option !== resolvedOption);
-
-                                        return (
-                                            <OptionButton
-                                                key={option}
-                                                subject={optionPhrase!}
-                                                value={option}
-                                                label={label}
-                                                isGlowing={isGlowing}
-                                                isShaking={isShaking}
-                                                shouldFade={shouldFade}
-                                                isHidden={shouldHide}
-                                                isLocked={isTransitioning}
-                                                glowSeed={glowSeed}
-                                                onGuess={handleGuess}
-                                                showPronunciation={currentRules.optionPronunciation}
-                                                isCorrect={isCorrect}
-                                                onPronounce={(subject) => {
-                                                    playOptionPhrase(subject, {
-                                                        suppressPendingError: true,
-                                                        suppressNotAllowedError: true,
-                                                    });
-                                                }}
-                                            />
-                                        );
-                                    })}
-                                </Box>
+                                                                                                    {options.map((option) => {
+                                                                                                        const value = option.getSubject();
+                                                                                                        const optionPhrase = option.copy as PhraseRecord;
+                                                                                                        const label = optionPhrase.translation || value;
+                                                                                                        const isGlowing = glowingOption === value;
+                                                                                                        const isShaking = shakingOption === value;
+                                                                                                        const shouldHide = Boolean(resolvedOption && value !== resolvedOption);
+                                                                                                        const shouldFade = Boolean(resolvedOption && value !== resolvedOption);
+                                                                    
+                                                                                                        return (
+                                                                                                            <OptionButton
+                                                                                                                key={option.key}
+                                                                                                                option={option}
+                                                                                                                label={label}
+                                                                                                                isGlowing={isGlowing}
+                                                                                                                isShaking={isShaking}
+                                                                                                                shouldFade={shouldFade}
+                                                                                                                isHidden={shouldHide}
+                                                                                                                isLocked={isTransitioning}
+                                                                                                                glowSeed={glowSeed}
+                                                                                                                onGuess={handleGuess}
+                                                                                                                showPronunciation={currentRules.optionPronunciation}
+                                                                                                                onPronounce={(opt) => {
+                                                                                                                    playOptionPhrase(opt.copy as PhraseRecord, {
+                                                                                                                        suppressPendingError: true,
+                                                                                                                        suppressNotAllowedError: true,
+                                                                                                                    });
+                                                                                                                }}
+                                                                                                            />
+                                                                                                        );
+                                                                                                    })}                                </Box>
 
                                 {resolvedOption && (
                                     <Box sx={{display: 'flex', justifyContent: 'center'}}>

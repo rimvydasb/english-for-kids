@@ -21,15 +21,15 @@ describe('Word game managers', () => {
         const manager = new GuessTheWordGameManager(words, new MemoryStorage());
         const answer = words[0];
         const options = manager.buildOptions(answer, words);
-        const decoys = options.filter((option) => option !== answer.word);
+        const decoys = options.filter((option) => option.getSubject() !== answer.word);
 
         expect(options).toHaveLength(Math.min(words.length, GlobalConfig.DEFAULT_DECOYS + 1));
-        expect(new Set(options).size).toBe(options.length);
+        expect(new Set(options.map((o) => o.getSubject())).size).toBe(options.length);
 
         // We expect it to prioritize same-type words.
         // We have 4 other colors available (total 5 colors, 1 is answer).
         // Since we need 7 decoys, and have 4 colors, we expect all 4 colors to be present.
-        const sameTypeDecoys = decoys.filter((word) => getType(words, word) === answer.type);
+        const sameTypeDecoys = decoys.filter((opt) => getType(words, opt.getSubject()) === answer.type);
         expect(sameTypeDecoys.length).toBe(4);
     });
 

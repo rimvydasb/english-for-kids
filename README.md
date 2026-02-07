@@ -67,11 +67,17 @@ Option Button properties:
 
 `buildOptions` must be updated and clarified
 
-- [ ] decoys must match with answers `type: WordEntryType`
-- [ ] decoys must be taken from `activeSubjects`
-- [ ] if there's not enough decoys in `activeSubjects`, then decoys must be taken from the whole dictionary, but still
+- [x] decoys must match with answers `type: WordEntryType`
+- [x] decoys must be taken from `activeSubjects`
+- [x] if there's not enough decoys in `activeSubjects`, then decoys must be taken from the whole dictionary, but still
   match the `WordEntryType`
-- [ ] if there's not enough decoys in the whole dictionary, then decoys must be taken from the whole dictionary without
+- [x] if there's not enough decoys in the whole dictionary, then decoys must be taken from the whole dictionary without
   matching the `WordEntryType` as a last resort. In this case, near `data-option-type={optionType}` must be additional
   attribute: `data-option-extra=true` to mark that this option is an extra decoy and not matching the `WordEntryType`.
   Adjust cypress tests that check consistency to ignore extra decoys with `data-option-extra=true` attribute.
+- [x] Start using OptionRecord in `buildOptions(answer: T, activeSubjects: T[]): Array<OptionRecord> {`
+  This will also simplify the code in `{options.map((optionObj) => {`. I already added
+  `export class OptionRecord extends SubjectRecord {` - find it.
+- [x] Use `OptionRecord` in `OptionButton` component instead of separate props for option text and pronunciation.
+- [x] Fix Cypress tests if necessary
+- [x] Mark tasks that are really done

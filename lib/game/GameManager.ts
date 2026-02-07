@@ -7,7 +7,7 @@ import {
     InGameStatsMap,
     StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
-import {GameRules, SubjectRecord} from '@/lib/types';
+import {GameRules, OptionRecord, SubjectRecord} from '@/lib/types';
 import {SelectedWordsStorage} from '@/lib/selectedWordsStorage';
 
 export interface GameRoundResult {
@@ -51,9 +51,11 @@ export abstract class GameManager<T extends SubjectRecord> {
      * Start a new game or resume existing one.
      * Returns the list of all subjects user needs to learn in this game.
      */
-    startTheGame(config: Partial<GameRules>): T[] {
-        this.activeConfig = config;
-        this.statistics.saveConfig(config);
+    startTheGame(config?: Partial<GameRules>): T[] {
+        if (config) {
+            this.activeConfig = config;
+            this.statistics.saveConfig(config);
+        }
 
         this.restoreSession();
         const rules = this.getGameRules();
@@ -135,66 +137,52 @@ export abstract class GameManager<T extends SubjectRecord> {
         return candidates[0];
     }
 
-    buildOptions(answer: T, activeSubjects: T[]): string[] {
+    buildOptions(answer: T, activeSubjects: T[]): Array<OptionRecord> {
         const groupKey = this.groupBy?.(answer);
 
         // Pool of all possible decoys (excluding the answer)
-        // If using selected words, we should probably stick to selected words as decoys too,
-        // OR we can allow any words as decoys.
-        // Usually, decoys should be confusing, so restricting them to selected list might be too easy if list is small.
-        // However, user might expect to only see selected words.
-        // Let's stick to global behavior for decoys for now, unless specified otherwise.
-        // Wait, if I restrict decoys to selected words, and I only selected 2 words, the game is broken (needs 7 decoys).
-        // So I will NOT restrict decoys to selected words, unless I have enough.
-        // But to be safe and consistent with "Learning only selected words", maybe decoys *should* be restricted if possible?
-        // The instructions say "In the quiz games (Guess The Word and Listen & Guess) only the selected words will be used."
-        // This likely means as *questions*.
-
         const globalBasePool = this.subjects.filter((item) => item.getSubject() !== answer.getSubject());
         // Pool of active decoys (excluding the answer)
         const activeBasePool = activeSubjects.filter((item) => item.getSubject() !== answer.getSubject());
 
-        let decoys: T[] = [];
+        let decoys: Array<{item: T; isExtra: boolean}> = [];
 
         // 1. Try to find decoys of the same group first
         if (groupKey !== undefined) {
             // Active same type
             const activeSameType = activeBasePool.filter((item) => this.groupBy?.(item) === groupKey);
-            decoys = GameManager.shuffle(activeSameType).slice(0, this.decoysNeeded);
+            const addedFromActive = GameManager.shuffle(activeSameType)
+                .slice(0, this.decoysNeeded)
+                .map((item) => ({item, isExtra: false}));
+            decoys = [...addedFromActive];
 
-            // Global same type
+            // Global same type (if more decoys needed)
             if (decoys.length < this.decoysNeeded) {
-                const used = new Set(decoys.map((d) => d.getSubject()));
+                const usedKeys = new Set(decoys.map((d) => d.item.getSubject()));
                 const globalSameType = globalBasePool.filter(
-                    (item) => this.groupBy?.(item) === groupKey && !used.has(item.getSubject()),
+                    (item) => this.groupBy?.(item) === groupKey && !usedKeys.has(item.getSubject()),
                 );
-                const remaining = this.decoysNeeded - decoys.length;
-                decoys = [...decoys, ...GameManager.shuffle(globalSameType).slice(0, remaining)];
-            }
-        }
-
-        // 2. Fill remaining spots with any available subjects if needed
-        if (decoys.length < this.decoysNeeded) {
-            const used = new Set(decoys.map((d) => d.getSubject()));
-
-            // Active any type
-            const activeRemaining = activeBasePool.filter((item) => !used.has(item.getSubject()));
-            const remainingAfterActive = this.decoysNeeded - decoys.length;
-            const addedFromActive = GameManager.shuffle(activeRemaining).slice(0, remainingAfterActive);
-            decoys = [...decoys, ...addedFromActive];
-
-            // Global any type
-            if (decoys.length < this.decoysNeeded) {
-                const usedNow = new Set(decoys.map((d) => d.getSubject()));
-                const globalRemaining = globalBasePool.filter((item) => !usedNow.has(item.getSubject()));
-                const remainingFinal = this.decoysNeeded - decoys.length;
-                const addedFromGlobal = GameManager.shuffle(globalRemaining).slice(0, remainingFinal);
+                const remainingNeeded = this.decoysNeeded - decoys.length;
+                const addedFromGlobal = GameManager.shuffle(globalSameType)
+                    .slice(0, remainingNeeded)
+                    .map((item) => ({item, isExtra: false}));
                 decoys = [...decoys, ...addedFromGlobal];
             }
         }
 
-        const options = GameManager.shuffle([answer, ...decoys]);
-        return options.map((item) => item.getSubject());
+        // 2. Fill remaining spots with any available subjects as last resort (isExtra: true)
+        if (decoys.length < this.decoysNeeded) {
+            const usedKeys = new Set(decoys.map((d) => d.item.getSubject()));
+            const remainingPool = globalBasePool.filter((item) => !usedKeys.has(item.getSubject()));
+            const remainingNeeded = this.decoysNeeded - decoys.length;
+            const addedAsExtra = GameManager.shuffle(remainingPool)
+                .slice(0, remainingNeeded)
+                .map((item) => ({item, isExtra: true}));
+            decoys = [...decoys, ...addedAsExtra];
+        }
+
+        const options = GameManager.shuffle([{item: answer, isExtra: false, isAnswer: true}, ...decoys]);
+        return options.map((opt) => new OptionRecord(opt.item, opt.isExtra, (opt as any).isAnswer || false));
     }
 
     /**
