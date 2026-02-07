@@ -69,7 +69,7 @@ export class WordRecord extends SubjectRecord {
 
     examples?: string[];
 
-    type: WordEntry['type'];
+    type: WordEntryType;
 
     imageFile?: string;
 

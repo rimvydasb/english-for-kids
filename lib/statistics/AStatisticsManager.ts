@@ -75,7 +75,7 @@ export abstract class AStatisticsManager {
                 totalAttempts: 0,
                 correctAttempts: 0,
                 wrongAttempts: 0,
-                learned: false,
+                learned: false
             };
             return acc;
         }, {});
@@ -147,7 +147,7 @@ export abstract class AStatisticsManager {
                 totalAttempts: 0,
                 correctAttempts: 0,
                 wrongAttempts: 0,
-                learned: false,
+                learned: false
             };
         }
         return {...stats[key]};

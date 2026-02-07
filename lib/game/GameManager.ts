@@ -51,11 +51,9 @@ export abstract class GameManager<T extends SubjectRecord> {
      * Start a new game or resume existing one.
      * Returns the list of all subjects user needs to learn in this game.
      */
-    startTheGame(config?: Partial<GameRules>): T[] {
-        if (config) {
-            this.activeConfig = config;
-            this.statistics.saveConfig(config);
-        }
+    startTheGame(config: Partial<GameRules>): T[] {
+        this.activeConfig = config;
+        this.statistics.saveConfig(config);
 
         this.restoreSession();
         const rules = this.getGameRules();

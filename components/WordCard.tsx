@@ -112,8 +112,8 @@ export default function WordCard({
                 transition: 'all 0.3s ease-in-out',
                 transform: active ? 'scale(1.03)' : isSelected && selectionMode ? 'scale(0.95)' : 'scale(1)',
                 boxShadow: active ? 6 : isSelected && selectionMode ? 0 : 2,
-                borderColor: active || (isSelected && selectionMode) ? 'secondary.main' : 'divider',
-                borderWidth: isSelected && selectionMode ? 4 : 1,
+                borderColor: active || isSelected ? 'secondary.main' : 'divider',
+                borderWidth: isSelected ? 4 : 1,
                 cursor: 'pointer',
                 borderRadius: 4,
                 overflow: 'hidden',
@@ -121,7 +121,7 @@ export default function WordCard({
                 opacity: selectionMode && !isSelected ? 0.7 : 1,
             }}
         >
-            {selectionMode && isSelected && (
+            {isSelected && (
                 <Box
                     sx={{
                         position: 'absolute',
