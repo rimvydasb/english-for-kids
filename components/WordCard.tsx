@@ -52,8 +52,8 @@ export default function WordCard({
         [word.word],
     );
     const numberDisplay = useMemo(() => {
-        return word.entry.displayAs ?? word.word;
-    }, [word.word, word.entry.displayAs]);
+        return word.displayAs ?? word.word;
+    }, [word.word, word.displayAs]);
 
     const handleClick = () => {
         if (selectionMode) {

@@ -279,10 +279,8 @@ export abstract class GameManager<T extends SubjectRecord> {
         const shuffled = GameManager.shuffle(subjects);
         return shuffled.sort((a, b) => {
             // 0. Prioritize by addedAt (descending)
-            const aEntry = (a as any).entry;
-            const bEntry = (b as any).entry;
-            const aAdded = aEntry?.addedAt ?? (a as any).addedAt;
-            const bAdded = bEntry?.addedAt ?? (b as any).addedAt;
+            const aAdded = (a as any).addedAt;
+            const bAdded = (b as any).addedAt;
 
             if (aAdded !== undefined || bAdded !== undefined) {
                 if (aAdded !== undefined && bAdded !== undefined) {

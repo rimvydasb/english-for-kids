@@ -73,16 +73,19 @@ export class WordRecord extends SubjectRecord {
 
     imageFile?: string;
 
-    entry: WordEntry;
+    displayAs?: string;
+
+    addedAt?: number;
 
     constructor(entry: WordEntry) {
         super();
-        this.entry = entry;
         this.word = entry.word;
         this.translation = entry.translation;
         this.examples = entry.examples;
         this.type = entry.type;
         this.imageFile = entry.imageFile;
+        this.displayAs = entry.displayAs;
+        this.addedAt = entry.addedAt;
     }
 
     getSubjectType(): 'word' | 'phrase' {
