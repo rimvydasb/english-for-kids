@@ -87,3 +87,5 @@ You will implement an ability to select a words to learn, so user can choose to 
       `SelectedWordsStorage::getSelectedWords` method to get the list of selected words.
     - [ ] Modify `GameManager::startTheGame` to accept `config: Partial<GameRules>` and remove
       `setConfig(config: Partial<GameRules>)` method. With this modification you will simplify the game start logic.
+- [ ] Mark tasks as done when completed (do not commit to git, not allowed)
+- [ ] Ensure Cypress tests pass as well as Jest tests. If any tests fail, fix the issues and ensure all tests pass before marking tasks as done.
