@@ -71,3 +71,7 @@ Option Button properties:
 - [ ] decoys must be taken from `activeSubjects`
 - [ ] if there's not enough decoys in `activeSubjects`, then decoys must be taken from the whole dictionary, but still
   match the `WordEntryType`
+- [ ] if there's not enough decoys in the whole dictionary, then decoys must be taken from the whole dictionary without
+  matching the `WordEntryType` as a last resort. In this case, near `data-option-type={optionType}` must be additional
+  attribute: `data-option-extra=true` to mark that this option is an extra decoy and not matching the `WordEntryType`.
+  Adjust cypress tests that check consistency to ignore extra decoys with `data-option-extra=true` attribute.
