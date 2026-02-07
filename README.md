@@ -58,7 +58,7 @@ Option Button properties:
 - optionWord: word in the option button (English word or Lithuanian translation), optional
 
 | Name           | WordCardMode   | showImage | showTranslation | showWord | showWordPronunciation | options     | optionPronunciation |
-|----------------|----------------|-----------|-----------------|----------|-----------------------|-------------|---------------------|
+| -------------- | -------------- | --------- | --------------- | -------- | --------------------- | ----------- | ------------------- |
 | Guess The Word | GuessWord      | true      | true            | false    | false                 | word        | true                |
 | Listen & Guess | ListenAndGuess | false     | false           | false    | true                  | translation | false               |
 | Guess Phrases  |                | false     | false           | true     | true                  | translation | false               |
@@ -67,25 +67,25 @@ Option Button properties:
 
 You will implement an ability to select a words to learn, so user can choose to learn only a subset of the words.
 
-- [ ] Selected words will be stored in localStorage under the key `SELECTED_WORDS_TO_LEARN` as an array of strings.
-  Develop `SelectedWordsStorage` class in `lib/selectedWordsStorage.ts` with CRUD methods to manage the selected words.
-- [ ] In All Words window add a button "Select Words to Learn". When user clicks it:
-    - [ ] Button gets highlighted with the same animation as correct option in the quiz games.
-    - [ ] User is able to click on a card to select it or unselect it (`SelectedWordsStorage::addWord` and
-      `SelectedWordsStorage::removeWord` methods).
-    - [ ] Selected cards get a border highlight.
-    - [ ] Button text changes to "Done Selecting".
-- [ ] When user clicks "Done Selecting" button:
-    - [ ] Button highlight is removed.
-    - [ ] User is no longer able to select/unselect cards.
-    - [ ] Button text changes back to "Select Words to Learn".
-- [ ] Develop Cypress tests to cover all of this functionality of words selection.
-- [ ] In the quiz games (Guess The Word and Listen & Guess) only the selected words will be used. If no words are
-  selected, all words will be used as before.
-- [ ] `GameConfigModal` component will have the new button: `Selected Words`
-    - [ ] When clicked, it starts the game only with the selected words. Modify `GameManager::startTheGame` to use
-      `SelectedWordsStorage::getSelectedWords` method to get the list of selected words.
-    - [ ] Modify `GameManager::startTheGame` to accept `config: Partial<GameRules>` and remove
-      `setConfig(config: Partial<GameRules>)` method. With this modification you will simplify the game start logic.
-- [ ] Mark tasks as done when completed (do not commit to git, not allowed)
-- [ ] Ensure Cypress tests pass as well as Jest tests. If any tests fail, fix the issues and ensure all tests pass before marking tasks as done.
+- [x] Selected words will be stored in localStorage under the key `SELECTED_WORDS_TO_LEARN` as an array of strings.
+      Develop `SelectedWordsStorage` class in `lib/selectedWordsStorage.ts` with CRUD methods to manage the selected words.
+- [x] In All Words window add a button "Select Words to Learn". When user clicks it:
+    - [x] Button gets highlighted with the same animation as correct option in the quiz games.
+    - [x] User is able to click on a card to select it or unselect it (`SelectedWordsStorage::addWord` and
+          `SelectedWordsStorage::removeWord` methods).
+    - [x] Selected cards get a border highlight.
+    - [x] Button text changes to "Done Selecting".
+- [x] When user clicks "Done Selecting" button:
+    - [x] Button highlight is removed.
+    - [x] User is no longer able to select/unselect cards.
+    - [x] Button text changes back to "Select Words to Learn".
+- [x] Develop Cypress tests to cover all of this functionality of words selection.
+- [x] In the quiz games (Guess The Word and Listen & Guess) only the selected words will be used. If no words are
+      selected, all words will be used as before.
+- [x] `GameConfigModal` component will have the new button: `Selected Words`
+    - [x] When clicked, it starts the game only with the selected words. Modify `GameManager::startTheGame` to use
+          `SelectedWordsStorage::getSelectedWords` method to get the list of selected words.
+    - [x] Modify `GameManager::startTheGame` to accept `config: Partial<GameRules>` and remove
+          `setConfig(config: Partial<GameRules>)` method. With this modification you will simplify the game start logic.
+- [x] Mark tasks as done when completed (do not commit to git, not allowed)
+- [x] Ensure Cypress tests pass as well as Jest tests. If any tests fail, fix the issues and ensure all tests pass before marking tasks as done.

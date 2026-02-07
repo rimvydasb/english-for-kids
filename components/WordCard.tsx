@@ -5,6 +5,7 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import {WordRecord} from '@/lib/types';
 import {GlobalStatistics, WordCardMode} from '@/lib/types';
 import {CardHeader} from '@mui/material';
@@ -22,6 +23,9 @@ interface WordCardProps {
     showTranslation?: boolean;
     showWord?: boolean;
     showWordPronunciation?: boolean;
+    selectionMode?: boolean;
+    isSelected?: boolean;
+    onToggleSelect?: () => void;
 }
 
 export default function WordCard({
@@ -34,6 +38,9 @@ export default function WordCard({
     showTranslation: propShowTranslation,
     showWord: propShowWord,
     showWordPronunciation: propShowWordPronunciation,
+    selectionMode = false,
+    isSelected = false,
+    onToggleSelect,
 }: WordCardProps) {
     const [flipped, setFlipped] = useState(false);
     const isNumber = word.type === 'number';
@@ -48,8 +55,12 @@ export default function WordCard({
         return word.entry.displayAs ?? word.word;
     }, [word.word, word.entry.displayAs]);
 
-    const toggleFlip = () => {
-        setFlipped((prev) => !prev);
+    const handleClick = () => {
+        if (selectionMode) {
+            onToggleSelect?.();
+        } else {
+            setFlipped((prev) => !prev);
+        }
     };
 
     const handlePronounce = (event: MouseEvent) => {
@@ -96,17 +107,36 @@ export default function WordCard({
 
     return (
         <Card
-            onClick={toggleFlip}
+            onClick={handleClick}
             sx={{
-                transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out',
-                transform: active ? 'scale(1.03)' : 'scale(1)',
-                boxShadow: active ? 6 : 2,
-                borderColor: active ? 'secondary.main' : 'divider',
+                transition: 'all 0.3s ease-in-out',
+                transform: active ? 'scale(1.03)' : isSelected && selectionMode ? 'scale(0.95)' : 'scale(1)',
+                boxShadow: active ? 6 : isSelected && selectionMode ? 0 : 2,
+                borderColor: active || (isSelected && selectionMode) ? 'secondary.main' : 'divider',
+                borderWidth: isSelected && selectionMode ? 4 : 1,
                 cursor: 'pointer',
                 borderRadius: 4,
                 overflow: 'hidden',
+                position: 'relative',
+                opacity: selectionMode && !isSelected ? 0.7 : 1,
             }}
         >
+            {selectionMode && isSelected && (
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        zIndex: 10,
+                        color: 'secondary.main',
+                        bgcolor: 'background.paper',
+                        borderRadius: '50%',
+                    }}
+                >
+                    <CheckCircleIcon sx={{fontSize: 32}} />
+                </Box>
+            )}
+
             <Box
                 sx={{
                     position: 'relative',

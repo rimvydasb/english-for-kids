@@ -15,7 +15,7 @@ import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
 import {GlobalConfig, DEFAULT_RULES} from '@/lib/config';
 import {GameRules, PhraseRecord, WordEntryType} from '@/lib/types';
-import {InGameAggregatedStatistics, InGameStatsMap} from "@/lib/statistics/AStatisticsManager";
+import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
 
 interface PhraseGuessGamePageProps {
     gameManager: PhasesGameManager;
@@ -29,10 +29,10 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
         // Ensure we depend on isConfiguring so rules are re-fetched when it changes
         return isConfiguring ? gameManager.getGameRules() : gameManager.getGameRules();
     }, [gameManager, isConfiguring]);
-    
+
     const [activeSubjects, setActiveSubjects] = useState<PhraseRecord[]>([]);
     const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
-    
+
     const [currentPhrase, setCurrentPhrase] = useState<PhraseRecord | null>(null);
     const [options, setOptions] = useState<string[]>([]);
     const [isFinished, setIsFinished] = useState(false);
@@ -79,12 +79,11 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
 
     const handleConfigStart = useCallback(
         (count: number, types: WordEntryType[]) => {
-            gameManager.setConfig({
+            const subjects = gameManager.startTheGame({
                 totalInGameSubjectsToLearn: count,
                 selectedWordEntryTypes: types, // Passed but likely ignored by PhraseManager
             });
 
-            const subjects = gameManager.startTheGame();
             const stats = gameManager.loadInGameStatistics();
 
             setActiveSubjects(subjects);
@@ -197,134 +196,140 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
 
     return (
         <Container maxWidth="md">
-            <GameConfigModal open={isConfiguring} onStart={handleConfigStart} onClose={() => router.push('/')} showTypes={false} />
+            <GameConfigModal
+                open={isConfiguring}
+                onStart={handleConfigStart}
+                onClose={() => router.push('/')}
+                showTypes={false}
+                showSelectedWords={false}
+            />
 
             {!isConfiguring && (
                 <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
-                <GuessScoreHeader
-                    learnedCount={learnedCount}
-                    totalCount={totalCount}
-                    showScore={!isFinished}
-                    variant={rules.variant}
-                    label={rules.name}
-                    icon={<TranslateIcon color="secondary" sx={{fontSize: 32}} />}
-                    onExit={() => router.push('/')}
-                />
-
-                {error && (
-                    <Alert severity="error" sx={{mb: 2}}>
-                        {error}
-                    </Alert>
-                )}
-
-                {isFinished ? (
-                    <FinishedSummary
-                        score={safeScore}
+                    <GuessScoreHeader
                         learnedCount={learnedCount}
                         totalCount={totalCount}
-                        onRestart={handleRestart}
-                        variantStats={activeAggregatedStats}
-                        worstPhrases={gameManager.getWorstGuesses(
-                            GlobalConfig.WORST_GUESSES_COUNT,
-                            inGameStats,
-                            activeSubjects,
-                        )}
-                        onPronouncePhrase={(phrase) =>
-                            playPhrase(phrase, {
-                                suppressPendingError: true,
-                                suppressNotAllowedError: true,
-                            })
-                        }
+                        showScore={!isFinished}
+                        variant={rules.variant}
+                        label={rules.name}
+                        icon={<TranslateIcon color="secondary" sx={{fontSize: 32}} />}
+                        onExit={() => router.push('/')}
                     />
-                ) : (
-                    <Stack spacing={3}>
-                        <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2}}>
-                            <Box sx={{width: {xs: '100%', sm: 420}, maxWidth: 540}}>
-                                {currentPhrase && (
-                                    <PhraseCard
-                                        phrase={currentPhrase}
-                                        active={activeWord === currentPhrase.word}
-                                        showTranslation={currentRules.showTranslation}
-                                        showPhrase={currentRules.showWord}
-                                        showPhrasePronunciation={currentRules.showWordPronunciation}
-                                        onPronounce={() =>
-                                            playPhrase(currentPhrase, {
-                                                suppressPendingError: true,
-                                                suppressNotAllowedError: true,
-                                            })
-                                        }
-                                    />
-                                )}
-                            </Box>
-                        </Box>
 
-                        <Stack spacing={1.5}>
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: 1.5,
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                {options.map((option) => {
-                                    const optionPhrase = gameManager.findBySubject(option);
-                                    const isCorrect = currentPhrase?.word === option;
-                                    const label = optionPhrase?.translation || option;
-                                    const isGlowing = glowingOption === option;
-                                    const isShaking = shakingOption === option;
-                                    const shouldHide = Boolean(resolvedOption && option !== resolvedOption);
-                                    const shouldFade = Boolean(resolvedOption && option !== resolvedOption);
+                    {error && (
+                        <Alert severity="error" sx={{mb: 2}}>
+                            {error}
+                        </Alert>
+                    )}
 
-                                    return (
-                                        <OptionButton
-                                            key={option}
-                                            subject={optionPhrase!}
-                                            value={option}
-                                            label={label}
-                                            isGlowing={isGlowing}
-                                            isShaking={isShaking}
-                                            shouldFade={shouldFade}
-                                            isHidden={shouldHide}
-                                            isLocked={isTransitioning}
-                                            glowSeed={glowSeed}
-                                            onGuess={handleGuess}
-                                            showPronunciation={currentRules.optionPronunciation}
-                                            isCorrect={isCorrect}
-                                            onPronounce={(subject) => {
-                                                playOptionPhrase(subject, {
+                    {isFinished ? (
+                        <FinishedSummary
+                            score={safeScore}
+                            learnedCount={learnedCount}
+                            totalCount={totalCount}
+                            onRestart={handleRestart}
+                            variantStats={activeAggregatedStats}
+                            worstPhrases={gameManager.getWorstGuesses(
+                                GlobalConfig.WORST_GUESSES_COUNT,
+                                inGameStats,
+                                activeSubjects,
+                            )}
+                            onPronouncePhrase={(phrase) =>
+                                playPhrase(phrase, {
+                                    suppressPendingError: true,
+                                    suppressNotAllowedError: true,
+                                })
+                            }
+                        />
+                    ) : (
+                        <Stack spacing={3}>
+                            <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2}}>
+                                <Box sx={{width: {xs: '100%', sm: 420}, maxWidth: 540}}>
+                                    {currentPhrase && (
+                                        <PhraseCard
+                                            phrase={currentPhrase}
+                                            active={activeWord === currentPhrase.word}
+                                            showTranslation={currentRules.showTranslation}
+                                            showPhrase={currentRules.showWord}
+                                            showPhrasePronunciation={currentRules.showWordPronunciation}
+                                            onPronounce={() =>
+                                                playPhrase(currentPhrase, {
                                                     suppressPendingError: true,
                                                     suppressNotAllowedError: true,
-                                                });
-                                            }}
+                                                })
+                                            }
                                         />
-                                    );
-                                })}
-                            </Box>
-
-                            {resolvedOption && (
-                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
-                                    <Button variant="contained" color="secondary" size="large" onClick={handleNext}>
-                                        {pendingCompletion ? 'Finish!' : 'Next'}
-                                    </Button>
+                                    )}
                                 </Box>
-                            )}
-
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    gap: 1,
-                                    flexWrap: 'wrap',
-                                }}
-                            >
-                                <VariantStatsBar stats={activeAggregatedStats} />
                             </Box>
+
+                            <Stack spacing={1.5}>
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        gap: 1.5,
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    {options.map((option) => {
+                                        const optionPhrase = gameManager.findBySubject(option);
+                                        const isCorrect = currentPhrase?.word === option;
+                                        const label = optionPhrase?.translation || option;
+                                        const isGlowing = glowingOption === option;
+                                        const isShaking = shakingOption === option;
+                                        const shouldHide = Boolean(resolvedOption && option !== resolvedOption);
+                                        const shouldFade = Boolean(resolvedOption && option !== resolvedOption);
+
+                                        return (
+                                            <OptionButton
+                                                key={option}
+                                                subject={optionPhrase!}
+                                                value={option}
+                                                label={label}
+                                                isGlowing={isGlowing}
+                                                isShaking={isShaking}
+                                                shouldFade={shouldFade}
+                                                isHidden={shouldHide}
+                                                isLocked={isTransitioning}
+                                                glowSeed={glowSeed}
+                                                onGuess={handleGuess}
+                                                showPronunciation={currentRules.optionPronunciation}
+                                                isCorrect={isCorrect}
+                                                onPronounce={(subject) => {
+                                                    playOptionPhrase(subject, {
+                                                        suppressPendingError: true,
+                                                        suppressNotAllowedError: true,
+                                                    });
+                                                }}
+                                            />
+                                        );
+                                    })}
+                                </Box>
+
+                                {resolvedOption && (
+                                    <Box sx={{display: 'flex', justifyContent: 'center'}}>
+                                        <Button variant="contained" color="secondary" size="large" onClick={handleNext}>
+                                            {pendingCompletion ? 'Finish!' : 'Next'}
+                                        </Button>
+                                    </Box>
+                                )}
+
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        flexWrap: 'wrap',
+                                    }}
+                                >
+                                    <VariantStatsBar stats={activeAggregatedStats} />
+                                </Box>
+                            </Stack>
                         </Stack>
-                    </Stack>
-                )}
-            </Box>
+                    )}
+                </Box>
             )}
         </Container>
     );

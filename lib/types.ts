@@ -20,6 +20,7 @@ export interface GameRules {
     optionPronunciation: boolean;
     totalInGameSubjectsToLearn: number;
     selectedWordEntryTypes: WordEntryType[];
+    useSelectedWords?: boolean;
 }
 
 export type GameVariant = 'guessTheWord' | 'listenAndGuess' | 'guessPhrase';

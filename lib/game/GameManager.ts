@@ -8,6 +8,7 @@ import {
     StorageLike,
 } from '@/lib/statistics/AStatisticsManager';
 import {GameRules, SubjectRecord} from '@/lib/types';
+import {SelectedWordsStorage} from '@/lib/selectedWordsStorage';
 
 export interface GameRoundResult {
     isCorrect: boolean;
@@ -46,20 +47,21 @@ export abstract class GameManager<T extends SubjectRecord> {
 
     abstract getGameRules(): GameRules;
 
-    setConfig(config: Partial<GameRules>) {
-        this.activeConfig = config;
-        this.statistics.saveConfig(config);
-    }
-
     /**
      * Start a new game or resume existing one.
      * Returns the list of all subjects user needs to learn in this game.
      */
-    startTheGame(): T[] {
+    startTheGame(config?: Partial<GameRules>): T[] {
+        if (config) {
+            this.activeConfig = config;
+            this.statistics.saveConfig(config);
+        }
+
         this.restoreSession();
         const rules = this.getGameRules();
         const limit = rules.totalInGameSubjectsToLearn ?? GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN;
         const types = rules.selectedWordEntryTypes ?? [];
+        const useSelectedWords = rules.useSelectedWords ?? false;
 
         // Helper to check if subject matches selected types
         const matchesType = (subject: T) => {
@@ -70,22 +72,30 @@ export abstract class GameManager<T extends SubjectRecord> {
             return true;
         };
 
+        const matchesSelected = (subject: T) => {
+            if (!useSelectedWords) return true;
+            return SelectedWordsStorage.isWordSelected(subject.getSubject());
+        };
+
         let activeSelection = this.statistics
             .loadActiveSubjects()
             .map((key) => this.findBySubject(key))
             .filter((item): item is T => Boolean(item))
-            .filter(matchesType);
+            .filter(matchesType)
+            .filter(matchesSelected);
 
         if (activeSelection.length < limit) {
             const needed = limit - activeSelection.length;
             const existingKeys = new Set(activeSelection.map((s) => s.getSubject()));
 
-            const pool = this.subjects.filter((s) => !existingKeys.has(s.getSubject()) && matchesType(s));
-            
+            const pool = this.subjects.filter(
+                (s) => !existingKeys.has(s.getSubject()) && matchesType(s) && matchesSelected(s),
+            );
+
             const globalStats = this.statistics.loadGlobalStatistics();
             const prioritized = GameManager.sortByDifficulty(pool, globalStats);
             const nextBatch = prioritized.slice(0, needed);
-            
+
             activeSelection = [...activeSelection, ...nextBatch];
         } else if (activeSelection.length > limit) {
             activeSelection = activeSelection.slice(0, limit);
@@ -131,6 +141,17 @@ export abstract class GameManager<T extends SubjectRecord> {
         const groupKey = this.groupBy?.(answer);
 
         // Pool of all possible decoys (excluding the answer)
+        // If using selected words, we should probably stick to selected words as decoys too,
+        // OR we can allow any words as decoys.
+        // Usually, decoys should be confusing, so restricting them to selected list might be too easy if list is small.
+        // However, user might expect to only see selected words.
+        // Let's stick to global behavior for decoys for now, unless specified otherwise.
+        // Wait, if I restrict decoys to selected words, and I only selected 2 words, the game is broken (needs 7 decoys).
+        // So I will NOT restrict decoys to selected words, unless I have enough.
+        // But to be safe and consistent with "Learning only selected words", maybe decoys *should* be restricted if possible?
+        // The instructions say "In the quiz games (Guess The Word and Listen & Guess) only the selected words will be used."
+        // This likely means as *questions*.
+
         const globalBasePool = this.subjects.filter((item) => item.getSubject() !== answer.getSubject());
         // Pool of active decoys (excluding the answer)
         const activeBasePool = activeSubjects.filter((item) => item.getSubject() !== answer.getSubject());

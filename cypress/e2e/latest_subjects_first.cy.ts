@@ -2,11 +2,13 @@ describe('Latest Subjects First', () => {
     beforeEach(() => {
         cy.clearLocalStorage();
         cy.window().then((win) => {
-            ['GUESS_THE_WORD_GAME_STATS', 'LISTEN_AND_GUESS_GAME_STATS', 'GUESS_THE_PHRASE_GAME_STATS'].forEach(key => {
-                win.localStorage.removeItem(key);
-                win.localStorage.removeItem(`${key}_ACTIVE_SUBJECTS`);
-                win.localStorage.removeItem(`${key}_CONFIG`);
-            });
+            ['GUESS_THE_WORD_GAME_STATS', 'LISTEN_AND_GUESS_GAME_STATS', 'GUESS_THE_PHRASE_GAME_STATS'].forEach(
+                (key) => {
+                    win.localStorage.removeItem(key);
+                    win.localStorage.removeItem(`${key}_ACTIVE_SUBJECTS`);
+                    win.localStorage.removeItem(`${key}_CONFIG`);
+                },
+            );
         });
         cy.visit('/');
     });
@@ -20,7 +22,7 @@ describe('Latest Subjects First', () => {
         cy.contains('button', 'Any').click();
 
         // Game starts
-        cy.get('div[class*="MuiContainer-root"]', { timeout: 10000 }).should('exist');
+        cy.get('div[class*="MuiContainer-root"]', {timeout: 10000}).should('exist');
 
         // Latest words (addedAt: 2026-01-28)
         const latestWordsBatch = new Set(['man', 'mango', 'neck', 'nose', 'octopus']);
@@ -44,7 +46,7 @@ describe('Latest Subjects First', () => {
             } else {
                 cy.contains('button', 'Finish!').click();
             }
-            
+
             cy.wait(200);
         }
 

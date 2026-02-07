@@ -3,28 +3,32 @@
 ## Project Structure & Modules
 
 ### Core Pages
+
 - `app/page.tsx`: Main menu linking to sub-games and learning pages.
 - `app/words/page.tsx`: "All Words" page. Displays all words with flip cards for translation/pronunciation. **Includes "Restart All Games" functionality** at the bottom to reset in-game progress.
 - `app/guess/page.tsx`: Entry point for guessing games.
 - `app/layout.tsx`: Root layout, wraps the MUI theme (`app/ThemeRegistry.tsx`).
 
 ### Game Logic & Statistics (`lib/`)
+
 - **Configuration**: `lib/Config.ts` contains global game constants (e.g., `TOTAL_IN_GAME_SUBJECTS_TO_LEARN`), storage keys, and the source data for `WORDS_DICTIONARY` and `PHRASES_DICTIONARY`.
 - **Game Managers** (`lib/game/`):
-  - `GameManager.ts`: Base class for game logic (selection, progression).
-  - `WordGameManager.ts` & `PhasesGameManager.ts`: Specialized managers for word and phrase-based games.
+    - `GameManager.ts`: Base class for game logic (selection, progression).
+    - `WordGameManager.ts` & `PhasesGameManager.ts`: Specialized managers for word and phrase-based games.
 - **Statistics** (`lib/statistics/`):
-  - `AStatisticsManager.ts`: Base class for handling statistics. Implements the core logic for **Global** (long-term) vs **In-Game** (session) stats.
-  - `WordStatisticsManager.ts` & `PhrasesStatisticsManager.ts`: Concrete implementations.
-  - **Storage**: Stats are persisted in `localStorage`. Keys are defined in `lib/Config.ts`.
+    - `AStatisticsManager.ts`: Base class for handling statistics. Implements the core logic for **Global** (long-term) vs **In-Game** (session) stats.
+    - `WordStatisticsManager.ts` & `PhrasesStatisticsManager.ts`: Concrete implementations.
+    - **Storage**: Stats are persisted in `localStorage`. Keys are defined in `lib/Config.ts`.
 
 ### Assets & Data
+
 - `lib/words.ts` & `lib/phrases.ts`: Expose the dictionary objects (`WordRecord`, `PhraseRecord`) used throughout the app.
 - `public/images/`: Static assets. Filenames must match the word (lowercase, e.g., `crayon.png`).
 
 ## Statistics Architecture
 
 The application maintains two types of statistics (persisted in `localStorage`):
+
 1.  **Global Statistics**: Long-term tracking of correct/wrong answers for every word/phrase across all game modes. Used to determine difficulty and sort items.
 2.  **In-Game Statistics**: Tracks progress for the current "run" or game session. Can be reset via "Restart All Games".
 
@@ -38,7 +42,9 @@ The application maintains two types of statistics (persisted in `localStorage`):
 - `npm run format` — run Prettier.
 
 ### Image Optimization
+
 Resize/optimize new PNGs:
+
 ```bash
 magick mogrify -resize '1024x1024>' -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 public/images/*.png
 ```
@@ -71,8 +77,8 @@ Use `bin/test-cypress.sh` to safely start the server and run tests.
 
 - **Automated**: `npm run lint` + Cypress tests.
 - **Manual Checks**:
-  - **All Words Page**: Check images, audio, and the "Restart All Games" button (ensure it resets game progress but keeps global stats).
-  - **Games**: Verify game loops, score updates, and persistence.
+    - **All Words Page**: Check images, audio, and the "Restart All Games" button (ensure it resets game progress but keeps global stats).
+    - **Games**: Verify game loops, score updates, and persistence.
 
 ## Commit & Pull Request Guidelines
 

@@ -2,8 +2,9 @@
 
 import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
-import {Alert, Box, Button, Container, IconButton, Typography} from '@mui/material';
+import {Alert, Box, Button, Container, IconButton, Typography, keyframes} from '@mui/material';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import {WORDS_DICTIONARY} from '@/lib/config';
 import {WordRecord} from '@/lib/types';
 import WordCard from '@/components/WordCard';
@@ -14,18 +15,34 @@ import {WordStatisticsManager} from '@/lib/statistics/WordStatisticsManager';
 import {PhrasesStatisticsManager} from '@/lib/statistics/PhrasesStatisticsManager';
 import {PHRASES_DICTIONARY} from '@/lib/config';
 import {GameManager} from '@/lib/game/GameManager';
+import {SelectedWordsStorage} from '@/lib/selectedWordsStorage';
+
+const pulse = keyframes`
+    0% {
+        box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(108, 92, 231, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(108, 92, 231, 0);
+    }
+`;
 
 export default function WordsPage() {
     const {activeWord, error, pronounceWord} = usePronunciation();
     const router = useRouter();
     const [globalStats, setGlobalStats] = useState<GlobalStatsMap>({});
     const [sortedWords, setSortedWords] = useState<WordRecord[]>(WORDS_DICTIONARY);
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [selectedWords, setSelectedWords] = useState<string[]>([]);
 
     useEffect(() => {
         const manager = new WordStatisticsManager(WORDS_DICTIONARY, 'GUESS_THE_WORD_GAME_STATS', 'GLOBAL_WORD_STATS');
         const stats = manager.loadGlobalStatistics();
         setGlobalStats(stats);
         setSortedWords(GameManager.sortByDifficulty(WORDS_DICTIONARY, stats));
+        setSelectedWords(SelectedWordsStorage.getSelectedWords());
     }, []);
 
     const handleRestartAllGames = () => {
@@ -36,25 +53,34 @@ export default function WordsPage() {
         const guessTheWordManager = new WordStatisticsManager(
             WORDS_DICTIONARY,
             'GUESS_THE_WORD_GAME_STATS',
-            'GLOBAL_WORD_STATS'
+            'GLOBAL_WORD_STATS',
         );
         guessTheWordManager.resetInGameStatistics();
 
         const listenAndGuessManager = new WordStatisticsManager(
             WORDS_DICTIONARY,
             'LISTEN_AND_GUESS_GAME_STATS',
-            'GLOBAL_WORD_STATS'
+            'GLOBAL_WORD_STATS',
         );
         listenAndGuessManager.resetInGameStatistics();
 
         const phrasesManager = new PhrasesStatisticsManager(
             PHRASES_DICTIONARY,
             'GUESS_THE_PHRASE_GAME_STATS',
-            'GLOBAL_PHRASE_STATS'
+            'GLOBAL_PHRASE_STATS',
         );
         phrasesManager.resetInGameStatistics();
 
         router.push('/');
+    };
+
+    const toggleSelectionMode = () => {
+        setSelectionMode(!selectionMode);
+    };
+
+    const handleToggleSelect = (word: string) => {
+        SelectedWordsStorage.toggleWord(word);
+        setSelectedWords(SelectedWordsStorage.getSelectedWords());
     };
 
     return (
@@ -66,6 +92,8 @@ export default function WordsPage() {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         mb: 2,
+                        flexWrap: 'wrap',
+                        gap: 2,
                     }}
                 >
                     <Box>
@@ -79,6 +107,26 @@ export default function WordsPage() {
                     <IconButton aria-label="Return to main menu" onClick={() => router.push('/')}>
                         <HighlightOffIcon fontSize="large" />
                     </IconButton>
+                </Box>
+
+                <Box sx={{mb: 4, display: 'flex', justifyContent: 'center'}}>
+                    <Button
+                        variant={selectionMode ? 'contained' : 'outlined'}
+                        color="secondary"
+                        size="large"
+                        onClick={toggleSelectionMode}
+                        startIcon={<CheckCircleOutlineIcon />}
+                        sx={{
+                            borderWidth: 2,
+                            fontWeight: 700,
+                            animation: selectionMode ? `${pulse} 2s infinite` : 'none',
+                            '&:hover': {
+                                borderWidth: 2,
+                            },
+                        }}
+                    >
+                        {selectionMode ? 'Done Selecting' : 'Select Words to Learn'}
+                    </Button>
                 </Box>
 
                 {error && (
@@ -108,6 +156,9 @@ export default function WordsPage() {
                             active={activeWord === item.word}
                             onPronounce={() => pronounceWord(item)}
                             globalStats={globalStats[item.word]}
+                            selectionMode={selectionMode}
+                            isSelected={selectedWords.includes(item.word)}
+                            onToggleSelect={() => handleToggleSelect(item.word)}
                         />
                     ))}
                 </Box>

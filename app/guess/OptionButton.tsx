@@ -78,20 +78,20 @@ interface OptionButtonProps {
 }
 
 export default function OptionButton({
-                                         subject,
-                                         label,
-                                         value,
-                                         isGlowing,
-                                         isShaking,
-                                         shouldFade,
-                                         isHidden,
-                                         isLocked,
-                                         glowSeed,
-                                         showPronunciation,
-                                         onPronounce,
-                                         onGuess,
-                                         isCorrect
-                                     }: OptionButtonProps) {
+    subject,
+    label,
+    value,
+    isGlowing,
+    isShaking,
+    shouldFade,
+    isHidden,
+    isLocked,
+    glowSeed,
+    showPronunciation,
+    onPronounce,
+    onGuess,
+    isCorrect,
+}: OptionButtonProps) {
     const minWidth = Math.max(label.length * 14, 140);
     const animatedGradient = useMemo(() => {
         if (!isGlowing) {
@@ -117,13 +117,13 @@ export default function OptionButton({
         borderColor?: string;
     } = isGlowing
         ? {
-            backgroundImage: animatedGradient ?? undefined,
-            backgroundSize: '220% 220%',
-            color: '#fff',
-            animation: `${gradientShift} 1.3s ease-in-out infinite, ${quickPop} 0.6s ease-out`,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
-            borderColor: 'transparent',
-        }
+              backgroundImage: animatedGradient ?? undefined,
+              backgroundSize: '220% 220%',
+              color: '#fff',
+              animation: `${gradientShift} 1.3s ease-in-out infinite, ${quickPop} 0.6s ease-out`,
+              boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
+              borderColor: 'transparent',
+          }
         : {};
 
     const handlePronounceClick = (e: React.MouseEvent) => {
@@ -139,8 +139,8 @@ export default function OptionButton({
     const bgcolor = isShaking
         ? 'error.light'
         : isGlowing
-            ? 'primary.main' // Fallback if no gradient
-            : 'transparent';
+          ? 'primary.main' // Fallback if no gradient
+          : 'transparent';
 
     const optionType = subject instanceof WordRecord ? subject.type : subject.getSubjectType();
 
@@ -181,10 +181,10 @@ export default function OptionButton({
                 animation: shouldFade
                     ? `${fadeAwayAnimation} 3s forwards`
                     : isShaking
-                        ? `${shakeAnimation} 0.5s ease`
-                        : isGlowing
-                            ? animatedStyles.animation
-                            : 'none',
+                      ? `${shakeAnimation} 0.5s ease`
+                      : isGlowing
+                        ? animatedStyles.animation
+                        : 'none',
                 opacity: shouldFade ? 0 : 1,
                 visibility: isHidden ? 'hidden' : 'visible',
                 backgroundImage: animatedStyles.backgroundImage,
@@ -220,7 +220,7 @@ export default function OptionButton({
                         },
                     }}
                 >
-                    <VolumeUpIcon sx={{fontSize: 40}}/>
+                    <VolumeUpIcon sx={{fontSize: 40}} />
                 </IconButton>
             )}
             {label}
