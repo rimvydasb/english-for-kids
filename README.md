@@ -65,28 +65,25 @@ Option Button properties:
 
 ## Next Steps
 
-You will implement specific game rules for each game variant in **game start modal**. Follow the checklist below:
+You will implement an ability to select a words to learn, so user can choose to learn only a subset of the words.
 
-- [x] When I select any game, Material UI `Modal` opens with following options that are common for each game:
-    - [x] First row options: 5 words, 20 words, all words
-    - [x] Second row options: Any words, Numbers, Colors, Nouns, Adjectives
-- [x] Styling: each option is toggled button; when selected, button background color changes to indicate selection
-- [x] Styling: selected game option button should be animated with pulse effect to indicate it is selected
-- [x] As a default none of button is selected; user must select one option from each row to start the game. When
-  remaining option is selected, do 1-second delay and start the game with selected options.
-- [x] Start using `GameRules` new fields `totalInGameSubjectsToLearn` and `selectedWordEntryTypes`. For now only one
-  `selectedWordEntryTypes` is possible, but array is used for the future. If `selectedWordEntryTypes` is empty, the use
-  all types.
-- [x] Implement and start using `totalInGameSubjectsToLearn`. If all words are selected, use
-  `TOTAL_IN_GAME_SUBJECTS_TO_LEARN` constant value from `lib/Config.ts`.
-- [x] Update tests to cover start game rules.
-- [x] Make modal background (actual modal) blurred when modal is open. Bur must be the same as you look though very
-  blurry window.
-- [x] Styling: selected game option buttons must be squared with rounded borders. Check how other buttons are styled,
-  use same style language.
-- [x] Add cypress test to cover **game start modal** options selection.
-- [x] **Game start modal** must have close button the same as all games have in top right corner that simply exits the
-  game. As it is right now, user can always come back and continue the game from where it is left - ensure this with
-  cypress tests.
-- [x] Bug: now I see a bug, when user exits the game and comes back, the modal is not shown again. Fix this bug.
-- [x] Mark tasks that are completed.
+- [ ] Selected words will be stored in localStorage under the key `SELECTED_WORDS_TO_LEARN` as an array of strings.
+  Develop `SelectedWordsStorage` class in `lib/selectedWordsStorage.ts` with CRUD methods to manage the selected words.
+- [ ] In All Words window add a button "Select Words to Learn". When user clicks it:
+    - [ ] Button gets highlighted with the same animation as correct option in the quiz games.
+    - [ ] User is able to click on a card to select it or unselect it (`SelectedWordsStorage::addWord` and
+      `SelectedWordsStorage::removeWord` methods).
+    - [ ] Selected cards get a border highlight.
+    - [ ] Button text changes to "Done Selecting".
+- [ ] When user clicks "Done Selecting" button:
+    - [ ] Button highlight is removed.
+    - [ ] User is no longer able to select/unselect cards.
+    - [ ] Button text changes back to "Select Words to Learn".
+- [ ] Develop Cypress tests to cover all of this functionality of words selection.
+- [ ] In the quiz games (Guess The Word and Listen & Guess) only the selected words will be used. If no words are
+  selected, all words will be used as before.
+- [ ] `GameConfigModal` component will have the new button: `Selected Words`
+    - [ ] When clicked, it starts the game only with the selected words. Modify `GameManager::startTheGame` to use
+      `SelectedWordsStorage::getSelectedWords` method to get the list of selected words.
+    - [ ] Modify `GameManager::startTheGame` to accept `config: Partial<GameRules>` and remove
+      `setConfig(config: Partial<GameRules>)` method. With this modification you will simplify the game start logic.
