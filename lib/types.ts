@@ -20,6 +20,7 @@ export interface GameRules {
     optionPronunciation: boolean;
     totalInGameSubjectsToLearn: number;
     selectedWordEntryTypes: WordEntryType[];
+    useSelectedWords?: boolean;
 }
 
 export type GameVariant = 'guessTheWord' | 'listenAndGuess' | 'guessPhrase';
@@ -61,6 +62,37 @@ export abstract class SubjectRecord {
     abstract getTranslation(): string | undefined;
 }
 
+export class OptionRecord extends SubjectRecord {
+
+    public readonly copy: SubjectRecord;
+
+    public readonly isExtra: boolean;
+
+    public readonly isAnswer: boolean;
+
+    public readonly key: string;
+
+    constructor(copy: SubjectRecord, isExtra: boolean, isAnswer: boolean) {
+        super();
+        this.key = "key-" + copy.getSubject();
+        this.copy = copy;
+        this.isExtra = isExtra;
+        this.isAnswer = isAnswer;
+    }
+
+    getSubjectType(): 'word' | 'phrase' {
+        return this.copy.getSubjectType();
+    }
+
+    getSubject(): string {
+        return this.copy.getSubject();
+    }
+
+    getTranslation(): string | undefined {
+        return this.copy.getTranslation();
+    }
+}
+
 export class WordRecord extends SubjectRecord {
     word: string;
 
@@ -68,20 +100,23 @@ export class WordRecord extends SubjectRecord {
 
     examples?: string[];
 
-    type: WordEntry['type'];
+    type: WordEntryType;
 
     imageFile?: string;
 
-    entry: WordEntry;
+    displayAs?: string;
+
+    addedAt?: number;
 
     constructor(entry: WordEntry) {
         super();
-        this.entry = entry;
         this.word = entry.word;
         this.translation = entry.translation;
         this.examples = entry.examples;
         this.type = entry.type;
         this.imageFile = entry.imageFile;
+        this.displayAs = entry.displayAs;
+        this.addedAt = entry.addedAt;
     }
 
     getSubjectType(): 'word' | 'phrase' {

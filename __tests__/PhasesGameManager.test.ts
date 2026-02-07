@@ -23,9 +23,9 @@ describe('PhasesGameManager', () => {
         expect(candidate).not.toBeNull();
 
         const options = manager.buildOptions(candidate as PhraseRecord, activeSubjects);
-        expect(options).toContain((candidate as PhraseRecord).getSubject());
+        expect(options.map((o) => o.getSubject())).toContain((candidate as PhraseRecord).getSubject());
         expect(options.length).toBe(Math.min(activeSubjects.length, GlobalConfig.DEFAULT_DECOYS + 1));
-        expect(new Set(options).size).toBe(options.length);
+        expect(new Set(options.map((o) => o.getSubject())).size).toBe(options.length);
 
         let latest = manager.recordAttempt(
             inGameStats,

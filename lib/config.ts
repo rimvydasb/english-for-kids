@@ -85,7 +85,7 @@ export const NUMBERS_DATA: WordEntry[] = [
     examples: [example as string],
     type: 'number' as const,
     displayAs: displayAs as string,
-    ...(addedAt ? { addedAt: new Date(addedAt as string).getTime() } : {}),
+    ...(addedAt ? {addedAt: new Date(addedAt as string).getTime()} : {}),
 }));
 
 export const COLORS_DATA: WordEntry[] = [
@@ -105,7 +105,7 @@ export const COLORS_DATA: WordEntry[] = [
     translation: translation as string,
     examples: [example as string],
     type: 'color' as const,
-    ...(addedAt ? { addedAt: new Date(addedAt as string).getTime() } : {}),
+    ...(addedAt ? {addedAt: new Date(addedAt as string).getTime()} : {}),
 }));
 
 const MANUAL_WORDS_DATA: WordEntry[] = [
@@ -160,14 +160,10 @@ const MANUAL_WORDS_DATA: WordEntry[] = [
     examples: examples as string[],
     type: type as any,
     addedAt: addedAt ? new Date(addedAt as string).getTime() : undefined,
-    ...(imageFile ? { imageFile: imageFile as string } : {}),
+    ...(imageFile ? {imageFile: imageFile as string} : {}),
 }));
 
-export const WORDS_DICTIONARY_DATA: WordEntry[] = [
-    ...NUMBERS_DATA,
-    ...COLORS_DATA,
-    ...MANUAL_WORDS_DATA,
-];
+export const WORDS_DICTIONARY_DATA: WordEntry[] = [...NUMBERS_DATA, ...COLORS_DATA, ...MANUAL_WORDS_DATA];
 
 export const PHRASES_DICTIONARY: PhraseRecord[] = PHRASES_DICTIONARY_DATA.map((entry) => new PhraseRecord(entry));
 

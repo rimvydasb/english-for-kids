@@ -62,9 +62,8 @@ const fadeAwayAnimation = keyframes`
 `;
 
 interface OptionButtonProps {
-    subject: WordRecord | PhraseRecord;
+    option: OptionRecord;
     label: string;
-    value: string;
     isGlowing: boolean;
     isShaking: boolean;
     shouldFade: boolean;
@@ -72,26 +71,27 @@ interface OptionButtonProps {
     isLocked: boolean;
     glowSeed: number;
     showPronunciation?: boolean;
-    onPronounce?: (subject: WordRecord | PhraseRecord) => void;
+    onPronounce?: (subject: OptionRecord) => void;
     onGuess: (value: string) => void;
-    isCorrect: boolean;
 }
 
 export default function OptionButton({
-                                         subject,
-                                         label,
-                                         value,
-                                         isGlowing,
-                                         isShaking,
-                                         shouldFade,
-                                         isHidden,
-                                         isLocked,
-                                         glowSeed,
-                                         showPronunciation,
-                                         onPronounce,
-                                         onGuess,
-                                         isCorrect
-                                     }: OptionButtonProps) {
+    option,
+    label,
+    isGlowing,
+    isShaking,
+    shouldFade,
+    isHidden,
+    isLocked,
+    glowSeed,
+    showPronunciation,
+    onPronounce,
+    onGuess,
+}: OptionButtonProps) {
+    const value = option.getSubject();
+    const isCorrect = option.isAnswer;
+    const isExtra = option.isExtra;
+
     const minWidth = Math.max(label.length * 14, 140);
     const animatedGradient = useMemo(() => {
         if (!isGlowing) {
@@ -117,18 +117,18 @@ export default function OptionButton({
         borderColor?: string;
     } = isGlowing
         ? {
-            backgroundImage: animatedGradient ?? undefined,
-            backgroundSize: '220% 220%',
-            color: '#fff',
-            animation: `${gradientShift} 1.3s ease-in-out infinite, ${quickPop} 0.6s ease-out`,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
-            borderColor: 'transparent',
-        }
+              backgroundImage: animatedGradient ?? undefined,
+              backgroundSize: '220% 220%',
+              color: '#fff',
+              animation: `${gradientShift} 1.3s ease-in-out infinite, ${quickPop} 0.6s ease-out`,
+              boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
+              borderColor: 'transparent',
+          }
         : {};
 
     const handlePronounceClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        onPronounce?.(subject);
+        onPronounce?.(option);
     };
 
     // Determine colors and borders based on state
@@ -139,10 +139,10 @@ export default function OptionButton({
     const bgcolor = isShaking
         ? 'error.light'
         : isGlowing
-            ? 'primary.main' // Fallback if no gradient
-            : 'transparent';
+          ? 'primary.main' // Fallback if no gradient
+          : 'transparent';
 
-    const optionType = subject instanceof WordRecord ? subject.type : subject.getSubjectType();
+    const optionType = option.copy instanceof WordRecord ? option.copy.type : option.getSubjectType();
 
     return (
         <Box
@@ -151,6 +151,7 @@ export default function OptionButton({
             data-option-value={value}
             data-is-correct={isCorrect}
             data-option-type={optionType}
+            data-option-extra={isExtra}
             sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -181,10 +182,10 @@ export default function OptionButton({
                 animation: shouldFade
                     ? `${fadeAwayAnimation} 3s forwards`
                     : isShaking
-                        ? `${shakeAnimation} 0.5s ease`
-                        : isGlowing
-                            ? animatedStyles.animation
-                            : 'none',
+                      ? `${shakeAnimation} 0.5s ease`
+                      : isGlowing
+                        ? animatedStyles.animation
+                        : 'none',
                 opacity: shouldFade ? 0 : 1,
                 visibility: isHidden ? 'hidden' : 'visible',
                 backgroundImage: animatedStyles.backgroundImage,
@@ -220,7 +221,7 @@ export default function OptionButton({
                         },
                     }}
                 >
-                    <VolumeUpIcon sx={{fontSize: 40}}/>
+                    <VolumeUpIcon sx={{fontSize: 40}} />
                 </IconButton>
             )}
             {label}

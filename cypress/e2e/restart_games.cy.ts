@@ -13,8 +13,8 @@ describe('Restart All Games', () => {
                 totalAttempts: 5,
                 correctAttempts: 3,
                 wrongAttempts: 2,
-                learned: false
-            }
+                learned: false,
+            },
         };
 
         const phraseInGameStats = {
@@ -23,31 +23,31 @@ describe('Restart All Games', () => {
                 totalAttempts: 5,
                 correctAttempts: 3,
                 wrongAttempts: 2,
-                learned: false
-            }
+                learned: false,
+            },
         };
 
         const globalWordStats = {
             [wordKey]: {
                 key: wordKey,
                 correctAttempts: 10,
-                wrongAttempts: 5
-            }
+                wrongAttempts: 5,
+            },
         };
 
         const globalPhraseStats = {
             [phraseKey]: {
                 key: phraseKey,
                 correctAttempts: 10,
-                wrongAttempts: 5
-            }
+                wrongAttempts: 5,
+            },
         };
 
         cy.window().then((win) => {
             win.localStorage.setItem('GUESS_THE_WORD_GAME_STATS', JSON.stringify(inGameStats));
             win.localStorage.setItem('LISTEN_AND_GUESS_GAME_STATS', JSON.stringify(inGameStats));
             win.localStorage.setItem('GUESS_THE_PHRASE_GAME_STATS', JSON.stringify(phraseInGameStats));
-            
+
             win.localStorage.setItem('GLOBAL_WORD_STATS', JSON.stringify(globalWordStats));
             win.localStorage.setItem('GLOBAL_PHRASE_STATS', JSON.stringify(globalPhraseStats));
         });
@@ -58,11 +58,11 @@ describe('Restart All Games', () => {
         // Note: cy.on('window:confirm', cb) must be set up before the action that triggers it
         // However, Cypress automatically accepts confirmations by default, but we can be explicit.
         // Actually, if we want to confirm, we should let it default to true or explicitly return true.
-        // But the click must happen after setting up the listener if we want to spy on it, 
+        // But the click must happen after setting up the listener if we want to spy on it,
         // or just let it happen.
         // The implementation in component is: if (!window.confirm(...)) return;
         // Cypress auto-accepts alerts and confirms. So just clicking should work.
-        
+
         cy.contains('button', 'Restart All Games').click();
 
         // Verify redirection

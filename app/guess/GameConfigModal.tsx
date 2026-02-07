@@ -5,6 +5,7 @@ import {Box, Button, IconButton, keyframes, Modal, Stack, Typography} from '@mui
 import CloseIcon from '@mui/icons-material/Close';
 import {WordEntryType} from '@/lib/types';
 import {GlobalConfig} from '@/lib/config';
+import {SelectedWordsStorage} from '@/lib/selectedWordsStorage';
 
 const pulse = keyframes`
     0% {
@@ -20,19 +21,30 @@ const pulse = keyframes`
 
 interface GameConfigModalProps {
     open: boolean;
-    onStart: (count: number, types: WordEntryType[]) => void;
+    onStart: (count: number, types: WordEntryType[], useSelectedWords?: boolean) => void;
     onClose: () => void;
     showTypes?: boolean;
+    showSelectedWords?: boolean;
 }
 
-export default function GameConfigModal({open, onStart, onClose, showTypes = true}: GameConfigModalProps) {
+export default function GameConfigModal({
+    open,
+    onStart,
+    onClose,
+    showTypes = true,
+    showSelectedWords = true,
+}: GameConfigModalProps) {
     const [count, setCount] = useState<number | null>(null);
     const [types, setTypes] = useState<WordEntryType[] | null>(null);
+    const [useSelectedWords, setUseSelectedWords] = useState(false);
+    const [hasSelectedWords, setHasSelectedWords] = useState(false);
 
     useEffect(() => {
         if (open) {
             setCount(null);
             setTypes(showTypes ? null : []);
+            setUseSelectedWords(false);
+            setHasSelectedWords(SelectedWordsStorage.getSelectedWords().length > 0);
         }
     }, [open, showTypes]);
 
@@ -40,14 +52,24 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
         if (count !== null && types !== null) {
             const timer = setTimeout(() => {
                 if (open) {
-                    onStart(count, types);
+                    onStart(count, types, useSelectedWords);
                 }
             }, 1000);
             return () => clearTimeout(timer);
         }
-    }, [count, types, onStart, open]);
+    }, [count, types, useSelectedWords, onStart, open]);
 
-    const handleCountSelect = (val: number) => setCount(val);
+    const handleCountSelect = (val: number) => {
+        setCount(val);
+        setUseSelectedWords(false);
+    };
+
+    const handleSelectedWordsClick = () => {
+        setCount(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN);
+        setTypes([]); // Any type
+        setUseSelectedWords(true);
+    };
+
     const handleTypeSelect = (val: WordEntryType[]) => setTypes(val);
 
     const getButtonStyle = (isSelected: boolean) => ({
@@ -74,6 +96,10 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
         '&:active': {
             transform: 'translateY(0)',
             boxShadow: 2,
+        },
+        '&:disabled': {
+            opacity: 0.5,
+            cursor: 'not-allowed',
         },
     });
 
@@ -116,7 +142,7 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
                         color: (theme) => theme.palette.grey[500],
                     }}
                 >
-                    <CloseIcon/>
+                    <CloseIcon />
                 </IconButton>
 
                 <Typography variant="h4" component="h2" gutterBottom align="center" sx={{mb: 4}}>
@@ -125,26 +151,39 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
 
                 <Stack spacing={4}>
                     <Box>
-                        <Stack direction={{xs: 'column', sm: 'row'}} spacing={2}>
+                        <Stack direction={{xs: 'column', sm: 'row'}} spacing={2} sx={{mb: 2}}>
                             <Button
                                 onClick={() => handleCountSelect(GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN)}
-                                sx={getButtonStyle(count === GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN)}
+                                sx={getButtonStyle(
+                                    count === GlobalConfig.TOTAL_IN_GAME_SUBJECTS_TO_LEARN && !useSelectedWords,
+                                )}
                             >
                                 All Words
                             </Button>
                             <Button
                                 onClick={() => handleCountSelect(5)}
-                                sx={getButtonStyle(count === 5)}
+                                sx={getButtonStyle(count === 5 && !useSelectedWords)}
                             >
                                 5 Words
                             </Button>
                             <Button
                                 onClick={() => handleCountSelect(20)}
-                                sx={getButtonStyle(count === 20)}
+                                sx={getButtonStyle(count === 20 && !useSelectedWords)}
                             >
                                 20 Words
                             </Button>
                         </Stack>
+
+                        {showSelectedWords && (
+                            <Button
+                                fullWidth
+                                onClick={handleSelectedWordsClick}
+                                disabled={!hasSelectedWords}
+                                sx={getButtonStyle(useSelectedWords)}
+                            >
+                                Selected Words ({hasSelectedWords ? 'Ready' : 'None'})
+                            </Button>
+                        )}
                     </Box>
 
                     {showTypes && (
@@ -153,6 +192,8 @@ export default function GameConfigModal({open, onStart, onClose, showTypes = tru
                                 display: 'grid',
                                 gridTemplateColumns: {xs: '1fr', sm: 'repeat(3, 1fr)'},
                                 gap: 2,
+                                opacity: useSelectedWords ? 0.5 : 1,
+                                pointerEvents: useSelectedWords ? 'none' : 'auto',
                             }}
                         >
                             <Button

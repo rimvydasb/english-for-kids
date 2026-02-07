@@ -65,28 +65,19 @@ Option Button properties:
 
 ## Next Steps
 
-You will implement specific game rules for each game variant in **game start modal**. Follow the checklist below:
+`buildOptions` must be updated and clarified
 
-- [x] When I select any game, Material UI `Modal` opens with following options that are common for each game:
-    - [x] First row options: 5 words, 20 words, all words
-    - [x] Second row options: Any words, Numbers, Colors, Nouns, Adjectives
-- [x] Styling: each option is toggled button; when selected, button background color changes to indicate selection
-- [x] Styling: selected game option button should be animated with pulse effect to indicate it is selected
-- [x] As a default none of button is selected; user must select one option from each row to start the game. When
-  remaining option is selected, do 1-second delay and start the game with selected options.
-- [x] Start using `GameRules` new fields `totalInGameSubjectsToLearn` and `selectedWordEntryTypes`. For now only one
-  `selectedWordEntryTypes` is possible, but array is used for the future. If `selectedWordEntryTypes` is empty, the use
-  all types.
-- [x] Implement and start using `totalInGameSubjectsToLearn`. If all words are selected, use
-  `TOTAL_IN_GAME_SUBJECTS_TO_LEARN` constant value from `lib/Config.ts`.
-- [x] Update tests to cover start game rules.
-- [x] Make modal background (actual modal) blurred when modal is open. Bur must be the same as you look though very
-  blurry window.
-- [x] Styling: selected game option buttons must be squared with rounded borders. Check how other buttons are styled,
-  use same style language.
-- [x] Add cypress test to cover **game start modal** options selection.
-- [x] **Game start modal** must have close button the same as all games have in top right corner that simply exits the
-  game. As it is right now, user can always come back and continue the game from where it is left - ensure this with
-  cypress tests.
-- [x] Bug: now I see a bug, when user exits the game and comes back, the modal is not shown again. Fix this bug.
-- [x] Mark tasks that are completed.
+- [x] decoys must match with answers `type: WordEntryType`
+- [x] decoys must be taken from `activeSubjects`
+- [x] if there's not enough decoys in `activeSubjects`, then decoys must be taken from the whole dictionary, but still
+  match the `WordEntryType`
+- [x] if there's not enough decoys in the whole dictionary, then decoys must be taken from the whole dictionary without
+  matching the `WordEntryType` as a last resort. In this case, near `data-option-type={optionType}` must be additional
+  attribute: `data-option-extra=true` to mark that this option is an extra decoy and not matching the `WordEntryType`.
+  Adjust cypress tests that check consistency to ignore extra decoys with `data-option-extra=true` attribute.
+- [x] Start using OptionRecord in `buildOptions(answer: T, activeSubjects: T[]): Array<OptionRecord> {`
+  This will also simplify the code in `{options.map((optionObj) => {`. I already added
+  `export class OptionRecord extends SubjectRecord {` - find it.
+- [x] Use `OptionRecord` in `OptionButton` component instead of separate props for option text and pronunciation.
+- [x] Fix Cypress tests if necessary
+- [x] Mark tasks that are really done

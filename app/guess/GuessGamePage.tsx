@@ -27,20 +27,20 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const router = useRouter();
     const [isConfiguring, setIsConfiguring] = useState(true);
     const [isInitialized, setIsInitialized] = useState(false);
-    
+
     // Re-fetch rules when configuration changes
     const rules = useMemo(() => {
         // Ensure we depend on isConfiguring so rules are re-fetched when it changes
         return isConfiguring ? gameManager.getGameRules() : gameManager.getGameRules();
     }, [gameManager, isConfiguring]);
-    
+
     const {activeWord, error, pronounceWord: playWord, voicesReady} = usePronunciation();
     const {pronounceWord: playOptionWord} = usePronunciation();
 
     const [activeSubjects, setActiveSubjects] = useState<WordRecord[]>([]);
     const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
-    const [options, setOptions] = useState<string[]>([]);
+    const [options, setOptions] = useState<Array<{subject: string; isExtra: boolean}>>([]);
     const [isFinished, setIsFinished] = useState(false);
     const [glowingOption, setGlowingOption] = useState<string | null>(null);
     const [shakingOption, setShakingOption] = useState<string | null>(null);
@@ -86,14 +86,13 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     );
 
     const handleConfigStart = useCallback(
-        (count: number, types: WordEntryType[]) => {
-            gameManager.setConfig({
+        (count: number, types: WordEntryType[], useSelectedWords: boolean = false) => {
+            // Start logic
+            const subjects = gameManager.startTheGame({
                 totalInGameSubjectsToLearn: count,
                 selectedWordEntryTypes: types,
+                useSelectedWords: useSelectedWords,
             });
-
-            // Start logic
-            const subjects = gameManager.startTheGame();
             const stats = gameManager.loadInGameStatistics();
             const freshRules = gameManager.getGameRules();
 
@@ -221,134 +220,136 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     return (
         <Container maxWidth="md">
             <GameConfigModal open={isConfiguring} onStart={handleConfigStart} onClose={() => router.push('/')} />
-            
+
             {!isConfiguring && (
                 <Box sx={{minHeight: '100vh', py: 4, position: 'relative'}}>
-                <GuessScoreHeader
-                    learnedCount={learnedCount}
-                    totalCount={totalCount}
-                    showScore={!isFinished}
-                    variant={rules.variant}
-                    label={rules.name}
-                    onExit={() => router.push('/')}
-                />
-
-                {error && (
-                    <Alert severity="error" sx={{mb: 2}}>
-                        {error}
-                    </Alert>
-                )}
-
-                {isFinished ? (
-                    <FinishedSummary
-                        score={safeScore}
+                    <GuessScoreHeader
                         learnedCount={learnedCount}
                         totalCount={totalCount}
-                        onRestart={handleRestart}
-                        variantStats={activeAggregatedStats}
-                        worstWords={gameManager.getWorstGuesses(
-                            GlobalConfig.WORST_GUESSES_COUNT,
-                            inGameStats,
-                            activeSubjects,
-                        )}
-                        onPronounceWord={(word) => playWord(word)}
+                        showScore={!isFinished}
+                        variant={rules.variant}
+                        label={rules.name}
+                        onExit={() => router.push('/')}
                     />
-                ) : (
-                    <Stack spacing={3}>
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: 2,
-                            }}
-                        >
-                            <Box sx={{width: {xs: '100%', sm: 360}, maxWidth: 420}}>
-                                {currentWord && (
-                                    <WordCard
-                                        word={currentWord}
-                                        mode={currentRules.wordCardMode}
-                                        active={activeWord === currentWord.word}
-                                        onPronounce={() => playWord(currentWord)}
-                                        showImage={currentRules.showImage}
-                                        showTranslation={currentRules.showTranslation}
-                                        showWord={currentRules.showWord}
-                                        showWordPronunciation={currentRules.showWordPronunciation}
-                                    />
-                                )}
-                            </Box>
-                        </Box>
 
-                        <Stack spacing={1.5}>
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: 1.5,
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                {options.map((option) => {
-                                    const optionWord = gameManager.findBySubject(option);
-                                    const isCorrect = currentWord?.word === option;
-                                    const label =
-                                        currentRules.options === 'translation'
-                                            ? optionWord?.translation || option
-                                            : optionWord?.word || option;
-                                    const isGlowing = glowingOption === option;
-                                    const isShaking = shakingOption === option;
-                                    const shouldHide = Boolean(resolvedOption && option !== resolvedOption);
-                                    const shouldFade = Boolean(resolvedOption && option !== resolvedOption);
+                    {error && (
+                        <Alert severity="error" sx={{mb: 2}}>
+                            {error}
+                        </Alert>
+                    )}
 
-                                    return (
-                                        <OptionButton
-                                            key={option}
-                                            subject={optionWord!}
-                                            value={option}
-                                            label={label}
-                                            isGlowing={isGlowing}
-                                            isShaking={isShaking}
-                                            shouldFade={shouldFade}
-                                            isHidden={shouldHide}
-                                            isLocked={isTransitioning}
-                                            glowSeed={glowSeed}
-                                            onGuess={handleGuess}
-                                            showPronunciation={currentRules.optionPronunciation}
-                                            isCorrect={isCorrect}
-                                            onPronounce={(subject) => {
-                                                playOptionWord(subject, {
-                                                    suppressPendingError: true,
-                                                    suppressNotAllowedError: true,
-                                                });
-                                            }}
-                                        />
-                                    );
-                                })}
-                            </Box>
-
-                            {resolvedOption && (
-                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
-                                    <Button variant="contained" color="secondary" size="large" onClick={handleNextWord}>
-                                        {pendingCompletion ? 'Finish!' : 'Next'}
-                                    </Button>
-                                </Box>
+                    {isFinished ? (
+                        <FinishedSummary
+                            score={safeScore}
+                            learnedCount={learnedCount}
+                            totalCount={totalCount}
+                            onRestart={handleRestart}
+                            variantStats={activeAggregatedStats}
+                            worstWords={gameManager.getWorstGuesses(
+                                GlobalConfig.WORST_GUESSES_COUNT,
+                                inGameStats,
+                                activeSubjects,
                             )}
-
+                            onPronounceWord={(word) => playWord(word)}
+                        />
+                    ) : (
+                        <Stack spacing={3}>
                             <Box
                                 sx={{
                                     display: 'flex',
-                                    justifyContent: 'center',
+                                    flexDirection: 'column',
                                     alignItems: 'center',
-                                    gap: 1,
-                                    flexWrap: 'wrap',
+                                    gap: 2,
                                 }}
                             >
-                                <VariantStatsBar stats={activeAggregatedStats} />
+                                <Box sx={{width: {xs: '100%', sm: 360}, maxWidth: 420}}>
+                                    {currentWord && (
+                                        <WordCard
+                                            word={currentWord}
+                                            mode={currentRules.wordCardMode}
+                                            active={activeWord === currentWord.word}
+                                            onPronounce={() => playWord(currentWord)}
+                                            showImage={currentRules.showImage}
+                                            showTranslation={currentRules.showTranslation}
+                                            showWord={currentRules.showWord}
+                                            showWordPronunciation={currentRules.showWordPronunciation}
+                                        />
+                                    )}
+                                </Box>
                             </Box>
+
+                            <Stack spacing={1.5}>
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        gap: 1.5,
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                                                                                    {options.map((option) => {
+                                                                                                        const value = option.getSubject();
+                                                                                                        const optionWord = option.copy as WordRecord;
+                                                                                                        const label =
+                                                                                                            currentRules.options === 'translation'
+                                                                                                                ? optionWord.translation || value
+                                                                                                                : optionWord.word || value;
+                                                                                                        const isGlowing = glowingOption === value;
+                                                                                                        const isShaking = shakingOption === value;
+                                                                                                        const shouldHide = Boolean(resolvedOption && value !== resolvedOption);
+                                                                                                        const shouldFade = Boolean(resolvedOption && value !== resolvedOption);
+                                                                    
+                                                                                                        return (
+                                                                                                            <OptionButton
+                                                                                                                key={option.key}
+                                                                                                                option={option}
+                                                                                                                label={label}
+                                                                                                                isGlowing={isGlowing}
+                                                                                                                isShaking={isShaking}
+                                                                                                                shouldFade={shouldFade}
+                                                                                                                isHidden={shouldHide}
+                                                                                                                isLocked={isTransitioning}
+                                                                                                                glowSeed={glowSeed}
+                                                                                                                onGuess={handleGuess}
+                                                                                                                showPronunciation={currentRules.optionPronunciation}
+                                                                                                                onPronounce={(opt) => {
+                                                                                                                    playOptionWord(opt.copy as WordRecord, {
+                                                                                                                        suppressPendingError: true,
+                                                                                                                        suppressNotAllowedError: true,
+                                                                                                                    });
+                                                                                                                }}
+                                                                                                            />
+                                                                                                        );
+                                                                                                    })}                                </Box>
+
+                                {resolvedOption && (
+                                    <Box sx={{display: 'flex', justifyContent: 'center'}}>
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            size="large"
+                                            onClick={handleNextWord}
+                                        >
+                                            {pendingCompletion ? 'Finish!' : 'Next'}
+                                        </Button>
+                                    </Box>
+                                )}
+
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        flexWrap: 'wrap',
+                                    }}
+                                >
+                                    <VariantStatsBar stats={activeAggregatedStats} />
+                                </Box>
+                            </Stack>
                         </Stack>
-                    </Stack>
-                )}
-            </Box>
+                    )}
+                </Box>
             )}
         </Container>
     );
