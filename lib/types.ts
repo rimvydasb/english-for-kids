@@ -62,6 +62,37 @@ export abstract class SubjectRecord {
     abstract getTranslation(): string | undefined;
 }
 
+export class OptionRecord extends SubjectRecord {
+
+    private copy: SubjectRecord;
+
+    public readonly isExtra: boolean;
+
+    public readonly isAnswer: boolean;
+
+    public readonly key: string;
+
+    constructor(copy: SubjectRecord, isExtra: boolean, isAnswer: boolean) {
+        super();
+        this.key = "key-" + copy.getSubject();
+        this.copy = copy;
+        this.isExtra = isExtra;
+        this.isAnswer = isAnswer;
+    }
+
+    getSubjectType(): 'word' | 'phrase' {
+        return this.copy.getSubjectType();
+    }
+
+    getSubject(): string {
+        return this.copy.getSubject();
+    }
+
+    getTranslation(): string | undefined {
+        return this.copy.getTranslation();
+    }
+}
+
 export class WordRecord extends SubjectRecord {
     word: string;
 
