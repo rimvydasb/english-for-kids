@@ -3,7 +3,7 @@ import IconButton from '@mui/material/IconButton';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Box from '@mui/material/Box';
 import {keyframes} from '@mui/material/styles';
-import {PhraseRecord, WordRecord} from '@/lib/types';
+import {OptionRecord, PhraseRecord, WordRecord} from '@/lib/types';
 
 const gradientShift = keyframes`
     0% {

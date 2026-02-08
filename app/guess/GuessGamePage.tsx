@@ -12,7 +12,7 @@ import GameConfigModal from './GameConfigModal';
 import {GuessTheWordGameManager, ListenAndGuessGameManager} from '@/lib/game/WordGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
 import {usePronunciation} from '@/lib/usePronunciation';
-import {WordRecord} from '@/lib/types';
+import {OptionRecord, WordRecord} from '@/lib/types';
 import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
 import {DEFAULT_RULES, GlobalConfig} from '@/lib/config';
 import {GameRules, WordCardMode, WordEntryType} from '@/lib/types';
@@ -40,7 +40,7 @@ export default function GuessGamePage({gameManager}: GuessGamePageProps) {
     const [activeSubjects, setActiveSubjects] = useState<WordRecord[]>([]);
     const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
     const [currentWord, setCurrentWord] = useState<WordRecord | null>(null);
-    const [options, setOptions] = useState<Array<{subject: string; isExtra: boolean}>>([]);
+    const [options, setOptions] = useState<OptionRecord[]>([]);
     const [isFinished, setIsFinished] = useState(false);
     const [glowingOption, setGlowingOption] = useState<string | null>(null);
     const [shakingOption, setShakingOption] = useState<string | null>(null);

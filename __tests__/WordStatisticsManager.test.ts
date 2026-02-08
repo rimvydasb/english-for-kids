@@ -9,7 +9,7 @@ describe('WordStatisticsManager', () => {
     ];
 
     it('tracks attempts, aggregates, and updates global stats on finish', () => {
-        const manager = new WordStatisticsManager(words, 'guessTheWord', new MemoryStorage());
+        const manager = new WordStatisticsManager(words, 'test-words', 'test-words-global', new MemoryStorage());
         const initial = manager.loadState();
 
         expect(initial.inGameStats.apple.totalAttempts).toBe(0);
@@ -45,7 +45,7 @@ describe('WordStatisticsManager', () => {
         expect(resetGlobal.dog.wrongAttempts).toBe(0);
     });
     it('loads state snapshot with aggregated stats after persistence', () => {
-        const manager = new WordStatisticsManager(words, 'listenAndGuess', new MemoryStorage());
+        const manager = new WordStatisticsManager(words, 'test-words-listen', 'test-words-listen-global', new MemoryStorage());
         const start = manager.loadState();
 
         expect(start.aggregated.totalAttempts).toBe(0);

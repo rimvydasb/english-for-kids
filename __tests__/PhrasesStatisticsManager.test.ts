@@ -9,7 +9,7 @@ describe('PhrasesStatisticsManager', () => {
     ];
 
     it('records attempts, aggregates, and persists global statistics on finish', () => {
-        const manager = new PhrasesStatisticsManager(phrases, new MemoryStorage());
+        const manager = new PhrasesStatisticsManager(phrases, 'test-phrases', 'test-phrases-global', new MemoryStorage());
         const inGameStats = manager.loadInGameStatistics();
 
         const afterWrong = manager.recordAttempt(inGameStats, 'Hello', false);
@@ -42,7 +42,7 @@ describe('PhrasesStatisticsManager', () => {
     });
 
     it('loads aggregated snapshot reflecting current in-game stats', () => {
-        const manager = new PhrasesStatisticsManager(phrases, new MemoryStorage());
+        const manager = new PhrasesStatisticsManager(phrases, 'test-phrases', 'test-phrases-global', new MemoryStorage());
         const state = manager.loadState();
         expect(state.aggregated.totalAttempts).toBe(0);
 
