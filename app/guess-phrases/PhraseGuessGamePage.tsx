@@ -14,7 +14,7 @@ import {usePronunciation} from '@/lib/usePronunciation';
 import {PhasesGameManager} from '@/lib/game/PhasesGameManager';
 import {ensureStatsForSubjects} from '@/lib/game/ensureStats';
 import {GlobalConfig, DEFAULT_RULES} from '@/lib/config';
-import {GameRules, PhraseRecord, WordEntryType} from '@/lib/types';
+import {GameRules, OptionRecord, PhraseRecord, WordEntryType} from '@/lib/types';
 import {InGameAggregatedStatistics, InGameStatsMap} from '@/lib/statistics/AStatisticsManager';
 
 interface PhraseGuessGamePageProps {
@@ -34,7 +34,7 @@ export default function PhraseGuessGamePage({gameManager}: PhraseGuessGamePagePr
         const [inGameStats, setInGameStats] = useState<InGameStatsMap>({});
         
         const [currentPhrase, setCurrentPhrase] = useState<PhraseRecord | null>(null);
-        const [options, setOptions] = useState<Array<{subject: string; isExtra: boolean}>>([]);
+        const [options, setOptions] = useState<OptionRecord[]>([]);
         const [isFinished, setIsFinished] = useState(false);
         const [glowingOption, setGlowingOption] = useState<string | null>(null);
         const [shakingOption, setShakingOption] = useState<string | null>(null);
